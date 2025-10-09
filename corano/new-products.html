@@ -1,0 +1,752 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>New Products - Corano Jewelry Shop eCommerce Bootstrap 5 Template</title>
+    <meta name="robots" content="noindex, follow" />
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.ico">
+
+    <!-- CSS
+	============================================ -->
+    <!-- google fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,900" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css">
+    <!-- Pe-icon-7-stroke CSS -->
+    <link rel="stylesheet" href="assets/css/vendor/pe-icon-7-stroke.css">
+    <!-- Font-awesome CSS -->
+    <link rel="stylesheet" href="assets/css/vendor/font-awesome.min.css">
+    <!-- Slick slider css -->
+    <link rel="stylesheet" href="assets/css/plugins/slick.min.css">
+    <!-- animate css -->
+    <link rel="stylesheet" href="assets/css/plugins/animate.css">
+    <!-- Nice Select css -->
+    <link rel="stylesheet" href="assets/css/plugins/nice-select.css">
+    <!-- jquery UI css -->
+    <link rel="stylesheet" href="assets/css/plugins/jqueryui.min.css">
+    <!-- main style css -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Draggable Grid CSS -->
+    <link rel="stylesheet" href="assets/css/draggable-grid/base.css">
+    <link rel="stylesheet" href="assets/css/draggable-grid/style.css">
+
+    <style>
+        /* Custom styles to integrate draggable grid with Corano template */
+        .draggable-grid-section {
+            position: relative;
+            min-height: 100vh;
+            background: #f8f9fa;
+            padding: 100px 0;
+        }
+        
+        .draggable-grid-section .container {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-title h2 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .section-title p {
+            font-size: 18px;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Override draggable grid styles for better integration */
+        .container.draggable-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            min-height: 80vh;
+            background: transparent;
+        }
+        
+        .container.draggable-container:before {
+            display: none;
+        }
+        
+        .grid {
+            position: relative;
+            width: max-content;
+            height: max-content;
+            display: flex;
+            gap: 3vw;
+            margin: 0 auto;
+        }
+        
+        .product {
+            position: relative;
+            width: 200px;
+            height: 250px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .product:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .product div {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .product img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .details {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50vw;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transform: translateX(100%);
+            padding: 60px 40px;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        }
+        
+        .details.--is-showing {
+            transform: translateX(0);
+        }
+        
+        .details__title {
+            margin-bottom: 30px;
+        }
+        
+        .details__title p {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .details__body {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .details__thumb {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .details__thumb img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .details__texts p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #666;
+        }
+        
+        .details__texts span {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .details__texts button {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .details__texts button:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+        
+        .cross {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: scale(0);
+        }
+        
+        .cross svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Navigation integration */
+        .header-area {
+            position: relative;
+            z-index: 100;
+        }
+        
+        /* Loading state */
+        body.loading {
+            overflow: hidden;
+        }
+        
+        body.loading::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        body.loading::after {
+            content: 'Loading...';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            z-index: 10000;
+        }
+    </style>
+</head>
+
+<body class="loading">
+    <!-- Start Header Area -->
+    <header class="header-area header-wide">
+        <!-- main header start -->
+        <div class="main-header d-none d-lg-block">
+            <!-- header top start -->
+            <div class="header-top bdr-bottom">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <div class="welcome-message">
+                                <p>Welcome to Corano Jewelry online store</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="header-top-settings">
+                                <ul class="nav align-items-center">
+                                    <li class="curreny-wrap">
+                                        <h3>USD $</h3>
+                                        <ul class="dropdown">
+                                            <li><a href="#">EUR €</a></li>
+                                            <li><a href="#">USD $</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="language">
+                                        <img src="assets/img/icon/en.png" alt="flag"> English
+                                        <ul class="dropdown">
+                                            <li><a href="#"><img src="assets/img/icon/en.png" alt="flag"> English</a></li>
+                                            <li><a href="#"><img src="assets/img/icon/fr.png" alt="flag"> French</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- header top end -->
+
+            <!-- header middle start -->
+            <div class="header-middle">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3">
+                            <div class="logo">
+                                <a href="index.html"><img src="assets/img/logo/logo.png" alt="Brand Logo"></a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="main-menu">
+                                <nav>
+                                    <ul>
+                                        <li><a href="index.html">Home</a></li>
+                                        <li><a href="shop.html">Shop</a></li>
+                                        <li><a href="new-products.html">New Products</a></li>
+                                        <li><a href="about-us.html">About</a></li>
+                                        <li><a href="contact-us.html">Contact</a></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="header-right">
+                                <div class="search-box">
+                                    <button type="button" data-bs-toggle="modal" data-bs-target="#searchModal">
+                                        <i class="pe-7s-search"></i>
+                                    </button>
+                                </div>
+                                <div class="shopping-card">
+                                    <a href="cart.html"><i class="pe-7s-cart"></i> <span>0</span></a>
+                                </div>
+                                <div class="user-menu">
+                                    <a href="login-register.html"><i class="pe-7s-user"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- header middle end -->
+        </div>
+        <!-- main header end -->
+
+        <!-- mobile header start -->
+        <div class="mobile-header d-lg-none">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <div class="mobile-logo">
+                            <a href="index.html"><img src="assets/img/logo/logo.png" alt="Brand Logo"></a>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mobile-right">
+                            <div class="mobile-search">
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#searchModal">
+                                    <i class="pe-7s-search"></i>
+                                </button>
+                            </div>
+                            <div class="mobile-cart">
+                                <a href="cart.html"><i class="pe-7s-cart"></i> <span>0</span></a>
+                            </div>
+                            <div class="mobile-menu">
+                                <button type="button" class="mobile-menu-toggle">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- mobile header end -->
+    </header>
+    <!-- End Header Area -->
+
+    <!-- Start Draggable Grid Section -->
+    <section class="draggable-grid-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>New Products</h2>
+                <p>Discover our latest collection of exquisite jewelry pieces. Click on any item to explore its details and add to your collection.</p>
+            </div>
+        </div>
+        
+        <div class="container draggable-container">
+            <div class="grid">
+                <div class="column">
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="7"><img src="assets/draggable-grid-public/img-7.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="7"><img src="assets/draggable-grid-public/img-7.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="2"><img src="assets/draggable-grid-public/img-2.png" /></div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="product">
+                        <div data-id="4"><img src="assets/draggable-grid-public/img-4.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="6"><img src="assets/draggable-grid-public/img-6.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="3"><img src="assets/draggable-grid-public/img-3.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="5"><img src="assets/draggable-grid-public/img-5.png" /></div>
+                    </div>
+                    <div class="product">
+                        <div data-id="1"><img src="assets/draggable-grid-public/img-1.png" /></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="details">
+            <div class="details__title">
+                <p data-title="1" data-text>Diamond Elegance Ring</p>
+                <p data-title="2" data-text>Pearl Drop Earrings</p>
+                <p data-title="3" data-text>Gold Chain Necklace</p>
+                <p data-title="4" data-text>Emerald Statement Ring</p>
+                <p data-title="5" data-text>Silver Cuff Bracelet</p>
+                <p data-title="6" data-text>Ruby Heart Pendant</p>
+                <p data-title="7" data-text>Sapphire Tennis Bracelet</p>
+            </div>
+            <div class="details__body">
+                <div class="details__thumb"></div>
+                <div class="details__texts">
+                    <p data-desc="1" data-text>
+                        <span>$1,299.00</span>
+                        This stunning diamond ring features a brilliant cut center stone surrounded by smaller diamonds, creating a timeless elegance perfect for special occasions. Crafted in 18k white gold, it's a symbol of luxury and sophistication.
+                        <button>Add to cart</button>
+                    </p>
+                    <p data-desc="2" data-text>
+                        <span>$899.00</span>
+                        Classic pearl drop earrings that exude timeless beauty. Each pearl is carefully selected for its luster and shape, set in elegant 14k gold settings. Perfect for both formal events and everyday elegance.
+                        <button>Add to cart</button>
+                    </p>
+                    <p data-desc="3" data-text>
+                        <span>$1,599.00</span>
+                        A luxurious gold chain necklace featuring intricate links that catch the light beautifully. Made from 18k yellow gold, this piece is both a statement accessory and a valuable investment in fine jewelry.
+                        <button>Add to cart</button>
+                    </p>
+                    <p data-desc="4" data-text>
+                        <span>$2,199.00</span>
+                        This emerald statement ring showcases a magnificent emerald center stone in a vintage-inspired setting. The deep green color and exceptional clarity make this piece a true showstopper for any jewelry collection.
+                        <button>Add to cart</button>
+                    </p>
+                    <p data-desc="5" data-text>
+                        <span>$799.00</span>
+                        A sleek silver cuff bracelet with modern geometric patterns. Handcrafted from sterling silver, this piece combines contemporary design with traditional craftsmanship, perfect for the modern jewelry enthusiast.
+                        <button>Add to cart</button>
+                    </p>
+                    <p data-desc="6" data-text>
+                        <span>$1,499.00</span>
+                        A romantic ruby heart pendant that captures the essence of love and passion. The deep red ruby is set in a delicate 18k rose gold heart, making it the perfect gift for someone special or a treasured addition to your collection.
+                        <button>Add to cart</button>
+                    </p>
+                    <p data-desc="7" data-text>
+                        <span>$3,299.00</span>
+                        This exquisite sapphire tennis bracelet features alternating blue sapphires and diamonds in a classic tennis bracelet design. Set in platinum, it's a luxurious piece that adds sparkle and elegance to any outfit.
+                        <button>Add to cart</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cross">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18" stroke="#313131" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M6 6L18 18" stroke="#313131" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </div>
+    </section>
+    <!-- End Draggable Grid Section -->
+
+    <!-- Start Footer Area -->
+    <footer class="footer-area">
+        <div class="footer-top">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="footer-widget">
+                            <div class="footer-logo">
+                                <a href="index.html"><img src="assets/img/logo/logo.png" alt="Brand Logo"></a>
+                            </div>
+                            <p>Corano is a premium jewelry brand that offers exquisite pieces crafted with the finest materials and attention to detail.</p>
+                            <div class="footer-social">
+                                <a href="#"><i class="fa fa-facebook"></i></a>
+                                <a href="#"><i class="fa fa-twitter"></i></a>
+                                <a href="#"><i class="fa fa-instagram"></i></a>
+                                <a href="#"><i class="fa fa-pinterest"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <div class="footer-widget">
+                            <h3>Quick Links</h3>
+                            <ul>
+                                <li><a href="index.html">Home</a></li>
+                                <li><a href="shop.html">Shop</a></li>
+                                <li><a href="new-products.html">New Products</a></li>
+                                <li><a href="about-us.html">About Us</a></li>
+                                <li><a href="contact-us.html">Contact</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <div class="footer-widget">
+                            <h3>Customer Service</h3>
+                            <ul>
+                                <li><a href="#">My Account</a></li>
+                                <li><a href="#">Order Tracking</a></li>
+                                <li><a href="#">Wishlist</a></li>
+                                <li><a href="#">Customer Service</a></li>
+                                <li><a href="#">Returns</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="footer-widget">
+                            <h3>Newsletter</h3>
+                            <p>Subscribe to our newsletter and get 10% off your first purchase</p>
+                            <div class="newsletter-form">
+                                <form action="#">
+                                    <input type="email" placeholder="Enter your email">
+                                    <button type="submit">Subscribe</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="footer-copyright">
+                            <p>&copy; 2024 Corano. All rights reserved.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="footer-payment">
+                            <img src="assets/img/payment.png" alt="Payment Methods">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- End Footer Area -->
+
+    <!-- JS
+    ============================================ -->
+    <!-- Modernizer JS -->
+    <script src="assets/js/vendor/modernizr-3.6.0.min.js"></script>
+    <!-- jQuery JS -->
+    <script src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+    <!-- Popper JS -->
+    <script src="assets/js/vendor/popper.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="assets/js/vendor/bootstrap.min.js"></script>
+    <!-- Slick Slider JS -->
+    <script src="assets/js/plugins/slick.min.js"></script>
+    <!-- Countdown JS -->
+    <script src="assets/js/plugins/countdown.min.js"></script>
+    <!-- Nice Select JS -->
+    <script src="assets/js/plugins/nice-select.min.js"></script>
+    <!-- jquery UI JS -->
+    <script src="assets/js/plugins/jqueryui.min.js"></script>
+    <!-- Image zoom JS -->
+    <script src="assets/js/plugins/image-zoom.min.js"></script>
+    <!-- Imagesloaded JS -->
+    <script src="assets/js/plugins/imagesloaded.pkgd.min.js"></script>
+    <!-- Instagram feed JS -->
+    <script src="assets/js/plugins/instagramfeed.min.js"></script>
+    <!-- mailchimp active js -->
+    <script src="assets/js/plugins/ajaxchimp.js"></script>
+    <!-- contact form dynamic js -->
+    <script src="assets/js/plugins/ajax-mail.js"></script>
+    <!-- Main JS -->
+    <script src="assets/js/main.js"></script>
+    
+    <!-- Draggable Grid JS -->
+    <script src="assets/js/draggable-grid/gsap.js"></script>
+    <script src="assets/js/draggable-grid/Draggable.js"></script>
+    <script src="assets/js/draggable-grid/Flip.js"></script>
+    <script src="assets/js/draggable-grid/SplitText.js"></script>
+    <script src="assets/js/draggable-grid/imagesloaded.pkgd.min.js"></script>
+    <script type="module" src="assets/js/draggable-grid/app.js"></script>
+
+    <script>
+        document.documentElement.className = 'js';
+    </script>
+</body>
+
+</html>
