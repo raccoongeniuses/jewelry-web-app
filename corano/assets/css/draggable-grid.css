@@ -1,0 +1,101 @@
+/* Vase Marquee Styles for Corano Theme */
+
+.draggable-product-marquee {
+    background: #fff;
+    padding: 60px 0;
+    overflow: hidden;
+}
+
+.draggable-grid-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.marquee-track {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    animation: marquee 20s linear infinite;
+    gap: 30px;
+}
+
+.marquee-item {
+    flex-shrink: 0;
+    width: 120px;
+    height: 120px;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+.marquee-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.marquee-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.marquee-item:hover img {
+    transform: scale(1.1);
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Pause animation on hover */
+.draggable-grid-container:hover .marquee-track {
+    animation-play-state: paused;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .draggable-grid-container {
+        height: 180px;
+    }
+    .marquee-item {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .draggable-grid-container {
+        height: 150px;
+    }
+    .marquee-item {
+        width: 80px;
+        height: 80px;
+    }
+    .marquee-track {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .draggable-grid-container {
+        height: 120px;
+    }
+    .marquee-item {
+        width: 60px;
+        height: 60px;
+    }
+    .marquee-track {
+        gap: 15px;
+    }
+}

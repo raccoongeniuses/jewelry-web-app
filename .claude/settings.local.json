@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/hirom/crimson-network/draggable-grid/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
