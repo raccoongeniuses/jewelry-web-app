@@ -1,4 +1,4 @@
-/* Vase Marquee Styles for Corano Theme */
+/* Vase Gallery Styles for Corano Theme - Masonry Layout with Marquee */
 
 .draggable-product-marquee {
     background: #fff;
@@ -8,61 +8,56 @@
     padding: 40px 0;
 }
 
-.draggable-grid-container {
+.marquee-wrapper {
     position: relative;
     width: 100%;
-    height: 500px;
     overflow: hidden;
 }
 
-.marquee-track {
-    position: absolute;
-    top: 0;
-    left: 0;
+.grid {
+    position: relative;
     width: 200%;
-    height: 100%;
-    animation: marquee 30s linear infinite;
     display: flex;
-    flex-direction: column;
-    gap: 0;
+    gap: 5vw;
+    animation: scrollLeft 30s linear infinite;
 }
 
-.marquee-row {
+.column {
     display: flex;
-    height: 50%;
-    align-items: center;
-    gap: 0;
-    position: relative;
+    flex-direction: column;
+    gap: 5vw;
+    flex: 1;
 }
 
 .marquee-item {
-    flex-shrink: 0;
-    width: 120px;
-    height: 120px;
-    position: relative;
-    margin: 0 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .marquee-item img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 300px;
+    height: auto;
+    object-fit: contain;
     border: none;
     outline: none;
+    filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.15));
+    transition: transform 0.3s ease;
 }
 
-/* Random positioning for scattered effect */
-.marquee-row:nth-child(1) .marquee-item:nth-child(1) { transform: translateY(-20px); }
-.marquee-row:nth-child(1) .marquee-item:nth-child(3) { transform: translateY(15px); }
-.marquee-row:nth-child(1) .marquee-item:nth-child(5) { transform: translateY(-10px); }
-.marquee-row:nth-child(1) .marquee-item:nth-child(7) { transform: translateY(25px); }
+/* Hover effects */
+.marquee-item:hover {
+    z-index: 10;
+}
 
-.marquee-row:nth-child(2) .marquee-item:nth-child(2) { transform: translateY(20px); }
-.marquee-row:nth-child(2) .marquee-item:nth-child(4) { transform: translateY(-15px); }
-.marquee-row:nth-child(2) .marquee-item:nth-child(6) { transform: translateY(10px); }
-.marquee-row:nth-child(2) .marquee-item:nth-child(8) { transform: translateY(-25px); }
+.marquee-item:hover img {
+    transform: scale(1.05);
+}
 
-@keyframes marquee {
+/* Marquee animation */
+@keyframes scrollLeft {
     0% {
         transform: translateX(0);
     }
@@ -71,38 +66,75 @@
     }
 }
 
-/* Pause animation on hover */
-.draggable-grid-container:hover .marquee-track {
-    animation-play-state: paused;
+
+/* Responsive adjustments for grid layout */
+@media (max-width: 1200px) {
+    .grid {
+        gap: 4vw;
+    }
+    .column {
+        gap: 4vw;
+    }
+    .marquee-item img {
+        max-width: 280px;
+    }
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    .draggable-grid-container {
-        height: 400px;
+@media (max-width: 992px) {
+    .grid {
+        flex-wrap: wrap;
+        gap: 3vw;
     }
-    .marquee-item {
-        width: 100px;
-        height: 100px;
+    .column {
+        flex-basis: calc(33.333% - 2vw);
+        gap: 3vw;
+    }
+    .marquee-item img {
+        max-width: 260px;
     }
 }
 
 @media (max-width: 768px) {
-    .draggable-grid-container {
-        height: 350px;
+    .grid {
+        flex-wrap: wrap;
+        gap: 2vw;
     }
-    .marquee-item {
-        width: 80px;
-        height: 80px;
+    .column {
+        flex-basis: calc(33.333% - 1.5vw);
+        gap: 2vw;
+    }
+    .marquee-item img {
+        max-width: 220px;
     }
 }
 
 @media (max-width: 576px) {
-    .draggable-grid-container {
-        height: 300px;
+    .draggable-product-marquee {
+        padding: 20px 15px;
     }
-    .marquee-item {
-        width: 60px;
-        height: 60px;
+    .grid {
+        flex-wrap: wrap;
+        gap: 2vw;
+    }
+    .column {
+        flex-basis: calc(50% - 1vw);
+        gap: 2vw;
+    }
+    .marquee-item img {
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 400px) {
+    .grid {
+        flex-direction: column;
+        gap: 3vw;
+    }
+    .column {
+        flex-basis: 100%;
+        gap: 3vw;
+    }
+    .marquee-item img {
+        max-width: 250px;
     }
 }

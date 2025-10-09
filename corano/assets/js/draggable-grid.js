@@ -1,34 +1,51 @@
-// Vase Marquee for Corano Theme
+// Vase Marquee for Corano Theme - Scattered Organic Layout
 document.addEventListener("DOMContentLoaded", function () {
   const marqueeTrack = document.querySelector(".marquee-track");
   if (!marqueeTrack) return;
 
-  // Create seamless infinite loop by duplicating the entire track
+  // Create multiple copies to ensure no gaps during scrolling
   const originalContent = marqueeTrack.innerHTML;
-  marqueeTrack.innerHTML = originalContent + originalContent;
+  marqueeTrack.innerHTML = originalContent + originalContent + originalContent;
 
-  // Add random positioning for more scattered effect
+  // Add more dramatic random positioning for scattered effect (no rotation, same size)
   const marqueeItems = marqueeTrack.querySelectorAll(".marquee-item");
   marqueeItems.forEach((item, index) => {
-    // Add random vertical offset for scattered effect
-    const randomOffset = (Math.random() - 0.5) * 40; // -20px to +20px
-    const currentTransform = item.style.transform || "";
-    item.style.transform = currentTransform + ` translateY(${randomOffset}px)`;
+    // Add more dramatic random horizontal offsets for scattered effect within columns
+    const randomX = (Math.random() - 0.5) * 80; // -40px to +40px for column-based scattering
 
-    // Add hover effects
+    const currentTransform = item.style.transform || "";
+    item.style.transform = currentTransform + ` translateX(${randomX}px)`;
+
+    // Add hover effects with scaling (keeping same base size)
     item.addEventListener("mouseenter", function () {
       const currentTransform = this.style.transform;
       this.style.transform = currentTransform + " scale(1.1)";
+      this.style.zIndex = "10";
     });
 
     item.addEventListener("mouseleave", function () {
       const currentTransform = this.style.transform;
       this.style.transform = currentTransform.replace(" scale(1.1)", "");
+      this.style.zIndex = "1";
     });
   });
 
-  // Ensure seamless loop by resetting position when animation completes
-  marqueeTrack.addEventListener("animationiteration", function () {
-    // Animation automatically loops due to CSS infinite property
-  });
+  // Ensure truly infinite scrolling with no resets
+  let animationPosition = 0;
+  const animationSpeed = 0.8; // Slightly slower for better viewing
+
+  function animateMarquee() {
+    animationPosition -= animationSpeed;
+
+    // Reset position when we've scrolled through one complete set
+    if (Math.abs(animationPosition) >= marqueeTrack.offsetWidth / 3) {
+      animationPosition = 0;
+    }
+
+    marqueeTrack.style.transform = `translateX(${animationPosition}px)`;
+    requestAnimationFrame(animateMarquee);
+  }
+
+  // Start the animation
+  animateMarquee();
 });
