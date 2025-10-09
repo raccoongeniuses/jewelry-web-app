@@ -715,12 +715,17 @@
         <div class="vase-details-overlay" id="vaseDetailsOverlay"></div>
         <div class="vase-details-panel" id="vaseDetailsPanel">
             <button class="vase-details-close" id="vaseDetailsClose">×</button>
-            <h3 class="vase-details-title">Yellow Vase</h3>
-            <div class="vase-details-price">$300.00</div>
-            <div class="vase-details-description">
-                Generous in size and striking in presence, the large yellow vase makes a bold decorative statement. Its smooth curves and sunny shade are perfect for standing on the floor or dressing up a wide console. Both functional and eye-catching, it brings vitality and a contemporary edge to your interior design.
+            <div class="vase-details-content">
+                <h3 class="vase-details-title">Yellow Vase</h3>
+                <div class="vase-details-thumb" id="vaseDetailsThumb"></div>
+                <div class="vase-details-info">
+                    <div class="vase-details-price">$300.00</div>
+                    <div class="vase-details-description">
+                        Generous in size and striking in presence, the large yellow vase makes a bold decorative statement. Its smooth curves and sunny shade are perfect for standing on the floor or dressing up a wide console. Both functional and eye-catching, it brings vitality and a contemporary edge to your interior design.
+                    </div>
+                    <button class="vase-details-add-cart">Add to Cart</button>
+                </div>
             </div>
-            <button class="vase-details-add-cart">Add to Cart</button>
         </div>
 
         <!-- featured product area start -->
@@ -2221,6 +2226,8 @@
     <!-- google map active js -->
     <script src="assets/js/plugins/google-map.js"></script>
     <!-- Main JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/draggable-grid.js"></script>
 </body>
