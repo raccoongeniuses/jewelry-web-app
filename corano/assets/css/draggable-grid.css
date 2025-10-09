@@ -192,6 +192,175 @@
     filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.15)) brightness(1.1);
 }
 
+.marquee-item {
+    cursor: pointer;
+}
+
+/* Vase details panel */
+.vase-details-panel {
+    position: fixed;
+    top: 50%;
+    right: -400px;
+    transform: translateY(-50%);
+    width: 350px;
+    background: #fff;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+    z-index: 1000;
+    opacity: 0;
+    transition: right 0.3s ease, opacity 0.3s ease;
+    padding: 30px;
+    border-left: 3px solid #f39c12;
+}
+
+.vase-details-panel.active {
+    right: 20px;
+    opacity: 1;
+}
+
+.vase-details-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: #f39c12;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    transition: background 0.3s ease;
+}
+
+.vase-details-close:hover {
+    background: #e67e22;
+}
+
+.vase-details-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-family: 'Playfair Display', serif;
+}
+
+.vase-details-price {
+    font-size: 20px;
+    color: #f39c12;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.vase-details-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #7f8c8d;
+    margin-bottom: 25px;
+}
+
+.vase-details-add-cart {
+    width: 100%;
+    padding: 12px 20px;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.vase-details-add-cart:hover {
+    background: #34495e;
+}
+
+/* Overlay */
+.vase-details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.vase-details-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile responsiveness for details panel */
+@media (max-width: 768px) {
+    .vase-details-panel {
+        width: 90%;
+        max-width: 320px;
+        right: -100%;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .vase-details-panel.active {
+        right: 5%;
+    }
+}
+
+@media (max-width: 576px) {
+    .vase-details-panel {
+        width: 85%;
+        padding: 20px;
+    }
+
+    .vase-details-title {
+        font-size: 20px;
+    }
+
+    .vase-details-price {
+        font-size: 18px;
+    }
+
+    .vase-details-description {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 400px) {
+    .vase-details-panel {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .vase-details-panel.active {
+        right: 2.5%;
+    }
+
+    .vase-details-title {
+        font-size: 18px;
+    }
+
+    .vase-details-price {
+        font-size: 16px;
+    }
+
+    .vase-details-description {
+        font-size: 12px;
+    }
+
+    .vase-details-add-cart {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+}
+
 /* Marquee animation */
 @keyframes scrollLeft {
     0% {
