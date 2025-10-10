@@ -34,43 +34,45 @@
             <!-- main menu area end -->
 
             <!-- header right area start -->
+            <!-- mini cart area start -->
             <div class="col-lg-4">
-                <div class="header-right-area">
-                    <!-- header search start -->
-                    <div class="header-search">
-                        <button class="header-search-toggle">
-                            <i class="pe-7s-search"></i>
-                        </button>
-                        <div class="header-search-form">
-                            <form action="#">
-                                <input type="text" placeholder="Search">
-                                <button><i class="pe-7s-search"></i></button>
-                            </form>
-                        </div>
+                <div class="header-right d-flex align-items-center justify-content-xl-between justify-content-lg-end">
+                    <div class="header-search-container">
+                        <button class="search-trigger d-xl-none d-lg-block"><i class="pe-7s-search"></i></button>
+                        <form class="header-search-box d-lg-none d-xl-block">
+                            <input type="text" placeholder="Search entire store hire" class="header-search-field">
+                            <button class="header-search-btn"><i class="pe-7s-search"></i></button>
+                        </form>
                     </div>
-                    <!-- header search end -->
-
-                    <!-- mini cart temporarily removed -->
-                    <!-- mini cart end -->
-
-                    <!-- header settings start -->
-                    <div class="header-settings-wrap">
-                        <button class="header-settings-toggle">
-                            <i class="pe-7s-user"></i>
-                        </button>
-                        <div class="header-settings">
-                            <div class="header-settings-content">
-                                <h6>My Account</h6>
-                                <ul>
-                                    <li><a href="my-account.html">My Account</a></li>
-                                    <li><a href="login-register.html">Login / Register</a></li>
+                    <div class="header-configure-area">
+                        <ul class="nav justify-content-end">
+                            <li class="user-hover">
+                                <a href="#">
+                                    <i class="pe-7s-user"></i>
+                                </a>
+                                <ul class="dropdown-list">
+                                    <li><a href="login-register.html">login</a></li>
+                                    <li><a href="login-register.html">register</a></li>
+                                    <li><a href="my-account.html">my account</a></li>
                                 </ul>
-                            </div>
-                        </div>
+                            </li>
+                            <li>
+                                <a href="wishlist.html">
+                                    <i class="pe-7s-like"></i>
+                                    <div class="notification">0</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="minicart-btn">
+                                    <i class="pe-7s-shopbag"></i>
+                                    <div class="notification">2</div>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
-                    <!-- header settings end -->
                 </div>
             </div>
+            <!-- mini cart area end -->
             <!-- header right area end -->
 
             <!-- mobile menu area start -->
