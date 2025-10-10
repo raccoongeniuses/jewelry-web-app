@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/hirom/crimson-network/draggable-grid/**)"
+      "Read(//c/Users/hirom/crimson-network/draggable-grid/**)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
