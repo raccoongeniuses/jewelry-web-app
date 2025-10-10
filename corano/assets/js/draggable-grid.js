@@ -38,6 +38,16 @@ document.addEventListener("DOMContentLoaded", function () {
     currentProduct = product;
     originalParent = product.parentNode;
 
+    // Create a placeholder to maintain the space
+    const placeholder = document.createElement("div");
+    placeholder.style.height = product.offsetHeight + "px";
+    placeholder.style.width = product.offsetWidth + "px";
+    placeholder.style.visibility = "hidden";
+    placeholder.className = "product-placeholder";
+
+    // Insert placeholder before the product
+    product.parentNode.insertBefore(placeholder, product);
+
     // Get state before moving
     const state = Flip.getState(product);
 
@@ -85,6 +95,12 @@ document.addEventListener("DOMContentLoaded", function () {
       duration: 0.4,
       ease: "power2.inOut",
       onComplete: () => {
+        // Find and remove the placeholder
+        const placeholder = originalParent.querySelector('.product-placeholder');
+        if (placeholder) {
+          placeholder.remove();
+        }
+
         // Move back to original parent (invisible)
         originalParent.appendChild(currentProduct);
 
