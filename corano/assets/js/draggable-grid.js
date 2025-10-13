@@ -95,14 +95,14 @@ document.addEventListener("DOMContentLoaded", function () {
       duration: 0.4,
       ease: "power2.inOut",
       onComplete: () => {
-        // Find and remove the placeholder
+        // Find the placeholder and replace it with the product
         const placeholder = originalParent.querySelector('.product-placeholder');
         if (placeholder) {
-          placeholder.remove();
+          originalParent.replaceChild(currentProduct, placeholder);
+        } else {
+          // Fallback: append to original parent if placeholder not found
+          originalParent.appendChild(currentProduct);
         }
-
-        // Move back to original parent (invisible)
-        originalParent.appendChild(currentProduct);
 
         // Reset opacity for next interaction
         gsap.set(currentProduct, { opacity: 1, scale: 1 });
