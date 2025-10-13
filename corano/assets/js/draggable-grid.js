@@ -88,43 +88,74 @@ document.addEventListener("DOMContentLoaded", function () {
       ease: "power2.in",
     });
 
-    // Fade out the vase in place and hide panel
-    gsap.to(currentProduct, {
-      opacity: 0,
-      scale: 0.8,
-      duration: 0.4,
-      ease: "power2.inOut",
-      onComplete: () => {
-        // Find the placeholder and replace it with the product
-        const placeholder = originalParent.querySelector('.product-placeholder');
-        if (placeholder) {
+    // Find the placeholder
+    const placeholder = originalParent.querySelector('.product-placeholder');
+
+    if (placeholder) {
+      // Get the position of the placeholder for the animation target
+      const placeholderRect = placeholder.getBoundingClientRect();
+      const currentRect = currentProduct.getBoundingClientRect();
+
+      // Calculate the distance to travel
+      const deltaX = placeholderRect.left - currentRect.left;
+      const deltaY = placeholderRect.top - currentRect.top;
+      const deltaScale = placeholderRect.width / currentRect.width;
+
+      // Animate the vase flying back to its original position
+      gsap.to(currentProduct, {
+        x: deltaX,
+        y: deltaY,
+        scale: deltaScale,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.inOut",
+        onComplete: () => {
+          // Replace placeholder with product
           originalParent.replaceChild(currentProduct, placeholder);
-        } else {
-          // Fallback: append to original parent if placeholder not found
+
+          // Reset transforms
+          gsap.set(currentProduct, { x: 0, y: 0, scale: 1, opacity: 1 });
+
+          // Clear the details thumb
+          detailsThumb.innerHTML = "";
+
+          // Hide details panel
+          detailsPanel.classList.remove("active");
+          detailsOverlay.classList.remove("active");
+          document.body.style.overflow = "";
+
+          // Reset opacity and transform values for next time
+          gsap.set(".vase-details-title", { y: 0, opacity: 1 });
+          gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
+          gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
+
+          // Reset references
+          currentProduct = null;
+          originalParent = null;
+        },
+      });
+    } else {
+      // Fallback: simple fade out if placeholder not found
+      gsap.to(currentProduct, {
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.4,
+        ease: "power2.inOut",
+        onComplete: () => {
           originalParent.appendChild(currentProduct);
-        }
-
-        // Reset opacity for next interaction
-        gsap.set(currentProduct, { opacity: 1, scale: 1 });
-
-        // Clear the details thumb
-        detailsThumb.innerHTML = "";
-
-        // Hide details panel
-        detailsPanel.classList.remove("active");
-        detailsOverlay.classList.remove("active");
-        document.body.style.overflow = "";
-
-        // Reset opacity and transform values for next time
-        gsap.set(".vase-details-title", { y: 0, opacity: 1 });
-        gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
-        gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
-
-        // Reset references
-        currentProduct = null;
-        originalParent = null;
-      },
-    });
+          gsap.set(currentProduct, { opacity: 1, scale: 1 });
+          detailsThumb.innerHTML = "";
+          detailsPanel.classList.remove("active");
+          detailsOverlay.classList.remove("active");
+          document.body.style.overflow = "";
+          gsap.set(".vase-details-title", { y: 0, opacity: 1 });
+          gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
+          gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
+          currentProduct = null;
+          originalParent = null;
+        },
+      });
+    }
   }
 
   // Close button event
