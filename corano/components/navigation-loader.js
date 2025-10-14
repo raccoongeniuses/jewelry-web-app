@@ -48,21 +48,25 @@ class NavigationLoader {
 
         if (mobileMenuToggle && offCanvasWrapper) {
             mobileMenuToggle.addEventListener('click', () => {
-                offCanvasWrapper.classList.add('active');
+                // Add classes to match the CSS expected by main.js
+                document.body.classList.add('fix');
+                offCanvasWrapper.classList.add('open');
             });
         }
 
         // Close off-canvas when clicking overlay
         if (offCanvasOverlay && offCanvasWrapper) {
             offCanvasOverlay.addEventListener('click', () => {
-                offCanvasWrapper.classList.remove('active');
+                document.body.classList.remove('fix');
+                offCanvasWrapper.classList.remove('open');
             });
         }
 
         // Close off-canvas when clicking close button
         if (btnCloseOffCanvas && offCanvasWrapper) {
             btnCloseOffCanvas.addEventListener('click', () => {
-                offCanvasWrapper.classList.remove('active');
+                document.body.classList.remove('fix');
+                offCanvasWrapper.classList.remove('open');
             });
         }
 
@@ -86,7 +90,58 @@ class NavigationLoader {
             });
         }
 
+        // Initialize mobile menu dropdown functionality
+        this.initializeMobileMenuDropdowns();
+
         // Mini cart functionality temporarily removed
+    }
+
+    initializeMobileMenuDropdowns() {
+        // Add dropdown functionality to mobile menu
+        const mobileMenu = document.querySelector('.mobile-menu');
+        if (mobileMenu) {
+            const dropdownItems = mobileMenu.querySelectorAll('.dropdown');
+
+            // Add toggle buttons to dropdown items
+            dropdownItems.forEach(item => {
+                const parentLi = item.parentElement;
+                if (parentLi && !parentLi.querySelector('.menu-expand')) {
+                    const expandBtn = document.createElement('span');
+                    expandBtn.className = 'menu-expand';
+                    expandBtn.innerHTML = '<i></i>';
+                    parentLi.insertBefore(expandBtn, item);
+
+                    // Initially hide dropdowns
+                    item.style.display = 'none';
+                }
+            });
+
+            // Handle click events for menu items and expand buttons
+            mobileMenu.addEventListener('click', (e) => {
+                const target = e.target;
+                const menuExpand = target.closest('.menu-expand');
+                const menuItem = target.closest('li');
+
+                if (menuExpand || (target.tagName === 'A' && menuItem && menuItem.querySelector('.dropdown'))) {
+                    e.preventDefault();
+
+                    const dropdown = menuItem.querySelector('.dropdown');
+                    const expandIcon = menuItem.querySelector('.menu-expand i');
+
+                    if (dropdown) {
+                        const isExpanded = dropdown.style.display !== 'none';
+
+                        // Toggle dropdown visibility
+                        dropdown.style.display = isExpanded ? 'none' : 'block';
+
+                        // Rotate expand icon
+                        if (expandIcon) {
+                            expandIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                        }
+                    }
+                }
+            });
+        }
     }
 }
 

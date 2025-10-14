@@ -1817,6 +1817,13 @@ textarea:focus {
       -ms-transform: none;
           transform: none;
 }
+
+/* Body fix class to prevent scrolling when mobile menu is open */
+body.fix {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
 .off-canvas-wrapper .off-canvas-overlay {
   background-color: rgba(0, 0, 0, 0.4);
   content: "";
