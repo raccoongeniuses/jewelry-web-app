@@ -12,18 +12,28 @@ class NavigationLoader {
             return 'home';
         } else if (filename === 'about-us.html') {
             return 'about';
+        } else if (filename === 'our-promises.html') {
+            return 'our-promises';
+        } else if (filename === 'our-services.html') {
+            return 'our-services';
+        } else if (filename === 'our-philosophy.html') {
+            return 'our-philosophy';
         }
         return 'home'; // default
     }
 
     async loadNavigation() {
         try {
-            const response = await fetch('components/navigation.html');
-            let navigationHTML = await response.text();
+            // Load main navigation component
+            const navResponse = await fetch('components/navigation.html');
+            let navigationHTML = await navResponse.text();
 
             // Replace template variables based on current page
             navigationHTML = navigationHTML.replace('{{home_active}}', this.currentPage === 'home' ? 'active' : '');
             navigationHTML = navigationHTML.replace('{{about_active}}', this.currentPage === 'about' ? 'active' : '');
+            navigationHTML = navigationHTML.replace('{{our_promises_active}}', this.currentPage === 'our-promises' ? 'active' : '');
+            navigationHTML = navigationHTML.replace('{{our_services_active}}', this.currentPage === 'our-services' ? 'active' : '');
+            navigationHTML = navigationHTML.replace('{{our_philosophy_active}}', this.currentPage === 'our-philosophy' ? 'active' : '');
 
             // Find the main header area and replace it
             const headerMainArea = document.querySelector('.header-main-area');
@@ -31,42 +41,75 @@ class NavigationLoader {
                 headerMainArea.outerHTML = navigationHTML;
             }
 
-            // Initialize mobile menu and other functionality
-            this.initializeNavigation();
+            // Load mobile navigation component
+            await this.loadMobileNavigation();
+
+            // Wait a bit for jQuery to be ready and initialize functionality
+            setTimeout(() => {
+                this.initializeNavigation();
+            }, 100);
 
         } catch (error) {
             console.error('Error loading navigation:', error);
         }
     }
 
+    async loadMobileNavigation() {
+        try {
+            const mobileNavResponse = await fetch('components/mobile-navigation.html');
+            let mobileNavHTML = await mobileNavResponse.text();
+
+            // Replace template variables based on current page
+            mobileNavHTML = mobileNavHTML.replace('{{home_active}}', this.currentPage === 'home' ? 'active' : '');
+            mobileNavHTML = mobileNavHTML.replace('{{about_active}}', this.currentPage === 'about' ? 'active' : '');
+            mobileNavHTML = mobileNavHTML.replace('{{our_promises_active}}', this.currentPage === 'our-promises' ? 'active' : '');
+            mobileNavHTML = mobileNavHTML.replace('{{our_services_active}}', this.currentPage === 'our-services' ? 'active' : '');
+            mobileNavHTML = mobileNavHTML.replace('{{our_philosophy_active}}', this.currentPage === 'our-philosophy' ? 'active' : '');
+
+            // Find elements with data-include attribute and replace them
+            const mobileNavElements = document.querySelectorAll('[data-include="components/mobile-navigation.html"]');
+            mobileNavElements.forEach(element => {
+                // Check if element has data attributes for active states
+                if (element.dataset.homeActive) {
+                    mobileNavHTML = mobileNavHTML.replace('{{home_active}}', element.dataset.homeActive);
+                }
+                if (element.dataset.aboutActive) {
+                    mobileNavHTML = mobileNavHTML.replace('{{about_active}}', element.dataset.aboutActive);
+                }
+                if (element.dataset.ourPromisesActive) {
+                    mobileNavHTML = mobileNavHTML.replace('{{our_promises_active}}', element.dataset.ourPromisesActive);
+                }
+                if (element.dataset.ourServicesActive) {
+                    mobileNavHTML = mobileNavHTML.replace('{{our_services_active}}', element.dataset.ourServicesActive);
+                }
+                if (element.dataset.ourPhilosophyActive) {
+                    mobileNavHTML = mobileNavHTML.replace('{{our_philosophy_active}}', element.dataset.ourPhilosophyActive);
+                }
+
+                element.outerHTML = mobileNavHTML;
+            });
+
+        } catch (error) {
+            console.error('Error loading mobile navigation:', error);
+        }
+    }
+
     initializeNavigation() {
-        // Initialize mobile menu toggle
-        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-        const offCanvasWrapper = document.querySelector('.off-canvas-wrapper');
-        const offCanvasOverlay = document.querySelector('.off-canvas-overlay');
-        const btnCloseOffCanvas = document.querySelector('.btn-close-off-canvas');
+        // Re-initialize jQuery event handlers for mobile menu after dynamic loading
+        if (typeof $ !== 'undefined' && $.fn) {
+            // Trigger jQuery to rebind events for the mobile menu
+            // Since main.js already handles the burger menu functionality,
+            // we just need to ensure the elements exist when it runs
 
-        if (mobileMenuToggle && offCanvasWrapper) {
-            mobileMenuToggle.addEventListener('click', () => {
-                // Add classes to match the CSS expected by main.js
-                document.body.classList.add('fix');
-                offCanvasWrapper.classList.add('open');
+            // Manually trigger jQuery off-canvas functionality
+            $(".mobile-menu-btn").off('click').on('click', function () {
+                $("body").addClass('fix');
+                $(".off-canvas-wrapper").addClass('open');
             });
-        }
 
-        // Close off-canvas when clicking overlay
-        if (offCanvasOverlay && offCanvasWrapper) {
-            offCanvasOverlay.addEventListener('click', () => {
-                document.body.classList.remove('fix');
-                offCanvasWrapper.classList.remove('open');
-            });
-        }
-
-        // Close off-canvas when clicking close button
-        if (btnCloseOffCanvas && offCanvasWrapper) {
-            btnCloseOffCanvas.addEventListener('click', () => {
-                document.body.classList.remove('fix');
-                offCanvasWrapper.classList.remove('open');
+            $(".btn-close-off-canvas, .off-canvas-overlay").off('click').on('click', function () {
+                $("body").removeClass('fix');
+                $(".off-canvas-wrapper").removeClass('open');
             });
         }
 

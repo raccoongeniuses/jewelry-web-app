@@ -155,130 +155,17 @@
         </div>
         <!-- main header start -->
 
-        <!-- mobile header start -->
-        <div class="mobile-header-area d-block d-lg-none">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-12">
-                        <div class="mobile-main-header">
-                            <div class="mobile-logo">
-                                <a href="index.html">
-                                    <img src="assets/img/jevoo-bespoke.jpg" alt="Brand Logo" style="max-height: 80px; width: auto;">
-                                </a>
-                            </div>
-                            <div class="mobile-menu-toggler">
-                                <div class="mini-cart-wrap">
-                                    <a href="cart.html">
-                                        <i class="pe-7s-shopbag"></i>
-                                        <div class="notification">0</div>
-                                    </a>
-                                </div>
-                                <button class="mobile-menu-btn">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- mobile header end -->
-
-      </header>
+    </header>
     <!-- end Header Area -->
 
-    <!-- off-canvas menu start -->
-    <aside class="off-canvas-wrapper">
-        <div class="off-canvas-overlay"></div>
-        <div class="off-canvas-inner-content">
-            <div class="btn-close-off-canvas">
-                <i class="pe-7s-close"></i>
-            </div>
-
-            <div class="off-canvas-inner">
-                <!-- search box start -->
-                <div class="search-box-offcanvas">
-                    <form>
-                        <input type="text" placeholder="Search Here...">
-                        <button class="search-btn"><i class="pe-7s-search"></i></button>
-                    </form>
-                </div>
-                <!-- search box end -->
-
-                <!-- mobile menu start -->
-                <div class="mobile-navigation">
-
-                    <!-- mobile menu navigation start -->
-                    <nav>
-                        <ul class="mobile-menu">
-                            <li><a href="index.html">Home</a></li>
-                            <li class="active"><a href="/about-us.html">About Us</a></li>
-                            <li class="active"><a href="/our-promises.html">Our Promises</a></li>
-                            <li class="active"><a href="/our-services.html">Our Services</a></li>
-                            <li class="active"><a href="/our-philosophy.html">Our Philosophy</a></li>
-                        </ul>
-                    </nav>
-                    <!-- mobile menu navigation end -->
-                </div>
-                <!-- mobile menu end -->
-
-                <div class="mobile-settings">
-                    <ul class="nav">
-                        <li>
-                            <div class="dropdown mobile-top-dropdown">
-                                <a href="#" class="dropdown-toggle" id="currency" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Currency
-                                    <i class="fa fa-angle-down"></i>
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="currency">
-                                    <a class="dropdown-item" href="#">$ USD</a>
-                                    <a class="dropdown-item" href="#">$ EURO</a>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="dropdown mobile-top-dropdown">
-                                <a href="#" class="dropdown-toggle" id="myaccount" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    My Account
-                                    <i class="fa fa-angle-down"></i>
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="myaccount">
-                                    <a class="dropdown-item" href="my-account.html">my account</a>
-                                    <a class="dropdown-item" href="login-register.html"> login</a>
-                                    <a class="dropdown-item" href="login-register.html">register</a>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- offcanvas widget area start -->
-                <div class="offcanvas-widget-area">
-                    <div class="off-canvas-contact-widget">
-                        <ul>
-                            <li><i class="fa fa-mobile"></i>
-                                <a href="#">0123456789</a>
-                            </li>
-                            <li><i class="fa fa-envelope-o"></i>
-                                <a href="#">info@yourdomain.com</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="off-canvas-social-widget">
-                        <a href="#"><i class="fa fa-facebook"></i></a>
-                        <a href="#"><i class="fa fa-twitter"></i></a>
-                        <a href="#"><i class="fa fa-pinterest-p"></i></a>
-                        <a href="#"><i class="fa fa-linkedin"></i></a>
-                        <a href="#"><i class="fa fa-youtube-play"></i></a>
-                    </div>
-                </div>
-                <!-- offcanvas widget area end -->
-            </div>
-        </div>
-    </aside>
-    <!-- off-canvas menu end -->
+    <!-- Mobile Navigation Component -->
+    <div data-include="components/mobile-navigation.html"
+         data-home-active=""
+         data-about-active="active"
+         data-our-promises-active=""
+         data-our-services-active=""
+         data-our-philosophy-active="">
+    </div>
 
     <main>
         <!-- breadcrumb area start -->
