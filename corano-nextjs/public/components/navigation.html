@@ -1,0 +1,147 @@
+<!-- Reusable Navigation Component for Jevoo Jewellery -->
+<div class="header-main-area sticky">
+    <div class="container">
+        <div class="row align-items-center position-relative">
+
+            <!-- start logo area -->
+            <div class="col-lg-2">
+                <div class="logo">
+                    <a href="index.html">
+                        <img src="assets/img/jevoo-bespoke.jpg" alt="Brand Logo" style="max-height: 100px; width: auto; padding-left: 20%;">
+                    </a>
+                </div>
+            </div>
+            <!-- start logo area -->
+
+            <!-- main menu area start -->
+            <div class="col-lg-6 position-static">
+                <div class="main-menu-area">
+                    <div class="main-menu">
+                        <!-- main menu navbar start -->
+                        <nav class="desktop-menu">
+                            <ul>
+                                <li class="{{home_active}}"><a href="index.html">Home</a></li>
+                                <li class="{{about_active}}"><a href="about-us.html">About Us</a></li>
+                                <li class="{{our_promises_active}}"><a href="our-promises.html">Our Promises</a></li>
+                                <li class="{{our_services_active}}"><a href="our-services.html">Our Services</a></li>
+                                <li class="{{our_philosophy_active}}"><a href="our-philosophy.html">Our Philosophy</a></li>
+                            </ul>
+                        </nav>
+                        <!-- main menu navbar end -->
+                    </div>
+                </div>
+            </div>
+            <!-- main menu area end -->
+
+            <!-- header right area start -->
+            <!-- mini cart area start -->
+            <div class="col-lg-4">
+                <div class="header-right d-flex align-items-center justify-content-xl-between justify-content-lg-end">
+                    <div class="header-search-container">
+                        <button class="search-trigger d-xl-none d-lg-block"><i class="pe-7s-search"></i></button>
+                        <form class="header-search-box d-lg-none d-xl-block">
+                            <input type="text" placeholder="Search entire store hire" class="header-search-field">
+                            <button class="header-search-btn"><i class="pe-7s-search"></i></button>
+                        </form>
+                    </div>
+                    <div class="header-configure-area">
+                        <ul class="nav justify-content-end">
+                            <li class="user-hover">
+                                <a href="#">
+                                    <i class="pe-7s-user"></i>
+                                </a>
+                                <ul class="dropdown-list">
+                                    <li><a href="login-register.html">login</a></li>
+                                    <li><a href="login-register.html">register</a></li>
+                                    <li><a href="my-account.html">my account</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="wishlist.html">
+                                    <i class="pe-7s-like"></i>
+                                    <div class="notification">0</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="minicart-btn">
+                                    <i class="pe-7s-shopbag"></i>
+                                    <div class="notification">2</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- mini cart area end -->
+            <!-- header right area end -->
+
+            <!-- mobile menu area start -->
+            <div class="col-12 d-block d-lg-none">
+                <div class="mobile-menu-area">
+                    <div class="mobile-logo">
+                        <a href="index.html">
+                            <img src="assets/img/jevoo-bespoke.jpg" alt="Brand Logo" style="max-height: 100px; width: auto; padding-left: 20%;">
+                        </a>
+                    </div>
+                    <div class="mobile-menu-toggler">
+                        <button class="mobile-menu-toggle">
+                            <i class="pe-7s-menu"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- mobile menu area end -->
+
+        </div>
+    </div>
+</div>
+
+<!-- off-canvas menu start -->
+<aside class="off-canvas-wrapper">
+    <div class="off-canvas-overlay"></div>
+    <div class="off-canvas-inner-content">
+        <div class="btn-close-off-canvas">
+            <i class="pe-7s-close"></i>
+        </div>
+
+        <div class="off-canvas-inner">
+            <!-- mobile menu start -->
+            <div class="mobile-navigation">
+                <!-- mobile menu navigation start -->
+                <nav>
+                    <ul class="mobile-menu">
+                        <li class="{{home_active}}"><a href="index.html">Home</a></li>
+                        <li class="{{about_active}}"><a href="about-us.html">About Us</a></li>
+                        <li class="{{our_promises_active}}"><a href="our-promises.html">Our Promises</a></li>
+                        <li class="{{our_services_active}}"><a href="our-services.html">Our Services</a></li>
+                        <li class="{{our_philosophy_active}}"><a href="our-philosophy.html">Our Philosophy</a></li>
+                    </ul>
+                </nav>
+                <!-- mobile menu navigation end -->
+            </div>
+            <!-- mobile menu end -->
+
+            <!-- mobile menu bottom start -->
+            <div class="mobile-menu-bottom">
+                <!-- mobile settings start -->
+                <div class="mobile-settings">
+                    <div class="mobile-settings-item">
+                        <div class="mobile-settings-title">
+                            <h6>My Account</h6>
+                        </div>
+                        <div class="mobile-settings-content">
+                            <ul>
+                                <li><a href="my-account.html">My Account</a></li>
+                                <li><a href="login-register.html">Login / Register</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- mobile settings end -->
+            </div>
+            <!-- mobile menu bottom end -->
+
+        </div>
+    </div>
+</aside>
+<!-- off-canvas menu end -->

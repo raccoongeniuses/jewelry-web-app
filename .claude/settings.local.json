@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/hirom/crimson-network/draggable-grid/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []
