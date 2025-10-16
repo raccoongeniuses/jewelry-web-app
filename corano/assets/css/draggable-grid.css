@@ -350,13 +350,16 @@
 /* Responsive adjustments for grid layout */
 @media (max-width: 1200px) {
     .grid {
-        gap: 1.8vw;
+        gap: 5vw;
     }
     .column {
-        gap: 1.2vw;
+        display: flex; 
+        flex-direction: column;
+        gap: 5vw;
     }
     .marquee-item img {
-        max-width: 200px;
+        width: 222px;
+        height: 222px;
     }
     /* Reduce translateY values for medium screens */
     .marquee-item:nth-child(1) img { transform: translateY(-18px); }
