@@ -286,14 +286,14 @@
 
 
 /* Responsive adjustments for grid layout */
-@media (max-width: 1920px) {
+@media (min-width: 1200px) {
     .grid {
-        gap: 5vw;
+        gap: 1.5vw;
     }
     .column {
         display: flex;
         flex-direction: column;
-        gap: 5vw;
+        gap: 1.5vw;
     }
     .marquee-item img {
         width: 188px;
@@ -303,12 +303,12 @@
 
 @media (max-width: 1200px) {
     .grid {
-        gap: 5vw;
+        gap: 2vw;
     }
     .column {
         display: flex;
         flex-direction: column;
-        gap: 5vw;
+        gap: 1.5vw;
     }
     .marquee-item img {
         width: 188px;
