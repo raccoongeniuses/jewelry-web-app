@@ -381,29 +381,31 @@ function initializeInfiniteMarquee() {
   // Remove CSS animation if present
   grid.style.animation = 'none';
 
-  // Store original columns count for cloning
-  const originalColumns = [...grid.querySelectorAll('.column')];
-  const columnsCount = originalColumns.length;
+  // Clean up any existing clones and timelines
+  const existingClone = document.querySelector('.grid-clone');
+  if (existingClone && existingClone.parentNode) {
+    existingClone.parentNode.removeChild(existingClone);
+  }
 
-  if (columnsCount === 0) return;
+  if (window.infiniteMarqueeTimeline) {
+    window.infiniteMarqueeTimeline.kill();
+  }
 
-  // Create clone grid
+  // Store the clone
   const gridClone = grid.cloneNode(true);
   gridClone.classList.add('grid-clone');
-  gridClone.setAttribute('aria-hidden', 'true'); // Hide from screen readers
-
-  // Insert clone after original grid
+  gridClone.setAttribute('aria-hidden', 'true');
   grid.parentNode.appendChild(gridClone);
 
-  // Get grid width for calculation
+  // Get grid width
   const gridWidth = grid.offsetWidth;
 
-  // Set initial positions
+  // Set initial positions using GSAP
   gsap.set(grid, { x: 0 });
   gsap.set(gridClone, { x: gridWidth });
 
   // Create infinite marquee with seamless looping
-  const duration = 120; //speed of the marquee
+  const duration = 120; // Slower duration as requested
 
   const marqueeTimeline = gsap.timeline({
     repeat: -1,
@@ -435,21 +437,22 @@ function initializeInfiniteMarquee() {
     0
   );
 
-  // Store timeline reference for cleanup if needed
+  // Store timeline reference
   window.infiniteMarqueeTimeline = marqueeTimeline;
 
   // Handle resize
   function handleResize() {
-    if (marqueeTimeline) {
-      marqueeTimeline.kill();
+    if (window.infiniteMarqueeTimeline) {
+      window.infiniteMarqueeTimeline.kill();
     }
 
     // Remove clone if it exists
-    if (gridClone && gridClone.parentNode) {
-      gridClone.remove();
+    const existingClone = document.querySelector('.grid-clone');
+    if (existingClone && existingClone.parentNode) {
+      existingClone.parentNode.removeChild(existingClone);
     }
 
-    // Recalculate and restart
+    // Restart after resize
     setTimeout(() => {
       initializeInfiniteMarquee();
     }, 100);

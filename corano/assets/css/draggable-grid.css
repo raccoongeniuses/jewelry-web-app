@@ -14,6 +14,12 @@
     overflow: hidden;
 }
 
+.draggable-grid-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
 .grid {
     position: relative;
     display: flex;
@@ -25,9 +31,7 @@
 .grid-clone {
     position: absolute;
     top: 0;
-    left: 0;
     pointer-events: none; /* Ensure clone doesn't interfere with clicks */
-    z-index: -1; /* Place clone behind original for proper interaction */
 }
 
 .column {
