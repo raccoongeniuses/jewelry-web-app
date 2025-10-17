@@ -73,17 +73,25 @@ document.addEventListener("DOMContentLoaded", function () {
                         </a>
                     </div>
                     <div class="minicart-content">
-                        <h3 class="product-name">
-                            <a href="${item.url || 'product-details.html'}">${item.name}</a>
-                        </h3>
-                        <p>
-                            <span class="cart-quantity">${item.quantity} <strong>&times;</strong></span>
-                            <span class="cart-price">$${item.price.toFixed(2)}</span>
-                        </p>
+                        <div class="minicart-header">
+                            <h3 class="product-name">
+                                <a href="${item.url || 'product-details.html'}">${item.name}</a>
+                            </h3>
+                            <button class="minicart-remove" data-product-id="${item.id}">
+                                <i class="pe-7s-close"></i>
+                            </button>
+                        </div>
+                        <div class="minicart-details">
+                            <div class="pro-qty">
+                                <button type="button" class="qtybtn dec" data-product-id="${item.id}">−</button>
+                                <input type="text" value="${item.quantity}" data-product-id="${item.id}" class="quantity-input">
+                                <button type="button" class="qtybtn inc" data-product-id="${item.id}">+</button>
+                            </div>
+                            <p class="cart-price">
+                                $${(item.price * item.quantity).toFixed(2)}
+                            </p>
+                        </div>
                     </div>
-                    <button class="minicart-remove" data-product-id="${item.id}">
-                        <i class="pe-7s-close"></i>
-                    </button>
                 </li>
             `;
 
@@ -258,57 +266,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Handle minicart quantity changes
     function addMinicartQuantityListeners() {
-        // Add listeners to all quantity buttons in minicart
+        // Add listeners to all quantity buttons in minicart (exclude cart table)
         document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('qtybtn')) {
+            if (e.target.classList.contains('qtybtn') && !e.target.closest('.cart-table')) {
+                e.preventDefault();
                 const proQty = e.target.closest('.pro-qty');
                 const input = proQty.querySelector('input');
-                const minicartItem = e.target.closest('.minicart-item');
+                const productId = e.target.getAttribute('data-product-id');
 
-                if (minicartItem) {
-                    const productName = minicartItem.querySelector('.product-name a').textContent;
-                    const cartItem = cartItems.find(item => item.name === productName);
+                const cartItem = cartItems.find(item => item.id === productId);
 
-                    if (cartItem) {
-                        let newValue = parseInt(input.value) || 1;
+                if (cartItem) {
+                    let newValue = parseInt(input.value) || 1;
 
-                        if (e.target.classList.contains('inc')) {
-                            newValue++;
-                        } else if (e.target.classList.contains('dec')) {
-                            newValue = Math.max(1, newValue - 1);
-                        }
-
-                        input.value = newValue;
-                        cartItem.quantity = newValue;
-
-                        // Update cart display and totals
-                        updateCart();
-                        saveCart();
+                    if (e.target.classList.contains('inc')) {
+                        newValue++;
+                    } else if (e.target.classList.contains('dec')) {
+                        newValue = Math.max(1, newValue - 1);
                     }
+
+                    input.value = newValue;
+                    cartItem.quantity = newValue;
+
+                    // Update cart display and totals
+                    updateCart();
+                    saveCart();
                 }
             }
         });
 
-        // Add listeners for direct input changes
+        // Add listeners for direct input changes (exclude cart table)
         document.addEventListener('input', function(e) {
-            if (e.target.closest('.minicart-content') && e.target.type === 'text' && e.target.closest('.pro-qty')) {
-                const proQty = e.target.closest('.pro-qty');
-                const minicartItem = proQty.closest('.minicart-item');
+            if (e.target.classList.contains('quantity-input') && e.target.closest('.minicart-content') && !e.target.closest('.cart-table')) {
+                const productId = e.target.getAttribute('data-product-id');
+                const cartItem = cartItems.find(item => item.id === productId);
 
-                if (minicartItem) {
-                    const productName = minicartItem.querySelector('.product-name a').textContent;
-                    const cartItem = cartItems.find(item => item.name === productName);
+                if (cartItem) {
+                    let newValue = parseInt(e.target.value) || 1;
+                    newValue = Math.max(1, Math.min(99, newValue)); // Limit between 1 and 99
+                    e.target.value = newValue;
+                    cartItem.quantity = newValue;
 
-                    if (cartItem) {
-                        let newValue = parseInt(e.target.value) || 1;
-                        newValue = Math.max(1, Math.min(99, newValue)); // Limit between 1 and 99
-                        e.target.value = newValue;
-                        cartItem.quantity = newValue;
-
-                        // Update cart display and totals
-                        updateCart();
-                        saveCart();
-                    }
+                    // Update cart display and totals
+                    updateCart();
+                    saveCart();
                 }
             }
         });

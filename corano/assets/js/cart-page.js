@@ -87,7 +87,9 @@ function populateCartTable(cartItems) {
             </td>
             <td class="pro-quantity">
                 <div class="pro-qty">
+                    <button type="button" class="qtybtn dec" data-product-id="${item.id}">−</button>
                     <input type="text" value="${item.quantity}" data-product-id="${item.id}" class="quantity-input">
+                    <button type="button" class="qtybtn inc" data-product-id="${item.id}">+</button>
                 </div>
             </td>
             <td class="pro-price">
@@ -133,6 +135,66 @@ function updateCartTotals(cartItems) {
     if (miniCartTotal) miniCartTotal.textContent = `$${total.toFixed(2)}`;
 }
 
+// Setup cart table specific event listeners
+function setupCartTableEventListeners() {
+    const cartTable = document.querySelector('.cart-table');
+    if (!cartTable) return;
+
+    cartTable.addEventListener('click', function(e) {
+        if (e.target.classList.contains('qtybtn')) {
+            e.preventDefault();
+            e.stopImmediatePropagation(); // Prevent other listeners
+
+            const proQty = e.target.closest('.pro-qty');
+            const input = proQty.querySelector('.quantity-input');
+            const productId = e.target.getAttribute('data-product-id');
+
+            console.log('Cart table button clicked:', {
+                target: e.target,
+                productId: productId,
+                currentValue: input ? input.value : 'no input'
+            });
+
+            if (input) {
+                let currentValue = parseInt(input.value) || 1;
+
+                if (e.target.classList.contains('inc')) {
+                    currentValue++;
+                } else if (e.target.classList.contains('dec')) {
+                    currentValue = Math.max(1, currentValue - 1);
+                }
+
+                input.value = currentValue;
+                updateItemQuantity(productId, currentValue);
+            }
+        }
+    });
+
+    cartTable.addEventListener('change', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            e.preventDefault();
+            e.stopImmediatePropagation(); // Prevent other listeners
+
+            const input = e.target;
+            const productId = input.dataset.productId;
+            const newQuantity = parseInt(input.value) || 1;
+
+            console.log('Cart table input changed:', {
+                target: e.target,
+                productId: productId,
+                newQuantity: newQuantity
+            });
+
+            if (newQuantity < 1) {
+                input.value = 1;
+                return;
+            }
+
+            updateItemQuantity(productId, newQuantity);
+        }
+    });
+}
+
 // Setup cart page event listeners
 function setupCartEventListeners() {
     // Remove item buttons
@@ -144,21 +206,8 @@ function setupCartEventListeners() {
         }
     });
 
-    // Quantity input changes
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('quantity-input')) {
-            const input = e.target;
-            const productId = input.dataset.productId;
-            const newQuantity = parseInt(input.value) || 1;
-
-            if (newQuantity < 1) {
-                input.value = 1;
-                return;
-            }
-
-            updateItemQuantity(productId, newQuantity);
-        }
-    });
+    // Setup cart table specific event listeners
+    setupCartTableEventListeners();
 
     // Update cart button
     const updateCartBtn = document.querySelector('.cart-update a');

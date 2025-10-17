@@ -2030,6 +2030,11 @@ textarea:focus {
 .minicart-item-wrapper {
   border-bottom: 1px solid #555;
 }
+.minicart-item-wrapper ul {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
 .minicart-item-wrapper ul li {
   padding-bottom: 20px;
   margin-bottom: 20px;

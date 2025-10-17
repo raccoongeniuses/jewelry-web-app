@@ -73,18 +73,56 @@
 }
 
 /* Quantity input styling */
-.pro-qty input {
-    text-align: center;
-    width: 60px;
-    height: 40px;
+.pro-qty {
+    display: inline-flex;
+    align-items: center;
     border: 1px solid #ddd;
     border-radius: 4px;
+    overflow: hidden;
+    width: 120px;
+    height: 40px;
+}
+
+.pro-qty input {
+    text-align: center;
+    width: 40px;
+    height: 100%;
+    border: none;
+    outline: none;
     font-size: 14px;
+    background: transparent;
 }
 
 .pro-qty input:focus {
     outline: none;
-    border-color: #f39c12;
+}
+
+.pro-qty .qtybtn {
+    width: 40px;
+    height: 100%;
+    background: #f8f8f8;
+    border: none;
+    color: #666;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.pro-qty .qtybtn:hover {
+    background: #c29958;
+    color: #fff;
+}
+
+.pro-qty .dec {
+    border-right: 1px solid #ddd;
+}
+
+.pro-qty .inc {
+    border-left: 1px solid #ddd;
 }
 
 /* Remove button styling */
@@ -108,10 +146,20 @@
         font-size: 14px;
     }
 
-    .pro-qty input {
-        width: 50px;
+    .pro-qty {
+        width: 100px;
         height: 35px;
+    }
+
+    .pro-qty input {
+        width: 35px;
+        height: 100%;
         font-size: 12px;
+    }
+
+    .pro-qty .qtybtn {
+        width: 32px;
+        font-size: 14px;
     }
 
     .cart-notification {
