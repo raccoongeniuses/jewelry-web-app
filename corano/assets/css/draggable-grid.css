@@ -17,9 +17,17 @@
 .grid {
     position: relative;
     display: flex;
-    animation: scrollLeft 60s linear infinite;
     gap: 2vw;
     width: max-content;
+}
+
+/* Cloned grid for infinite marquee */
+.grid-clone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none; /* Ensure clone doesn't interfere with clicks */
+    z-index: -1; /* Place clone behind original for proper interaction */
 }
 
 .column {
@@ -318,15 +326,7 @@
     }
 }
 
-/* Marquee animation */
-@keyframes scrollLeft {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-33.33%);
-    }
-}
+/* Marquee animation is now handled by GSAP in JavaScript for seamless infinite looping */
 
 
 /* Responsive adjustments for grid layout */
@@ -348,7 +348,6 @@
 /* Extra large screens (1920px and above) - ensure smooth marquee */
 @media (min-width: 1920px) {
     .grid {
-        animation: scrollLeft 60s linear infinite;
         gap: 1vw;
         min-width: 300vw;
     }

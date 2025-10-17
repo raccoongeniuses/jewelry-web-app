@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Initialize GSAP and register plugins
+  gsap.registerPlugin(Flip);
+
   const marqueeItems = document.querySelectorAll(".marquee-item");
+  const grid = document.querySelector(".grid");
   const detailsPanel = document.getElementById("vaseDetailsPanel");
   const detailsOverlay = document.getElementById("vaseDetailsOverlay");
   const detailsClose = document.getElementById("vaseDetailsClose");
@@ -363,6 +367,98 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Initialize infinite marquee
+  initializeInfiniteMarquee();
+
   // Start monitoring cart state
   monitorCartState();
 });
+
+function initializeInfiniteMarquee() {
+  const grid = document.querySelector(".grid");
+  if (!grid) return;
+
+  // Remove CSS animation if present
+  grid.style.animation = 'none';
+
+  // Store original columns count for cloning
+  const originalColumns = [...grid.querySelectorAll('.column')];
+  const columnsCount = originalColumns.length;
+
+  if (columnsCount === 0) return;
+
+  // Create clone grid
+  const gridClone = grid.cloneNode(true);
+  gridClone.classList.add('grid-clone');
+  gridClone.setAttribute('aria-hidden', 'true'); // Hide from screen readers
+
+  // Insert clone after original grid
+  grid.parentNode.appendChild(gridClone);
+
+  // Get grid width for calculation
+  const gridWidth = grid.offsetWidth;
+
+  // Set initial positions
+  gsap.set(grid, { x: 0 });
+  gsap.set(gridClone, { x: gridWidth });
+
+  // Create infinite marquee with seamless looping
+  const duration = 120; //speed of the marquee
+
+  const marqueeTimeline = gsap.timeline({
+    repeat: -1,
+    onUpdate: () => {
+      // Wrap positions for seamless loop
+      const gridX = gsap.getProperty(grid, "x");
+      const cloneX = gsap.getProperty(gridClone, "x");
+
+      // When grid moves completely off left, position it to the right of the clone
+      if (gridX <= -gridWidth) {
+        gsap.set(grid, { x: cloneX + gridWidth });
+      }
+
+      // When clone moves completely off left, position it to the right of the grid
+      if (cloneX <= -gridWidth) {
+        gsap.set(gridClone, { x: gridX + gridWidth });
+      }
+    },
+  });
+
+  // Animate both grids moving left continuously
+  marqueeTimeline.to(
+    [grid, gridClone],
+    {
+      x: `-=${gridWidth * 2}`, // Move both grids by twice their width to cover the full loop
+      duration: duration * 2, // Double the duration to maintain same speed
+      ease: "none",
+    },
+    0
+  );
+
+  // Store timeline reference for cleanup if needed
+  window.infiniteMarqueeTimeline = marqueeTimeline;
+
+  // Handle resize
+  function handleResize() {
+    if (marqueeTimeline) {
+      marqueeTimeline.kill();
+    }
+
+    // Remove clone if it exists
+    if (gridClone && gridClone.parentNode) {
+      gridClone.remove();
+    }
+
+    // Recalculate and restart
+    setTimeout(() => {
+      initializeInfiniteMarquee();
+    }, 100);
+  }
+
+  // Debounced resize handler
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(handleResize, 250);
+  });
+}
