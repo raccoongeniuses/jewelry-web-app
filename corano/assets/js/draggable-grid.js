@@ -194,6 +194,20 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
     e.stopPropagation();
 
+    // Get product information
+    const productInfo = {
+      id: 'marquee-golden-ring',
+      name: 'Golden Ring Decor',
+      image: 'assets/img/product/marquee-golden-ring.jpg',
+      price: 300.00,
+      url: 'product-details.html'
+    };
+
+    // Use global cart functionality if available
+    if (window.coranoCart) {
+      window.coranoCart.addToCart(productInfo);
+    }
+
     // Simple feedback animation
     this.textContent = "Added!";
     this.style.background = "#27ae60";
