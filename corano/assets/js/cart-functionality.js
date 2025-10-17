@@ -124,10 +124,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Show cart feedback animation
     function showCartFeedback() {
-        // Show the cart sidebar
+        // Show the cart sidebar without causing scroll
         if (minicartInner) {
+            // Store current scroll position
+            const scrollY = window.scrollY;
+
+            // Show the cart sidebar
             minicartInner.classList.add('show');
             document.body.classList.add('fix');
+
+            // Prevent scroll position jump
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+
+            // Store scroll position for later restoration
+            document.body.setAttribute('data-scroll-y', scrollY);
+        }
+    }
+
+    // Restore scroll position when cart is closed
+    function restoreScrollPosition() {
+        const scrollY = document.body.getAttribute('data-scroll-y');
+        if (scrollY !== null) {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.removeAttribute('data-scroll-y');
+            window.scrollTo(0, parseInt(scrollY));
         }
     }
 
@@ -206,11 +230,29 @@ document.addEventListener("DOMContentLoaded", function () {
     loadCart();
     addCartButtonListeners();
 
+    // Enhance existing cart close buttons to restore scroll position
+    document.querySelectorAll('.offcanvas-close, .minicart-close, .offcanvas-overlay').forEach(element => {
+        element.addEventListener('click', function() {
+            setTimeout(restoreScrollPosition, 10);
+        });
+    });
+
     // Re-add listeners if dynamic content is loaded
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                 addCartButtonListeners();
+
+                // Re-add close button listeners for new content
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        node.querySelectorAll('.offcanvas-close, .minicart-close, .offcanvas-overlay').forEach(element => {
+                            element.addEventListener('click', function() {
+                                setTimeout(restoreScrollPosition, 10);
+                            });
+                        });
+                    }
+                });
             }
         });
     });
@@ -225,6 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
         addToCart,
         removeFromCart,
         updateCart,
-        cartItems: () => cartItems
+        cartItems: () => cartItems,
+        restoreScrollPosition
     };
 });

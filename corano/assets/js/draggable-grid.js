@@ -189,6 +189,11 @@ document.addEventListener("DOMContentLoaded", function () {
     hideDetails();
   });
 
+  // Function to check if mobile device
+  function isMobileDevice() {
+    return window.innerWidth <= 768;
+  }
+
   // Add to cart button event
   addCartBtn.addEventListener("click", function (e) {
     e.preventDefault();
@@ -215,9 +220,91 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => {
       this.textContent = "Add to Cart";
       this.style.background = "#2c3e50";
-      hideDetails();
+
+      // On mobile, close the details panel after adding to cart
+      if (isMobileDevice()) {
+        hideDetails();
+      }
+      // On desktop, keep panel open as requested earlier
     }, 1500);
   });
+
+  // Function to center details panel when cart is opened
+  function centerDetailsPanel() {
+    if (!isShowingDetails || !detailsPanel || isMobileDevice()) return;
+
+    // Add class to center the panel
+    detailsPanel.classList.add("cart-open-centered");
+
+    // Animate to center position
+    gsap.to(detailsPanel, {
+      x: "-50%",
+      left: "50%",
+      top: "50%",
+      y: "-50%",
+      duration: 0.4,
+      ease: "power2.out",
+      onComplete: () => {
+        // Adjust overlay for better visual hierarchy
+        if (detailsOverlay) {
+          detailsOverlay.style.zIndex = "100";
+          detailsPanel.style.zIndex = "101";
+        }
+      }
+    });
+  }
+
+  // Function to restore details panel position when cart is closed
+  function restoreDetailsPanelPosition() {
+    if (!isShowingDetails || !detailsPanel || isMobileDevice()) return;
+
+    // Remove centered class and restore original position
+    detailsPanel.classList.remove("cart-open-centered");
+
+    // Animate back to original position
+    gsap.to(detailsPanel, {
+      x: "0%",
+      left: "0%",
+      top: "0%",
+      y: "0%",
+      duration: 0.4,
+      ease: "power2.out",
+      onComplete: () => {
+        // Restore original z-index
+        if (detailsOverlay) {
+          detailsOverlay.style.zIndex = "";
+          detailsPanel.style.zIndex = "";
+        }
+      }
+    });
+  }
+
+  // Monitor cart state to reposition details panel
+  function monitorCartState() {
+    const minicartInner = document.querySelector(".minicart-inner");
+    if (!minicartInner) return;
+
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const isCartOpen = minicartInner.classList.contains('show');
+
+          if (isCartOpen && isShowingDetails) {
+            // Cart opened and details are showing - center the details
+            centerDetailsPanel();
+          } else if (!isCartOpen && isShowingDetails) {
+            // Cart closed and details are still showing - restore position
+            restoreDetailsPanelPosition();
+          }
+        }
+      });
+    });
+
+    observer.observe(minicartInner, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
 
   // Close panel on Escape key
   document.addEventListener("keydown", function (e) {
@@ -225,4 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
       hideDetails();
     }
   });
+
+  // Start monitoring cart state
+  monitorCartState();
 });
