@@ -194,19 +194,69 @@ document.addEventListener("DOMContentLoaded", function () {
     return window.innerWidth <= 768;
   }
 
+  // Function to get product info from current marquee item
+  function getMarqueeProductInfo() {
+    if (!currentProduct) {
+      // Fallback if no current product
+      return {
+        id: 'marquee-golden-ring',
+        name: 'Golden Ring Decor',
+        image: 'assets/img/product/marquee-golden-ring.jpg',
+        price: 300.00,
+        url: 'product-details.html'
+      };
+    }
+
+    // Get actual image from the current marquee item
+    const productImg = currentProduct.querySelector('img');
+
+    // Extract actual image source
+    const imageSrc = productImg ? productImg.src : 'assets/img/product/marquee-golden-ring.jpg';
+
+    // Generate product name based on image filename
+    let productName = 'Golden Ring Decor';
+    let productId = 'marquee-golden-ring';
+
+    if (productImg && productImg.src) {
+      const filename = productImg.src.split('/').pop().toLowerCase();
+
+      if (filename.includes('ring-2')) {
+        productName = 'Diamond Ring';
+        productId = 'marquee-diamond-ring';
+      } else if (filename.includes('ring-3')) {
+        productName = 'Wedding Ring';
+        productId = 'marquee-wedding-ring';
+      } else if (filename.includes('ring-5')) {
+        productName = 'Golden Ring Decor';
+        productId = 'marquee-golden-ring';
+      } else if (filename.includes('ring-7')) {
+        productName = 'Silver Ring';
+        productId = 'marquee-silver-ring';
+      } else if (filename.includes('earring-1')) {
+        productName = 'Diamond Earrings';
+        productId = 'marquee-diamond-earrings';
+      } else {
+        productName = 'Fine Jewelry';
+        productId = 'marquee-fine-jewelry';
+      }
+    }
+
+    return {
+      id: productId,
+      name: productName,
+      image: imageSrc,
+      price: 300.00,
+      url: 'product-details.html'
+    };
+  }
+
   // Add to cart button event
   addCartBtn.addEventListener("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Get product information
-    const productInfo = {
-      id: 'marquee-golden-ring',
-      name: 'Golden Ring Decor',
-      image: 'assets/img/product/marquee-golden-ring.jpg',
-      price: 300.00,
-      url: 'product-details.html'
-    };
+    // Get product information with actual image
+    const productInfo = getMarqueeProductInfo();
 
     // Use global cart functionality if available
     if (window.coranoCart) {
