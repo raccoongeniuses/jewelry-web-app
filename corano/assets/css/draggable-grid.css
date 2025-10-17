@@ -17,7 +17,7 @@
 .grid {
     position: relative;
     display: flex;
-    animation: scrollLeft 30s linear infinite;
+    animation: scrollLeft 60s linear infinite;
     gap: 2vw;
     width: max-content;
 }
@@ -324,7 +324,7 @@
         transform: translateX(0);
     }
     100% {
-        transform: translateX(-50%);
+        transform: translateX(-33.33%);
     }
 }
 
@@ -348,7 +348,7 @@
 /* Extra large screens (1920px and above) - ensure smooth marquee */
 @media (min-width: 1920px) {
     .grid {
-        animation: scrollLeft 30s linear infinite;
+        animation: scrollLeft 60s linear infinite;
         gap: 1vw;
         min-width: 300vw;
     }
