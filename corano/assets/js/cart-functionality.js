@@ -157,11 +157,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Extract product information from the DOM element
     function getProductInfo(element) {
-        const productElement = element.closest('.product-item') || element.closest('.product-wrap');
+        const productElement = element.closest('.product-item') || element.closest('.product-wrap') || element.closest('.product-details-des');
 
         if (!productElement) return null;
 
-        const nameElement = productElement.querySelector('.product-name a');
+        const nameElement = productElement.querySelector('.product-name a, .product-name');
         const imageElement = productElement.querySelector('img');
         const priceElement = productElement.querySelector('.price-regular, .main-price');
         const urlElement = productElement.querySelector('.product-name a');
@@ -171,12 +171,26 @@ document.addEventListener("DOMContentLoaded", function () {
         const productPrice = priceElement ? parseFloat(priceElement.textContent.replace('$', '')) : 0;
         const id = `${productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${productPrice}`;
 
+        // For product details page, get the main product image from the slider
+        let productImage = 'assets/img/product/default.jpg';
+
+        if (element.classList.contains('btn-cart2')) {
+            // Product details page - get the first/active image from the product slider
+            const sliderImage = document.querySelector('.product-large-slider .pro-large-img:first-child img');
+            if (sliderImage) {
+                productImage = sliderImage.src;
+            }
+        } else if (imageElement) {
+            // Regular product grid - get image from the product container
+            productImage = imageElement.src;
+        }
+
         return {
             id: id,
             name: productName,
-            image: imageElement ? imageElement.src : 'assets/img/product/default.jpg',
+            image: productImage,
             price: productPrice,
-            url: urlElement ? urlElement.href : 'product-details.html'
+            url: urlElement ? urlElement.href : window.location.href
         };
     }
 
@@ -197,7 +211,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const productInfo = getProductInfo(button);
 
         if (productInfo) {
-            addToCart(productInfo);
+            // For product details page, get quantity from the quantity input
+            if (button.classList.contains('btn-cart2')) {
+                const quantityInput = document.querySelector('.pro-qty input');
+                const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
+                // Add the specified quantity
+                for (let i = 0; i < quantity; i++) {
+                    addToCart(productInfo);
+                }
+            } else {
+                addToCart(productInfo);
+            }
 
             // Reset button after delay
             setTimeout(() => {
@@ -222,13 +247,77 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener('click', handleAddToCartClick);
         });
 
+        // Product details page add to cart button
+        document.querySelectorAll('.btn-cart2').forEach(button => {
+            button.addEventListener('click', handleAddToCartClick);
+        });
+
         // NOTE: Marquee details add to cart button is handled in draggable-grid.js
         // We do NOT add an event listener here to avoid duplication
+    }
+
+    // Handle minicart quantity changes
+    function addMinicartQuantityListeners() {
+        // Add listeners to all quantity buttons in minicart
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('qtybtn')) {
+                const proQty = e.target.closest('.pro-qty');
+                const input = proQty.querySelector('input');
+                const minicartItem = e.target.closest('.minicart-item');
+
+                if (minicartItem) {
+                    const productName = minicartItem.querySelector('.product-name a').textContent;
+                    const cartItem = cartItems.find(item => item.name === productName);
+
+                    if (cartItem) {
+                        let newValue = parseInt(input.value) || 1;
+
+                        if (e.target.classList.contains('inc')) {
+                            newValue++;
+                        } else if (e.target.classList.contains('dec')) {
+                            newValue = Math.max(1, newValue - 1);
+                        }
+
+                        input.value = newValue;
+                        cartItem.quantity = newValue;
+
+                        // Update cart display and totals
+                        updateCart();
+                        saveCart();
+                    }
+                }
+            }
+        });
+
+        // Add listeners for direct input changes
+        document.addEventListener('input', function(e) {
+            if (e.target.closest('.minicart-content') && e.target.type === 'text' && e.target.closest('.pro-qty')) {
+                const proQty = e.target.closest('.pro-qty');
+                const minicartItem = proQty.closest('.minicart-item');
+
+                if (minicartItem) {
+                    const productName = minicartItem.querySelector('.product-name a').textContent;
+                    const cartItem = cartItems.find(item => item.name === productName);
+
+                    if (cartItem) {
+                        let newValue = parseInt(e.target.value) || 1;
+                        newValue = Math.max(1, Math.min(99, newValue)); // Limit between 1 and 99
+                        e.target.value = newValue;
+                        cartItem.quantity = newValue;
+
+                        // Update cart display and totals
+                        updateCart();
+                        saveCart();
+                    }
+                }
+            }
+        });
     }
 
     // Initialize cart functionality
     loadCart();
     addCartButtonListeners();
+    addMinicartQuantityListeners();
 
     // Enhance existing cart close buttons to restore scroll position
     document.querySelectorAll('.offcanvas-close, .minicart-close, .offcanvas-overlay').forEach(element => {
