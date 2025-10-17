@@ -16,7 +16,6 @@
 
 .grid {
     position: relative;
-    width: 200%;
     display: flex;
     animation: scrollLeft 30s linear infinite;
     gap: 2vw;
@@ -271,6 +270,50 @@
     .vase-details-add-cart {
         padding: 10px 15px;
         font-size: 12px;
+    }
+}
+
+/* Cart open state - details panel centered */
+.vase-details-panel.cart-open-centered {
+    right: auto !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    transition: all 0.4s ease !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+    border: 2px solid #f39c12;
+}
+
+/* Ensure proper z-index layering when cart is open */
+.vase-details-overlay.cart-open-centered {
+    z-index: 100;
+}
+
+.vase-details-panel.cart-open-centered {
+    z-index: 101;
+}
+
+/* Mobile adjustments for centered state */
+@media (max-width: 768px) {
+    .vase-details-panel.cart-open-centered {
+        width: 90%;
+        max-width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .vase-details-panel.cart-open-centered {
+        width: 85%;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .vase-details-panel.cart-open-centered {
+        width: 95%;
+        padding: 15px;
     }
 }
 
