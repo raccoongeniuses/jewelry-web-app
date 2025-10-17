@@ -17,7 +17,7 @@
 .grid {
     position: relative;
     display: flex;
-    animation: scrollLeft 25s linear infinite;
+    animation: scrollLeft 30s linear infinite;
     gap: 2vw;
     width: max-content;
 }
