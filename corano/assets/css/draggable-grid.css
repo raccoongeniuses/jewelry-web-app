@@ -17,7 +17,7 @@
 .grid {
     position: relative;
     display: flex;
-    animation: scrollLeft 30s linear infinite;
+    animation: scrollLeft 25s linear infinite;
     gap: 2vw;
     width: max-content;
 }
@@ -342,6 +342,23 @@
     .marquee-item img {
         width: 188px;
         height: 188px;
+    }
+}
+
+/* Extra large screens (1920px and above) - ensure smooth marquee */
+@media (min-width: 1920px) {
+    .grid {
+        animation: scrollLeft 30s linear infinite;
+        gap: 1vw;
+        min-width: 300vw;
+    }
+    .column {
+        gap: 1vw;
+        min-width: 200px;
+    }
+    .marquee-item img {
+        width: 220px;
+        height: 220px;
     }
 }
 
