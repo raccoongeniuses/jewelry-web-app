@@ -19,6 +19,7 @@
     display: flex;
     animation: scrollLeft 30s linear infinite;
     gap: 2vw;
+    width: max-content;
 }
 
 .column {
