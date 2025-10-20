@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import CartModal from './cart/CartModal';
 
 export default function Header() {
   return (
@@ -105,10 +106,7 @@ export default function Header() {
                         </a>
                       </li>
                       <li>
-                        <a href="#" className="minicart-btn">
-                          <i className="pe-7s-shopbag"></i>
-                          <div className="notification">2</div>
-                        </a>
+                        <CartModal />
                       </li>
                     </ul>
                   </div>

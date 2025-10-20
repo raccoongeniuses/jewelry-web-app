@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
+import { CartProvider } from "./contexts/CartContext";
 
 const lato = Lato({
   weight: ['300', '400', '700', '900'],
@@ -35,7 +36,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="/assets/css/draggable-grid.css" />
       </head>
       <body className={`${lato.variable} antialiased`}>
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
         
         {/* Scripts */}
         <Script src="/assets/js/vendor/modernizr-3.6.0.min.js" strategy="beforeInteractive" />

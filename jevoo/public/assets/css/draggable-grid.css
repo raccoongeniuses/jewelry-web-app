@@ -1,4 +1,4 @@
-/* Vase Gallery Styles for Corano Theme - Masonry Layout with Marquee */
+/* Vase Gallery Styles for Jevoo Theme - Masonry Layout with Marquee */
 
 .draggable-product-marquee {
     background: #fff;
@@ -14,12 +14,24 @@
     overflow: hidden;
 }
 
+.draggable-grid-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
 .grid {
     position: relative;
-    width: 200%;
     display: flex;
-    animation: scrollLeft 30s linear infinite;
     gap: 2vw;
+    width: max-content;
+}
+
+/* Cloned grid for infinite marquee */
+.grid-clone {
+    position: absolute;
+    top: 0;
+    pointer-events: none; /* Ensure clone doesn't interfere with clicks */
 }
 
 .column {
@@ -28,6 +40,11 @@
     flex: 1;
     align-items: center;
     gap: 1.5vw;
+}
+
+/* Add margin-top to even-numbered columns for staggered layout */
+.column:nth-child(even) {
+    margin-top: 111px;
 }
 
 .marquee-item {
@@ -61,73 +78,6 @@
 }
 
 
-.marquee-item:nth-child(1) img {
-    transform: translateY(-20px);
-}
-
-.marquee-item:nth-child(2) img {
-    transform: translateY(15px);
-}
-
-.marquee-item:nth-child(3) img {
-    transform: translateY(-18px);
-}
-
-/* Different stagger for each column */
-.column:nth-child(2) .marquee-item:nth-child(1) img { transform: translateY(22px); }
-.column:nth-child(2) .marquee-item:nth-child(2) img { transform: translateY(-18px); }
-.column:nth-child(2) .marquee-item:nth-child(3) img { transform: translateY(25px); }
-
-.column:nth-child(3) .marquee-item:nth-child(1) img { transform: translateY(-15px); }
-.column:nth-child(3) .marquee-item:nth-child(2) img { transform: translateY(28px); }
-.column:nth-child(3) .marquee-item:nth-child(3) img { transform: translateY(-22px); }
-
-.column:nth-child(4) .marquee-item:nth-child(1) img { transform: translateY(32px); }
-.column:nth-child(4) .marquee-item:nth-child(2) img { transform: translateY(-12px); }
-.column:nth-child(4) .marquee-item:nth-child(3) img { transform: translateY(20px); }
-
-/* Mobile column-specific overrides */
-@media (max-width: 768px) {
-    .column:nth-child(2) .marquee-item:nth-child(1) img { transform: translateY(20px); }
-    .column:nth-child(2) .marquee-item:nth-child(2) img { transform: translateY(-22px); }
-    .column:nth-child(2) .marquee-item:nth-child(3) img { transform: translateY(25px); }
-
-    .column:nth-child(3) .marquee-item:nth-child(1) img { transform: translateY(-10px); }
-    .column:nth-child(3) .marquee-item:nth-child(2) img { transform: translateY(28px); }
-    .column:nth-child(3) .marquee-item:nth-child(3) img { transform: translateY(-24px); }
-
-    .column:nth-child(4) .marquee-item:nth-child(1) img { transform: translateY(32px); }
-    .column:nth-child(4) .marquee-item:nth-child(2) img { transform: translateY(-14px); }
-    .column:nth-child(4) .marquee-item:nth-child(3) img { transform: translateY(18px); }
-}
-
-@media (max-width: 576px) {
-    .column:nth-child(2) .marquee-item:nth-child(1) img { transform: translateY(15px); }
-    .column:nth-child(2) .marquee-item:nth-child(2) img { transform: translateY(-18px); }
-    .column:nth-child(2) .marquee-item:nth-child(3) img { transform: translateY(20px); }
-
-    .column:nth-child(3) .marquee-item:nth-child(1) img { transform: translateY(-8px); }
-    .column:nth-child(3) .marquee-item:nth-child(2) img { transform: translateY(22px); }
-    .column:nth-child(3) .marquee-item:nth-child(3) img { transform: translateY(-18px); }
-
-    .column:nth-child(4) .marquee-item:nth-child(1) img { transform: translateY(25px); }
-    .column:nth-child(4) .marquee-item:nth-child(2) img { transform: translateY(-12px); }
-    .column:nth-child(4) .marquee-item:nth-child(3) img { transform: translateY(14px); }
-}
-
-@media (max-width: 400px) {
-    .column:nth-child(2) .marquee-item:nth-child(1) img { transform: translateY(12px); }
-    .column:nth-child(2) .marquee-item:nth-child(2) img { transform: translateY(-14px); }
-    .column:nth-child(2) .marquee-item:nth-child(3) img { transform: translateY(16px); }
-
-    .column:nth-child(3) .marquee-item:nth-child(1) img { transform: translateY(-6px); }
-    .column:nth-child(3) .marquee-item:nth-child(2) img { transform: translateY(18px); }
-    .column:nth-child(3) .marquee-item:nth-child(3) img { transform: translateY(-15px); }
-
-    .column:nth-child(4) .marquee-item:nth-child(1) img { transform: translateY(20px); }
-    .column:nth-child(4) .marquee-item:nth-child(2) img { transform: translateY(-10px); }
-    .column:nth-child(4) .marquee-item:nth-child(3) img { transform: translateY(12px); }
-}
 
 /* Hover effects */
 .marquee-item:hover {
@@ -336,32 +286,98 @@
     }
 }
 
-/* Marquee animation */
-@keyframes scrollLeft {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%);
+/* Cart open state - details panel centered */
+.vase-details-panel.cart-open-centered {
+    right: auto !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    transition: all 0.4s ease !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+    border: 2px solid #f39c12;
+}
+
+/* Ensure proper z-index layering when cart is open */
+.vase-details-overlay.cart-open-centered {
+    z-index: 100;
+}
+
+.vase-details-panel.cart-open-centered {
+    z-index: 101;
+}
+
+/* Mobile adjustments for centered state */
+@media (max-width: 768px) {
+    .vase-details-panel.cart-open-centered {
+        width: 90%;
+        max-width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
     }
 }
 
+@media (max-width: 576px) {
+    .vase-details-panel.cart-open-centered {
+        width: 85%;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .vase-details-panel.cart-open-centered {
+        width: 95%;
+        padding: 15px;
+    }
+}
+
+/* Marquee animation is now handled by GSAP in JavaScript for seamless infinite looping */
+
 
 /* Responsive adjustments for grid layout */
-@media (max-width: 1200px) {
+@media (min-width: 1200px) {
     .grid {
-        gap: 1.8vw;
+        gap: 1.5vw;
     }
     .column {
-        gap: 1.2vw;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5vw;
     }
     .marquee-item img {
-        max-width: 200px;
+        width: 188px;
+        height: 188px;
     }
-    /* Reduce translateY values for medium screens */
-    .marquee-item:nth-child(1) img { transform: translateY(-18px); }
-    .marquee-item:nth-child(2) img { transform: translateY(12px); }
-    .marquee-item:nth-child(3) img { transform: translateY(-15px); }
+}
+
+/* Extra large screens (1920px and above) - ensure smooth marquee */
+@media (min-width: 1920px) {
+    .grid {
+        gap: 1vw;
+        min-width: 300vw;
+    }
+    .column {
+        gap: 1vw;
+        min-width: 200px;
+    }
+    .marquee-item img {
+        width: 220px;
+        height: 220px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .grid {
+        gap: 2vw;
+    }
+    .column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5vw;
+    }
+    .marquee-item img {
+        width: 188px;
+        height: 188px;
+    }
 }
 
 @media (max-width: 992px) {
@@ -374,10 +390,6 @@
     .marquee-item img {
         max-width: 180px;
     }
-    /* Further reduce translateY for smaller screens */
-    .marquee-item:nth-child(1) img { transform: translateY(-15px); }
-    .marquee-item:nth-child(2) img { transform: translateY(10px); }
-    .marquee-item:nth-child(3) img { transform: translateY(-12px); }
 }
 
 @media (max-width: 768px) {
@@ -396,10 +408,10 @@
     .marquee-item img {
         max-width: 160px;
     }
-    /* Reduce translateY for tablets */
-    .marquee-item:nth-child(1) img { transform: translateY(-12px); }
-    .marquee-item:nth-child(2) img { transform: translateY(8px); }
-    .marquee-item:nth-child(3) img { transform: translateY(-10px); }
+    /* Reduce margin-top for even columns on mobile */
+    .column:nth-child(even) {
+        margin-top: 60px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -407,21 +419,25 @@
         padding: 12px 0;
     }
     .grid {
-        gap: 1vw;
+        gap: 3vw;
     }
     .column {
         gap: 0.6vw;
     }
     .marquee-item {
         margin-top: 3vw;
+        display: flex;
+        justify-content: center;
+        align-items: center !important;
     }
     .marquee-item img {
-        max-width: 130px;
+        max-width: 95px;
+        max-height: 95px;
     }
-    /* Reduce translateY for mobile */
-    .marquee-item:nth-child(1) img { transform: translateY(-8px); }
-    .marquee-item:nth-child(2) img { transform: translateY(6px); }
-    .marquee-item:nth-child(3) img { transform: translateY(-7px); }
+    /* Reduce margin-top for even columns on mobile */
+    .column:nth-child(even) {
+        margin-top: 40px;
+    }
 }
 
 @media (max-width: 400px) {
@@ -436,12 +452,16 @@
     }
     .marquee-item {
         margin-top: 2vw;
+        display: flex;
+        justify-content: center;
+        align-items: center !important;
     }
     .marquee-item img {
-        max-width: 110px;
+        max-width: 80px;
+        max-height: 80px;
     }
-    /* Minimal translateY for very small screens */
-    .marquee-item:nth-child(1) img { transform: translateY(-6px); }
-    .marquee-item:nth-child(2) img { transform: translateY(4px); }
-    .marquee-item:nth-child(3) img { transform: translateY(-5px); }
+    /* Reduce margin-top for even columns on mobile */
+    .column:nth-child(even) {
+        margin-top: 40px;
+    }
 }
