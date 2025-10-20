@@ -103,29 +103,53 @@ const sampleProducts: Product[] = [
     isSale: true,
     discount: 25,
     colors: ['lightblue', 'darktan', 'grey', 'brown']
-  }
+  },
+  {
+    id: '9',
+    name: 'Handmade Golden Necklace',
+    price: 50.00,
+    originalPrice: 80.00,
+    image: '/assets/img/product/mony-ring.jpeg',
+    secondaryImage: '/assets/img/product/mony-rings.jpg',
+    url: '/product-details',
+    brand: 'mony',
+    isSale: true,
+    colors: ['lightblue', 'darktan', 'grey', 'brown']
+  },
+  {
+    id: '10',
+    name: 'Perfect Diamond Jewelry',
+    price: 99.00,
+    image: '/assets/img/product/diamond-ring.jpg',
+    secondaryImage: '/assets/img/product/diamond-rings.jpeg',
+    url: '/product-details',
+    brand: 'Diamond',
+    isNew: true,
+    colors: ['lightblue', 'darktan', 'grey', 'brown']
+  },
 ];
 
 export default function FeaturedProducts() {
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize slider after component mounts
-    const initSlider = () => {
-      if (typeof window !== 'undefined' && (window as any).$ && sliderRef.current) {
-        console.log('Initializing slider...', sliderRef.current);
-        
-        // Destroy any existing slider first
+    // Initialize slider after scripts load; retry until slick is available
+    let retries = 0;
+    const maxRetries = 20;
+    const tryInit = () => {
+      const hasJQ = typeof window !== 'undefined' && (window as any).$;
+      const hasSlick = hasJQ && (window as any).$.fn && typeof (window as any).$.fn.slick === 'function';
+      if (!sliderRef.current) return false;
+      if (hasSlick) {
         if ((window as any).$(sliderRef.current).hasClass('slick-initialized')) {
-          console.log('Destroying existing slider...');
           (window as any).$(sliderRef.current).slick('unslick');
         }
-        
-        // Initialize the slider
         try {
           (window as any).$(sliderRef.current).slick({
             speed: 1000,
             slidesToShow: 4,
+            slidesToScroll: 1,
+            rows: 2,
             autoplay: true,
             infinite: true,
             prevArrow: '<button type="button" class="slick-prev"><i class="pe-7s-angle-left"></i></button>',
@@ -134,44 +158,51 @@ export default function FeaturedProducts() {
               {
                 breakpoint: 992,
                 settings: {
-                  slidesToShow: 3
+                  slidesToShow: 3,
+                  slidesToScroll: 1
                 }
               },
               {
                 breakpoint: 768,
                 settings: {
                   slidesToShow: 2,
-                  arrows: false
+                  slidesToScroll: 1,
+                  arrows: false,
+                  rows: 1
                 }
               },
               {
                 breakpoint: 480,
                 settings: {
                   slidesToShow: 1,
-                  arrows: false
+                  slidesToScroll: 1,
+                  arrows: false,
+                  rows: 1
                 }
               }
             ]
           });
-          console.log('Slider initialized successfully');
         } catch (error) {
           console.error('Error initializing slider:', error);
         }
-      } else {
-        console.log('jQuery or slider ref not available');
+        return true;
       }
+      return false;
     };
 
-    // Wait for DOM to be ready
-    const timer = setTimeout(initSlider, 500);
+    const interval = setInterval(() => {
+      if (tryInit() || retries++ >= maxRetries) {
+        clearInterval(interval);
+      }
+    }, 200);
+
     return () => {
-      clearTimeout(timer);
-      // Cleanup on unmount
       if (typeof window !== 'undefined' && (window as any).$ && sliderRef.current) {
         if ((window as any).$(sliderRef.current).hasClass('slick-initialized')) {
           (window as any).$(sliderRef.current).slick('unslick');
         }
       }
+      clearInterval(interval);
     };
   }, []);
 
