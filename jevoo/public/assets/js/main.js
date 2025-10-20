@@ -145,8 +145,8 @@
 	});
 
 
-	// product carousel active
-	$('.product-carousel-4_2').slick({
+	// product carousel active - exclude React components
+	$('.product-carousel-4_2').not('[data-react-component]').slick({
 		speed: 1000,
 		slidesToShow: 4,
 		autoplay: true,
