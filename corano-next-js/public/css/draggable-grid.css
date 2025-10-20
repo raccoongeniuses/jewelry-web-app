@@ -1,0 +1,467 @@
+/* Vase Gallery Styles for Jevoo Theme - Masonry Layout with Marquee */
+
+.draggable-product-marquee {
+    background: #fff;
+    overflow: hidden;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    padding: 40px 0;
+}
+
+.marquee-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.draggable-grid-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.grid {
+    position: relative;
+    display: flex;
+    gap: 2vw;
+    width: max-content;
+}
+
+/* Cloned grid for infinite marquee */
+.grid-clone {
+    position: absolute;
+    top: 0;
+    pointer-events: none; /* Ensure clone doesn't interfere with clicks */
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    align-items: center;
+    gap: 1.5vw;
+}
+
+/* Add margin-top to even-numbered columns for staggered layout */
+.column:nth-child(even) {
+    margin-top: 111px;
+}
+
+.marquee-item {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    break-inside: avoid;
+    margin-bottom: 2vw;
+}
+
+.product-placeholder {
+    pointer-events: none;
+    margin-bottom: 5vw;
+}
+
+.vase-details-thumb .marquee-item {
+    margin-bottom: 0;
+}
+
+.marquee-item img {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    object-fit: contain;
+    border: none;
+    outline: none;
+    filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.15));
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+
+
+/* Hover effects */
+.marquee-item:hover {
+    z-index: 10;
+}
+
+.marquee-item:hover img {
+    transform: scale(1.05);
+    filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.15)) brightness(1.1);
+}
+
+.marquee-item {
+    cursor: pointer;
+}
+
+/* Vase details panel */
+.vase-details-panel {
+    position: fixed;
+    top: 50%;
+    right: -400px;
+    transform: translateY(-50%);
+    width: 350px;
+    background: #fff;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+    z-index: 1000;
+    opacity: 0;
+    transition: right 0.3s ease, opacity 0.3s ease;
+    padding: 30px;
+    border-left: 3px solid #f39c12;
+}
+
+.vase-details-panel.active {
+    right: 20px;
+    opacity: 1;
+}
+
+.vase-details-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: #f39c12;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    transition: background 0.3s ease;
+}
+
+.vase-details-close:hover {
+    background: #e67e22;
+}
+
+.vase-details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.vase-details-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0;
+    font-family: 'Playfair Display', serif;
+}
+
+.vase-details-thumb {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.vase-details-thumb img {
+    max-width: 180px;
+    max-height: 180px;
+    object-fit: contain;
+}
+
+.vase-details-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.vase-details-price {
+    font-size: 20px;
+    color: #f39c12;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.vase-details-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #7f8c8d;
+    margin-bottom: 25px;
+}
+
+.vase-details-add-cart {
+    width: 100%;
+    padding: 12px 20px;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.vase-details-add-cart:hover {
+    background: #34495e;
+}
+
+/* Overlay */
+.vase-details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.vase-details-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile responsiveness for details panel */
+@media (max-width: 768px) {
+    .vase-details-panel {
+        width: 90%;
+        max-width: 320px;
+        right: -100%;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .vase-details-panel.active {
+        right: 5%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+    }
+}
+
+@media (max-width: 576px) {
+    .vase-details-panel {
+        width: 85%;
+        padding: 20px;
+    }
+
+    .vase-details-title {
+        font-size: 20px;
+    }
+
+    .vase-details-price {
+        font-size: 18px;
+    }
+
+    .vase-details-description {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 400px) {
+    .vase-details-panel {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .vase-details-panel.active {
+        right: 2.5%;
+    }
+
+    .vase-details-title {
+        font-size: 18px;
+    }
+
+    .vase-details-price {
+        font-size: 16px;
+    }
+
+    .vase-details-description {
+        font-size: 12px;
+    }
+
+    .vase-details-add-cart {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+}
+
+/* Cart open state - details panel centered */
+.vase-details-panel.cart-open-centered {
+    right: auto !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    transition: all 0.4s ease !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+    border: 2px solid #f39c12;
+}
+
+/* Ensure proper z-index layering when cart is open */
+.vase-details-overlay.cart-open-centered {
+    z-index: 100;
+}
+
+.vase-details-panel.cart-open-centered {
+    z-index: 101;
+}
+
+/* Mobile adjustments for centered state */
+@media (max-width: 768px) {
+    .vase-details-panel.cart-open-centered {
+        width: 90%;
+        max-width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .vase-details-panel.cart-open-centered {
+        width: 85%;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .vase-details-panel.cart-open-centered {
+        width: 95%;
+        padding: 15px;
+    }
+}
+
+/* Marquee animation is now handled by GSAP in JavaScript for seamless infinite looping */
+
+
+/* Responsive adjustments for grid layout */
+@media (min-width: 1200px) {
+    .grid {
+        gap: 1.5vw;
+    }
+    .column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5vw;
+    }
+    .marquee-item img {
+        width: 188px;
+        height: 188px;
+    }
+}
+
+/* Extra large screens (1920px and above) - ensure smooth marquee */
+@media (min-width: 1920px) {
+    .grid {
+        gap: 1vw;
+        min-width: 300vw;
+    }
+    .column {
+        gap: 1vw;
+        min-width: 200px;
+    }
+    .marquee-item img {
+        width: 220px;
+        height: 220px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .grid {
+        gap: 2vw;
+    }
+    .column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5vw;
+    }
+    .marquee-item img {
+        width: 188px;
+        height: 188px;
+    }
+}
+
+@media (max-width: 992px) {
+    .grid {
+        gap: 1.5vw;
+    }
+    .column {
+        gap: 1vw;
+    }
+    .marquee-item img {
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 768px) {
+    .draggable-product-marquee {
+        padding: 15px 0;
+    }
+    .grid {
+        gap: 1.2vw;
+    }
+    .column {
+        gap: 0.8vw;
+    }
+    .marquee-item {
+        margin-top: 4vw;
+    }
+    .marquee-item img {
+        max-width: 160px;
+    }
+    /* Reduce margin-top for even columns on mobile */
+    .column:nth-child(even) {
+        margin-top: 60px;
+    }
+}
+
+@media (max-width: 576px) {
+    .draggable-product-marquee {
+        padding: 12px 0;
+    }
+    .grid {
+        gap: 3vw;
+    }
+    .column {
+        gap: 0.6vw;
+    }
+    .marquee-item {
+        margin-top: 3vw;
+        display: flex;
+        justify-content: center;
+        align-items: center !important;
+    }
+    .marquee-item img {
+        max-width: 95px;
+        max-height: 95px;
+    }
+    /* Reduce margin-top for even columns on mobile */
+    .column:nth-child(even) {
+        margin-top: 40px;
+    }
+}
+
+@media (max-width: 400px) {
+    .draggable-product-marquee {
+        padding: 8px 0;
+    }
+    .grid {
+        gap: 0.8vw;
+    }
+    .column {
+        gap: 0.5vw;
+    }
+    .marquee-item {
+        margin-top: 2vw;
+        display: flex;
+        justify-content: center;
+        align-items: center !important;
+    }
+    .marquee-item img {
+        max-width: 80px;
+        max-height: 80px;
+    }
+    /* Reduce margin-top for even columns on mobile */
+    .column:nth-child(even) {
+        margin-top: 40px;
+    }
+}
