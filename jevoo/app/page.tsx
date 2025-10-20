@@ -2,6 +2,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Marquee from "./components/Marquee";
 import FeaturedProducts from "./components/product/FeaturedProducts";
+import Testimonials from "./components/Testimonials";
 
 export default function Home() {
   return (
@@ -173,6 +174,10 @@ export default function Home() {
         {/* featured product area start */}
         <FeaturedProducts />
         {/* featured product area end */}
+
+        {/* testimonial area start (below featured products) */}
+        <Testimonials />
+        {/* testimonial area end */}
       </main>
 
       <Footer />
