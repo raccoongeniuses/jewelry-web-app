@@ -127,7 +127,7 @@ export default function Home() {
               <div className="col-12">
                 {/* section title start */}
                 <div className="section-title text-center">
-                  <h2 className="title">our products</h2>
+                  <h2 className="title">Our products</h2>
                   <p className="sub-title">Add our products to weekly lineup</p>
                 </div>
                 {/* section title end */}
