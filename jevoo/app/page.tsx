@@ -3,6 +3,8 @@ import Footer from "./components/Footer";
 import Marquee from "./components/Marquee";
 import FeaturedProducts from "./components/product/FeaturedProducts";
 import Testimonials from "./components/Testimonials";
+import GroupProducts from "./components/GroupProducts";
+import Blog from "./components/Blog";
 
 export default function Home() {
   return (
@@ -178,6 +180,13 @@ export default function Home() {
         {/* testimonial area start (below featured products) */}
         <Testimonials />
         {/* testimonial area end */}
+
+        {/* group product area (best seller + on-sale) */}
+        <GroupProducts />
+
+        {/* latest blog area start */}
+        <Blog />
+        {/* latest blog area end */}
       </main>
 
       <Footer />
