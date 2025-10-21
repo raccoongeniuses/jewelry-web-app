@@ -54,9 +54,13 @@ export default function ProductDetails() {
     { name: 'Product Details', url: '/product-details' }
   ];
 
+  const handleScriptsLoaded = () => {
+    // Scripts are loaded, carousels should initialize automatically
+  };
+
   return (
     <>
-      <ScriptLoader />
+      <ScriptLoader onScriptsLoaded={handleScriptsLoaded} />
       <div className="wrapper">
         <Header />
 
