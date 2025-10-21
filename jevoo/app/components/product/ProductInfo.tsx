@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Product } from '../../types/product';
+import { Product, CartItem } from '../../types/product';
 import CartButton from '../cart/CartButton';
 
 interface ProductInfoProps {
@@ -102,7 +102,7 @@ export default function ProductInfo({ product, onQuickView }: ProductInfoProps) 
         </div>
         <div className="action_link">
           <CartButton
-            product={{ ...product, quantity }}
+            product={{ ...product, quantity } as CartItem}
             className="btn btn-cart2"
           >
             Add to cart

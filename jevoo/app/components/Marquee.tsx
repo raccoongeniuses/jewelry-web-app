@@ -62,6 +62,7 @@ export default function Marquee() {
 
   const [currentProduct, setCurrentProduct] = useState<HTMLElement | null>(null);
   const [originalParent, setOriginalParent] = useState<HTMLElement | null>(null);
+  const [originalNextSibling, setOriginalNextSibling] = useState<Node | null>(null);
   const [isShowingDetails, setIsShowingDetails] = useState(false);
   const [selectedProductData, setSelectedProductData] = useState<Product | null>(null);
 
@@ -195,6 +196,10 @@ export default function Marquee() {
     return () => {
       clearTimeout(timer);
       document.removeEventListener('keydown', handleKeyDown);
+
+      // Clean up any leftover placeholders
+      const placeholders = document.querySelectorAll('.product-placeholder[data-placeholder="true"]');
+      placeholders.forEach(placeholder => placeholder.remove());
     };
   }, [isShowingDetails, selectedProductData]);
 
@@ -203,29 +208,47 @@ export default function Marquee() {
     setIsShowingDetails(true);
     setSelectedProductData(product);
 
-    // Get the element's exact position and dimensions before any DOM changes
-    const rect = element.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    const { gsap, Flip } = window as any;
 
-    // Store original position for animation
-    const originalPosition = {
-      top: rect.top + scrollTop,
-      left: rect.left + scrollLeft,
-      width: rect.width,
-      height: rect.height
-    };
+    // Store references for cleanup
+    const originalParent = element.parentNode as HTMLElement;
+    const originalNextSibling = element.nextSibling;
 
-    // Clone the element instead of moving it to preserve marquee layout
-    const clonedElement = element.cloneNode(true) as HTMLElement;
-    clonedElement.style.position = "fixed";
-    clonedElement.style.zIndex = "9999";
-    clonedElement.style.margin = "0";
+    // Create a placeholder that exactly matches the marquee item structure
+    const placeholder = document.createElement("div");
+    placeholder.className = element.className; // Copy the same class
+    placeholder.style.height = element.offsetHeight + "px";
+    placeholder.style.width = element.offsetWidth + "px";
+    placeholder.style.visibility = "hidden";
+    placeholder.dataset.placeholder = "true";
+    // Copy any other styles that might affect layout
+    placeholder.style.margin = getComputedStyle(element).margin;
+    placeholder.style.padding = getComputedStyle(element).padding;
+    placeholder.style.display = getComputedStyle(element).display;
+    placeholder.style.justifyContent = getComputedStyle(element).justifyContent;
+    placeholder.style.alignItems = getComputedStyle(element).alignItems;
 
-    // Add clone to body
-    document.body.appendChild(clonedElement);
+    // Insert placeholder in the exact same position
+    if (originalNextSibling) {
+      originalParent.insertBefore(placeholder, originalNextSibling);
+    } else {
+      originalParent.appendChild(placeholder);
+    }
 
-    // Show details panel first
+    // Store references including the next sibling for precise positioning
+    setCurrentProduct(element);
+    setOriginalParent(originalParent);
+    setOriginalNextSibling(originalNextSibling);
+
+    // Get state before moving
+    const state = Flip.getState(element);
+
+    // Pause the marquee animation to prevent placeholder movement
+    if ((window as any).infiniteMarqueeTimeline) {
+      (window as any).infiniteMarqueeTimeline.pause();
+    }
+
+    // Show details panel
     if (detailsPanelRef.current) {
       detailsPanelRef.current.classList.add("active");
     }
@@ -251,103 +274,139 @@ export default function Marquee() {
       }
     }
 
-    // Move clone to details thumb
+    // Pre-position the details thumb for precise centering
     if (detailsThumbRef.current) {
-      detailsThumbRef.current.appendChild(clonedElement);
+      detailsThumbRef.current.innerHTML = ''; // Clear any previous content
+
+      // Create a wrapper element for better control
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'absolute';
+      wrapper.style.top = '50%';
+      wrapper.style.left = '50%';
+      wrapper.style.transform = 'translate(-50%, -50%)';
+      wrapper.style.width = '100%';
+      wrapper.style.height = '100%';
+      wrapper.style.display = 'flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.justifyContent = 'center';
+
+      detailsThumbRef.current.appendChild(wrapper);
+      wrapper.appendChild(element);
+
+      // Set initial styles on the element
+      element.style.position = 'relative';
+      element.style.transform = 'none';
+      element.style.maxWidth = '90%';
+      element.style.maxHeight = '90%';
+      element.style.width = 'auto';
+      element.style.height = 'auto';
     }
 
-    // Store reference to the clone for cleanup
-    setCurrentProduct(clonedElement);
-    setOriginalParent(document.body); // Clone parent is body
+    // Flip animation from original position to details
+    Flip.from(state, {
+      absolute: true,
+      targets: element,
+      duration: 1.2,
+      ease: "power3.inOut",
+      onComplete: () => {
+        // Ensure element stays perfectly centered after animation
+        if (detailsThumbRef.current) {
+          const { gsap } = window as any;
 
-    // Animate from original position to details thumb using regular GSAP
-    if (typeof window !== 'undefined' && (window as any).gsap) {
-      const { gsap } = window as any;
-
-      // Set initial position to match original location
-      gsap.set(clonedElement, {
-        position: "fixed",
-        top: originalPosition.top,
-        left: originalPosition.left,
-        width: originalPosition.width,
-        height: originalPosition.height,
-        margin: 0
-      });
-
-      // Animate to the center of the details thumb position
-      const detailsThumb = detailsThumbRef.current;
-      if (detailsThumb) {
-        const thumbRect = detailsThumb.getBoundingClientRect();
-
-        // Animate to center of thumb
-        gsap.to(clonedElement, {
-          position: "fixed",
-          top: thumbRect.top + (thumbRect.height - originalPosition.height) / 2,
-          left: thumbRect.left + (thumbRect.width - originalPosition.width) / 2,
-          scale: 1.1,
-          duration: 0.8,
-          ease: "power2.inOut",
-          onComplete: () => {
-            // Center it perfectly in the thumb
-            gsap.set(clonedElement, {
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "auto",
-              height: "auto",
-              maxWidth: "90%",
-              maxHeight: "90%"
-            });
-          }
-        });
+          // Brief corrective animation to snap to perfect center
+          gsap.to(element, {
+            x: 0,
+            y: 0,
+            duration: 0.1,
+            ease: "power2.out",
+            onComplete: () => {
+              // Ensure final positioning is locked
+              element.style.transform = 'none';
+            }
+          });
+        }
       }
-    }
+    });
   };
 
   const hideDetails = () => {
-    if (!isShowingDetails || !currentProduct) return;
+    if (!isShowingDetails || !currentProduct || !originalParent) return;
     setIsShowingDetails(false);
 
-    if (typeof window !== 'undefined' && (window as any).gsap) {
-      const { gsap } = window as any;
+    const { gsap } = window as any;
 
-      // Animate details panel content out first
-      const title = document.querySelector(".vase-details-title");
-      const infoItems = document.querySelectorAll(".vase-details-info > *");
+    // Find and remove the placeholder first
+    const placeholder = originalParent?.querySelector('.product-placeholder[data-placeholder="true"]');
+    if (placeholder) {
+      placeholder.remove();
+    }
 
-      if (title) {
-        gsap.to(title, {
-          y: 50,
-          opacity: 0,
-          duration: 0.2,
-          ease: "power2.in",
-        });
-      }
+    // Animate details panel content out first
+    gsap.to(".vase-details-title", {
+      y: 50,
+      opacity: 0,
+      duration: 0.2,
+      ease: "power2.in",
+    });
 
-      if (infoItems.length > 0) {
-        gsap.to(infoItems, {
-          y: 30,
-          opacity: 0,
-          duration: 0.2,
-          stagger: 0.02,
-          ease: "power2.in",
-        });
-      }
+    gsap.to(".vase-details-info > *", {
+      y: 30,
+      opacity: 0,
+      duration: 0.2,
+      stagger: 0.02,
+      ease: "power2.in",
+    });
 
-      // Animate the cloned element out
+    // Get the current state for Flip animation
+    const state = Flip.getState(currentProduct);
+
+    // Calculate final position in original parent
+    const finalRect = originalParent.getBoundingClientRect();
+    const detailsThumbRect = detailsThumbRef.current?.getBoundingClientRect();
+    const currentRect = currentProduct.getBoundingClientRect();
+
+    if (detailsThumbRect) {
+      // Set absolute positioning relative to details thumb
+      gsap.set(currentProduct, {
+        position: "absolute",
+        top: (currentRect.top - detailsThumbRect.top) + "px",
+        left: (currentRect.left - detailsThumbRect.left) + "px",
+        width: currentRect.width + "px",
+        height: currentRect.height + "px",
+        zIndex: 10000,
+      });
+
+      // Animate back to original position using GSAP (not Flip)
       gsap.to(currentProduct, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 0.6,
-        ease: "power2.inOut",
+        top: (finalRect.top - detailsThumbRect.top) + "px",
+        left: (finalRect.left - detailsThumbRect.left) + "px",
+        width: finalRect.width + "px",
+        height: finalRect.height + "px",
+        duration: 1.2,
+        delay: 0.3,
+        ease: "power3.inOut",
         onComplete: () => {
-          // Remove the cloned element
-          if (currentProduct.parentNode) {
-            currentProduct.parentNode.removeChild(currentProduct);
+          // Place product back in original parent
+          if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
+            originalParent.insertBefore(currentProduct, originalNextSibling);
+          } else {
+            originalParent.appendChild(currentProduct);
           }
 
-          // Clear the details thumb
+          // Reset all styles
+          gsap.set(currentProduct, {
+            position: "",
+            top: "",
+            left: "",
+            width: "",
+            height: "",
+            zIndex: "",
+            transform: "",
+            maxWidth: "",
+            maxHeight: "",
+          });
+
+          // Clear the details thumb (including wrapper)
           if (detailsThumbRef.current) {
             detailsThumbRef.current.innerHTML = "";
           }
@@ -362,60 +421,22 @@ export default function Marquee() {
           document.body.style.overflow = "";
 
           // Reset opacity and transform values for next time
-          if (title) gsap.set(title, { y: 0, opacity: 1 });
-          if (infoItems.length > 0) gsap.set(infoItems, { y: 0, opacity: 1 });
+          gsap.set(".vase-details-title", { y: 0, opacity: 1 });
+          gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
+          gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
 
           // Reset references
           setCurrentProduct(null);
           setOriginalParent(null);
+          setOriginalNextSibling(null);
           setSelectedProductData(null);
-        }
+
+          // Resume the marquee animation
+          if ((window as any).infiniteMarqueeTimeline) {
+            (window as any).infiniteMarqueeTimeline.resume();
+          }
+        },
       });
-    } else {
-      // Fallback: simple removal
-      const title = document.querySelector(".vase-details-title");
-      const infoItems = document.querySelectorAll(".vase-details-info > *");
-
-      if (title) {
-        (title as HTMLElement).style.opacity = '0';
-      }
-      if (infoItems.length > 0) {
-        infoItems.forEach(item => {
-          (item as HTMLElement).style.opacity = '0';
-        });
-      }
-
-      // Remove the cloned element
-      if (currentProduct.parentNode) {
-        currentProduct.parentNode.removeChild(currentProduct);
-      }
-
-      // Clear the details thumb
-      if (detailsThumbRef.current) {
-        detailsThumbRef.current.innerHTML = "";
-      }
-
-      // Hide details panel
-      if (detailsPanelRef.current) {
-        detailsPanelRef.current.classList.remove('active');
-      }
-      if (detailsOverlayRef.current) {
-        detailsOverlayRef.current.classList.remove('active');
-      }
-      document.body.style.overflow = "";
-
-      // Reset styles
-      if (title) (title as HTMLElement).style.opacity = '1';
-      if (infoItems.length > 0) {
-        infoItems.forEach(item => {
-          (item as HTMLElement).style.opacity = '1';
-        });
-      }
-
-      // Reset references
-      setCurrentProduct(null);
-      setOriginalParent(null);
-      setSelectedProductData(null);
     }
   };
 
