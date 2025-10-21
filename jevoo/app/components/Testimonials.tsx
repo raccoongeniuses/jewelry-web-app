@@ -1,7 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import ScriptLoader from './ScriptLoader';
+
+// Type declarations for jQuery
+declare global {
+  interface Window {
+    jQuery: any;
+    $: any;
+  }
+}
 
 type Testimonial = {
   id: string;
@@ -43,14 +52,86 @@ const testimonials: Testimonial[] = [
 ];
 
 const Testimonials = () => {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const thumbCarouselRef = useRef<HTMLDivElement>(null);
+  const contentCarouselRef = useRef<HTMLDivElement>(null);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+
+  // Initialize carousels when scripts are loaded
+  const initializeCarousels = () => {
+    if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
+
+    const $ = window.jQuery;
+    if (!$ || !$.fn.slick) return;
+
+    // Destroy existing carousels if they exist
+    if ($(contentCarouselRef.current).hasClass('slick-initialized')) {
+      $(contentCarouselRef.current).slick('unslick');
+    }
+    if ($(thumbCarouselRef.current).hasClass('slick-initialized')) {
+      $(thumbCarouselRef.current).slick('unslick');
+    }
+
+    // Initialize content carousel
+    $(contentCarouselRef.current).slick({
+      arrows: false,
+      asNavFor: '.testimonial-thumb-carousel',
+      fade: true,
+      adaptiveHeight: true
+    });
+
+    // Initialize thumb carousel
+    $(thumbCarouselRef.current).slick({
+      slidesToShow: 3,
+      asNavFor: '.testimonial-content-carousel',
+      centerMode: true,
+      arrows: false,
+      centerPadding: 0,
+      focusOnSelect: true,
+      responsive: [
+        {
+          breakpoint: 576,
+          settings: {
+            slidesToShow: 1
+          }
+        }
+      ]
+    });
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000); // Change testimonial every 5 seconds
+    if (scriptsLoaded) {
+      initializeCarousels();
+    }
+  }, [scriptsLoaded]);
 
-    return () => clearInterval(interval);
+  // Re-initialize when page becomes visible (route changes)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && scriptsLoaded) {
+        setTimeout(initializeCarousels, 50);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [scriptsLoaded]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (window.jQuery && window.jQuery.fn.slick) {
+        const $ = window.jQuery;
+        if (contentCarouselRef.current && $(contentCarouselRef.current).hasClass('slick-initialized')) {
+          $(contentCarouselRef.current).slick('unslick');
+        }
+        if (thumbCarouselRef.current && $(thumbCarouselRef.current).hasClass('slick-initialized')) {
+          $(thumbCarouselRef.current).slick('unslick');
+        }
+      }
+    };
   }, []);
 
   const renderStars = (rating: number) => {
@@ -62,13 +143,15 @@ const Testimonials = () => {
   };
 
   return (
-    <section 
-      className="testimonial-area section-padding bg-img" 
-      style={{
-        backgroundImage: 'url(/assets/img/testimonial/testimonials-bg.jpg)'
-      }}
-    >
-      <div className="container">
+    <>
+      <ScriptLoader onScriptsLoaded={() => setScriptsLoaded(true)} />
+      <section
+        className="testimonial-area section-padding bg-img"
+        style={{
+          backgroundImage: 'url(/assets/img/testimonial/testimonials-bg.jpg)'
+        }}
+      >
+        <div className="container">
         <div className="row">
           <div className="col-12">
             {/* Section title */}
@@ -81,13 +164,12 @@ const Testimonials = () => {
         <div className="row">
           <div className="col-12">
             <div className="testimonial-thumb-wrapper">
-              <div className="testimonial-thumb-carousel">
-                {testimonials.map((testimonial, index) => (
-                  <div 
-                    key={testimonial.id}
-                    className={`testimonial-thumb ${activeTestimonial === index ? 'slick-current' : ''}`}
-                    onClick={() => setActiveTestimonial(index)}
-                  >
+              <div
+                ref={thumbCarouselRef}
+                className="testimonial-thumb-carousel"
+              >
+                {testimonials.map((testimonial) => (
+                  <div key={testimonial.id} className="testimonial-thumb">
                     <Image
                       src={testimonial.image}
                       alt="testimonial-thumb"
@@ -105,15 +187,12 @@ const Testimonials = () => {
               </div>
             </div>
             <div className="testimonial-content-wrapper">
-              <div className="testimonial-content-carousel">
-                {testimonials.map((testimonial, index) => (
-                  <div 
-                    key={testimonial.id}
-                    className={`testimonial-content ${activeTestimonial === index ? 'active' : ''}`}
-                    style={{ 
-                      display: activeTestimonial === index ? 'block' : 'none'
-                    }}
-                  >
+              <div
+                ref={contentCarouselRef}
+                className="testimonial-content-carousel"
+              >
+                {testimonials.map((testimonial) => (
+                  <div key={testimonial.id} className="testimonial-content">
                     <p>{testimonial.content}</p>
                     <div className="ratings">
                       {renderStars(testimonial.rating)}
@@ -127,6 +206,7 @@ const Testimonials = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 
