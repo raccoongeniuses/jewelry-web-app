@@ -211,28 +211,6 @@ export default function Marquee() {
 
     // Store references for cleanup
     const originalParent = element.parentNode as HTMLElement;
-    const originalNextSibling = element.nextSibling;
-
-    // Create a placeholder to maintain layout
-    const placeholder = document.createElement("div");
-    placeholder.className = element.className;
-    placeholder.style.height = element.offsetHeight + "px";
-    placeholder.style.width = element.offsetWidth + "px";
-    placeholder.style.visibility = "hidden";
-    placeholder.dataset.placeholder = "true";
-    // Copy layout-affecting styles
-    placeholder.style.margin = getComputedStyle(element).margin;
-    placeholder.style.padding = getComputedStyle(element).padding;
-    placeholder.style.display = getComputedStyle(element).display;
-    placeholder.style.justifyContent = getComputedStyle(element).justifyContent;
-    placeholder.style.alignItems = getComputedStyle(element).alignItems;
-
-    // Insert placeholder in the exact same position
-    if (originalNextSibling) {
-      originalParent.insertBefore(placeholder, originalNextSibling);
-    } else {
-      originalParent.appendChild(placeholder);
-    }
 
     // Store references
     setCurrentProduct(element);
@@ -348,22 +326,15 @@ export default function Marquee() {
       stagger: 0.02,
       ease: "power2.in",
       onComplete: () => {
-        // Find the placeholder first
-        const placeholder = originalParent.querySelector('.product-placeholder[data-placeholder="true"]');
+        // Apply the original draggable-grid approach
+        const { Flip } = window as any;
+        const state = Flip.getState(currentProduct);
 
-        let targetRect;
-        if (placeholder) {
-          // Calculate target position based on where placeholder CURRENTLY is
-          targetRect = placeholder.getBoundingClientRect();
-        } else {
-          // Fallback: use original parent position
-          targetRect = originalParent.getBoundingClientRect();
-        }
-
+        const finalRect = originalParent.getBoundingClientRect();
         const currentRect = currentProduct.getBoundingClientRect();
         const detailsThumbRect = detailsThumbRef.current!.getBoundingClientRect();
 
-        // Set absolute positioning for animation
+        // Set absolute positioning for precise animation
         gsap.set(currentProduct, {
           position: "absolute",
           top: currentRect.top - detailsThumbRect.top + "px",
@@ -373,28 +344,18 @@ export default function Marquee() {
           zIndex: 10000,
         });
 
-        // Animate back to the placeholder's CURRENT position
+        // Animate back to the original parent position
         gsap.to(currentProduct, {
-          top: targetRect.top - detailsThumbRect.top + "px",
-          left: targetRect.left - detailsThumbRect.left + "px",
-          width: targetRect.width + "px",
-          height: targetRect.height + "px",
+          top: finalRect.top - detailsThumbRect.top + "px",
+          left: finalRect.left - detailsThumbRect.left + "px",
+          width: finalRect.width + "px",
+          height: finalRect.height + "px",
           duration: 1.2,
           delay: 0.3,
           ease: "power3.inOut",
           onComplete: () => {
-            // Find the placeholder
-            const placeholder = originalParent.querySelector('.product-placeholder[data-placeholder="true"]');
-
-            if (placeholder) {
-              // Insert product in the exact position of the placeholder
-              originalParent.insertBefore(currentProduct, placeholder);
-              // Remove the placeholder after product is in place
-              placeholder.remove();
-            } else {
-              // Fallback: append to parent if placeholder not found
-              originalParent.appendChild(currentProduct);
-            }
+            // Append back to original parent
+            originalParent.appendChild(currentProduct);
 
             // Reset all styles
             gsap.set(currentProduct, {
@@ -404,7 +365,6 @@ export default function Marquee() {
               width: "",
               height: "",
               zIndex: "",
-              transform: "",
             });
 
             // Clear the details thumb
