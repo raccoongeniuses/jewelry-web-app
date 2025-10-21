@@ -86,15 +86,7 @@ const Testimonials = () => {
       centerMode: true,
       arrows: false,
       centerPadding: 0,
-      focusOnSelect: true,
-      responsive: [
-        {
-          breakpoint: 576,
-          settings: {
-            slidesToShow: 1
-          }
-        }
-      ]
+      focusOnSelect: true
     });
   };
 
@@ -188,13 +180,15 @@ const Testimonials = () => {
                     <Image
                       src={testimonial.image}
                       alt="testimonial-thumb"
-                      width={100}
-                      height={100}
+                      width={120}
+                      height={120}
                       style={{
                         borderRadius: '50%',
                         objectFit: 'cover',
                         width: '100px',
-                        height: '100px'
+                        height: '100px',
+                        border: '3px solid #fff',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                       }}
                     />
                   </div>
