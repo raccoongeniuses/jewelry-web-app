@@ -150,7 +150,8 @@ const Testimonials = () => {
         style={{
           position: 'relative',
           zIndex: 1,
-          minHeight: '600px'
+          minHeight: '600px',
+          backgroundColor: 'transparent'
         }}
       >
         {/* Background image overlay */}
@@ -161,16 +162,11 @@ const Testimonials = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundImage: "url('/assets/img/testimonial/testimonials-bg.jpg')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
-            backgroundColor: 'transparent',
+            background: "url('/assets/img/testimonial/testimonials-bg.jpg')",
             zIndex: -1
           }}
         />
-        <div className="container">
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         <div className="row">
           <div className="col-12">
             {/* Section title */}
