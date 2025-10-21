@@ -62,7 +62,6 @@ export default function Marquee() {
 
   const [currentProduct, setCurrentProduct] = useState<HTMLElement | null>(null);
   const [originalParent, setOriginalParent] = useState<HTMLElement | null>(null);
-  const [originalNextSibling, setOriginalNextSibling] = useState<Node | null>(null);
   const [isShowingDetails, setIsShowingDetails] = useState(false);
   const [selectedProductData, setSelectedProductData] = useState<Product | null>(null);
 
@@ -214,14 +213,14 @@ export default function Marquee() {
     const originalParent = element.parentNode as HTMLElement;
     const originalNextSibling = element.nextSibling;
 
-    // Create a placeholder that exactly matches the marquee item structure
+    // Create a placeholder to maintain layout
     const placeholder = document.createElement("div");
-    placeholder.className = element.className; // Copy the same class
+    placeholder.className = element.className;
     placeholder.style.height = element.offsetHeight + "px";
     placeholder.style.width = element.offsetWidth + "px";
     placeholder.style.visibility = "hidden";
     placeholder.dataset.placeholder = "true";
-    // Copy any other styles that might affect layout
+    // Copy layout-affecting styles
     placeholder.style.margin = getComputedStyle(element).margin;
     placeholder.style.padding = getComputedStyle(element).padding;
     placeholder.style.display = getComputedStyle(element).display;
@@ -235,15 +234,14 @@ export default function Marquee() {
       originalParent.appendChild(placeholder);
     }
 
-    // Store references including the next sibling for precise positioning
+    // Store references
     setCurrentProduct(element);
     setOriginalParent(originalParent);
-    setOriginalNextSibling(originalNextSibling);
 
     // Get state before moving
     const state = Flip.getState(element);
 
-    // Pause the marquee animation to prevent placeholder movement
+    // Pause the marquee animation
     if ((window as any).infiniteMarqueeTimeline) {
       (window as any).infiniteMarqueeTimeline.pause();
     }
@@ -335,12 +333,6 @@ export default function Marquee() {
 
     const { gsap } = window as any;
 
-    // Find and remove the placeholder first
-    const placeholder = originalParent?.querySelector('.product-placeholder[data-placeholder="true"]');
-    if (placeholder) {
-      placeholder.remove();
-    }
-
     // Animate details panel content out first
     gsap.to(".vase-details-title", {
       y: 50,
@@ -355,89 +347,98 @@ export default function Marquee() {
       duration: 0.2,
       stagger: 0.02,
       ease: "power2.in",
+      onComplete: () => {
+        // Find the placeholder first
+        const placeholder = originalParent.querySelector('.product-placeholder[data-placeholder="true"]');
+
+        let targetRect;
+        if (placeholder) {
+          // Calculate target position based on where placeholder CURRENTLY is
+          targetRect = placeholder.getBoundingClientRect();
+        } else {
+          // Fallback: use original parent position
+          targetRect = originalParent.getBoundingClientRect();
+        }
+
+        const currentRect = currentProduct.getBoundingClientRect();
+        const detailsThumbRect = detailsThumbRef.current!.getBoundingClientRect();
+
+        // Set absolute positioning for animation
+        gsap.set(currentProduct, {
+          position: "absolute",
+          top: currentRect.top - detailsThumbRect.top + "px",
+          left: currentRect.left - detailsThumbRect.left + "px",
+          width: currentRect.width + "px",
+          height: currentRect.height + "px",
+          zIndex: 10000,
+        });
+
+        // Animate back to the placeholder's CURRENT position
+        gsap.to(currentProduct, {
+          top: targetRect.top - detailsThumbRect.top + "px",
+          left: targetRect.left - detailsThumbRect.left + "px",
+          width: targetRect.width + "px",
+          height: targetRect.height + "px",
+          duration: 1.2,
+          delay: 0.3,
+          ease: "power3.inOut",
+          onComplete: () => {
+            // Find the placeholder
+            const placeholder = originalParent.querySelector('.product-placeholder[data-placeholder="true"]');
+
+            if (placeholder) {
+              // Insert product in the exact position of the placeholder
+              originalParent.insertBefore(currentProduct, placeholder);
+              // Remove the placeholder after product is in place
+              placeholder.remove();
+            } else {
+              // Fallback: append to parent if placeholder not found
+              originalParent.appendChild(currentProduct);
+            }
+
+            // Reset all styles
+            gsap.set(currentProduct, {
+              position: "",
+              top: "",
+              left: "",
+              width: "",
+              height: "",
+              zIndex: "",
+              transform: "",
+            });
+
+            // Clear the details thumb
+            if (detailsThumbRef.current) {
+              detailsThumbRef.current.innerHTML = "";
+            }
+
+            // Hide details panel
+            if (detailsPanelRef.current) {
+              detailsPanelRef.current.classList.remove('active');
+            }
+            if (detailsOverlayRef.current) {
+              detailsOverlayRef.current.classList.remove('active');
+            }
+            document.body.style.overflow = "";
+
+            // Reset opacity and transform values for next time
+            gsap.set(".vase-details-title", { y: 0, opacity: 1 });
+            gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
+            gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
+
+            // Reset references
+            setCurrentProduct(null);
+            setOriginalParent(null);
+            setSelectedProductData(null);
+
+            // Resume the marquee animation
+            if ((window as any).infiniteMarqueeTimeline) {
+              (window as any).infiniteMarqueeTimeline.resume();
+            }
+          }
+        });
+      }
     });
-
-    // Get the current state for Flip animation
-    const state = Flip.getState(currentProduct);
-
-    // Calculate final position in original parent
-    const finalRect = originalParent.getBoundingClientRect();
-    const detailsThumbRect = detailsThumbRef.current?.getBoundingClientRect();
-    const currentRect = currentProduct.getBoundingClientRect();
-
-    if (detailsThumbRect) {
-      // Set absolute positioning relative to details thumb
-      gsap.set(currentProduct, {
-        position: "absolute",
-        top: (currentRect.top - detailsThumbRect.top) + "px",
-        left: (currentRect.left - detailsThumbRect.left) + "px",
-        width: currentRect.width + "px",
-        height: currentRect.height + "px",
-        zIndex: 10000,
-      });
-
-      // Animate back to original position using GSAP (not Flip)
-      gsap.to(currentProduct, {
-        top: (finalRect.top - detailsThumbRect.top) + "px",
-        left: (finalRect.left - detailsThumbRect.left) + "px",
-        width: finalRect.width + "px",
-        height: finalRect.height + "px",
-        duration: 1.2,
-        delay: 0.3,
-        ease: "power3.inOut",
-        onComplete: () => {
-          // Place product back in original parent
-          if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
-            originalParent.insertBefore(currentProduct, originalNextSibling);
-          } else {
-            originalParent.appendChild(currentProduct);
-          }
-
-          // Reset all styles
-          gsap.set(currentProduct, {
-            position: "",
-            top: "",
-            left: "",
-            width: "",
-            height: "",
-            zIndex: "",
-            transform: "",
-            maxWidth: "",
-            maxHeight: "",
-          });
-
-          // Clear the details thumb (including wrapper)
-          if (detailsThumbRef.current) {
-            detailsThumbRef.current.innerHTML = "";
-          }
-
-          // Hide details panel
-          if (detailsPanelRef.current) {
-            detailsPanelRef.current.classList.remove('active');
-          }
-          if (detailsOverlayRef.current) {
-            detailsOverlayRef.current.classList.remove('active');
-          }
-          document.body.style.overflow = "";
-
-          // Reset opacity and transform values for next time
-          gsap.set(".vase-details-title", { y: 0, opacity: 1 });
-          gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
-          gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
-
-          // Reset references
-          setCurrentProduct(null);
-          setOriginalParent(null);
-          setOriginalNextSibling(null);
-          setSelectedProductData(null);
-
-          // Resume the marquee animation
-          if ((window as any).infiniteMarqueeTimeline) {
-            (window as any).infiniteMarqueeTimeline.resume();
-          }
-        },
-      });
-    }
   };
 
   // Generate the exact same column structure as the original Corano template
