@@ -6237,3 +6237,20 @@ blockquote {
 }
 
 /*----- footer area end -----*/
+
+/*----- testimonial background fix -----*/
+.testimonial-area.bg-img,
+section.testimonial-area.section-padding.bg-img,
+.testimonial-area[data-bg] {
+  background-image: url('/assets/img/testimonial/testimonials-bg.jpg') !important;
+}
+
+/* Additional specificity for React components */
+section.testimonial-area {
+  background-image: url('/assets/img/testimonial/testimonials-bg.jpg') !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+  background-color: transparent !important;
+}
