@@ -146,11 +146,30 @@ const Testimonials = () => {
     <>
       <ScriptLoader onScriptsLoaded={() => setScriptsLoaded(true)} />
       <section
-        className="testimonial-area section-padding bg-img"
+        className="testimonial-area section-padding"
         style={{
-          backgroundImage: 'url(/assets/img/testimonial/testimonials-bg.jpg)'
+          position: 'relative',
+          zIndex: 1,
+          minHeight: '600px'
         }}
       >
+        {/* Background image overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: "url('/assets/img/testimonial/testimonials-bg.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            backgroundColor: 'transparent',
+            zIndex: -1
+          }}
+        />
         <div className="container">
         <div className="row">
           <div className="col-12">
