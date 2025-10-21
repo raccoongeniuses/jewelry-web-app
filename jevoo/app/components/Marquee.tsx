@@ -62,6 +62,7 @@ export default function Marquee() {
 
   const [currentProduct, setCurrentProduct] = useState<HTMLElement | null>(null);
   const [originalParent, setOriginalParent] = useState<HTMLElement | null>(null);
+  const [originalNextSibling, setOriginalNextSibling] = useState<Node | null>(null);
   const [isShowingDetails, setIsShowingDetails] = useState(false);
   const [selectedProductData, setSelectedProductData] = useState<Product | null>(null);
 
@@ -211,10 +212,28 @@ export default function Marquee() {
 
     // Store references for cleanup
     const originalParent = element.parentNode as HTMLElement;
+    const nextSibling = element.nextSibling;
+
+    // Create a simple placeholder to maintain space
+    const placeholder = document.createElement("div");
+    placeholder.style.height = element.offsetHeight + "px";
+    placeholder.style.width = element.offsetWidth + "px";
+    placeholder.style.visibility = "hidden";
+    placeholder.dataset.placeholder = "true";
+    // Copy only the essential margin to maintain spacing
+    placeholder.style.marginBottom = getComputedStyle(element).marginBottom;
+
+    // Insert placeholder in the exact same position
+    if (nextSibling) {
+      originalParent.insertBefore(placeholder, nextSibling);
+    } else {
+      originalParent.appendChild(placeholder);
+    }
 
     // Store references
     setCurrentProduct(element);
     setOriginalParent(originalParent);
+    setOriginalNextSibling(nextSibling);
 
     // Get state before moving
     const state = Flip.getState(element);
@@ -354,8 +373,18 @@ export default function Marquee() {
           delay: 0.3,
           ease: "power3.inOut",
           onComplete: () => {
-            // Append back to original parent
-            originalParent.appendChild(currentProduct);
+            // Find and replace the placeholder with the original product
+            const placeholder = originalParent.querySelector('[data-placeholder="true"]');
+            if (placeholder) {
+              placeholder.replaceWith(currentProduct);
+            } else {
+              // Fallback: return to original position using stored next sibling
+              if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
+                originalParent.insertBefore(currentProduct, originalNextSibling);
+              } else {
+                originalParent.appendChild(currentProduct);
+              }
+            }
 
             // Reset all styles
             gsap.set(currentProduct, {
@@ -389,6 +418,7 @@ export default function Marquee() {
             // Reset references
             setCurrentProduct(null);
             setOriginalParent(null);
+            setOriginalNextSibling(null);
             setSelectedProductData(null);
 
             // Resume the marquee animation
