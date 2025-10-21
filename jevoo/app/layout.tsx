@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="no-js">
       <head>
-        <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="/assets/img/jevoo-circle.ico" />
         <link rel="stylesheet" href="/assets/css/vendor/bootstrap.min.css" />
         <link rel="stylesheet" href="/assets/css/vendor/pe-icon-7-stroke.css" />
         <link rel="stylesheet" href="/assets/css/vendor/font-awesome.min.css" />
