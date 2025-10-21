@@ -93,25 +93,92 @@ export default function CheckoutPage() {
     setShippingDetails(prev => ({ ...prev, [field]: value }));
   };
 
+  const generateOrderId = () => {
+    return 'ORD' + Date.now().toString().slice(-8);
+  };
+
+  const formatDate = () => {
+    return new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getPaymentMethodName = () => {
+    switch (paymentMethod) {
+      case 'cash': return 'Cash on Delivery';
+      case 'bank': return 'Direct Bank Transfer';
+      case 'check': return 'Check Payment';
+      case 'paypal': return 'PayPal';
+      default: return paymentMethod;
+    }
+  };
+
+  const getShippingMethodName = () => {
+    return shippingMethod === 'flat' ? 'Flat Rate ($70)' : 'Free Shipping';
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!termsAccepted) {
-      alert('Please accept the terms and conditions');
-      return;
+
+    // Remove all form validation - prevent the browser's default validation
+    const form = e.target as HTMLFormElement;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    if (submitButton) {
+      submitButton.removeAttribute('disabled');
     }
-    // Handle checkout submission
-    console.log('Order submitted:', {
-      billing: billingDetails,
-      shipping: shippingToDifferent ? shippingDetails : billingDetails,
-      items,
-      total,
-      paymentMethod,
-      shippingMethod,
-      orderNote
-    });
-    // Clear cart and redirect to success page
+
+    // Generate order data - always success based on cart
+    const orderData = {
+      orderId: generateOrderId(),
+      orderDate: formatDate(),
+      customerName: billingDetails.firstName && billingDetails.lastName
+        ? `${billingDetails.firstName} ${billingDetails.lastName}`
+        : 'Guest Customer',
+      customerEmail: billingDetails.email || 'guest@jevoo.com',
+      customerPhone: billingDetails.phone || 'N/A',
+      billingAddress: billingDetails,
+      shippingAddress: shippingToDifferent ? shippingDetails : undefined,
+      items: items,
+      subtotal: subtotal,
+      shippingCost: shippingCost,
+      total: total,
+      paymentMethod: getPaymentMethodName(),
+      shippingMethod: getShippingMethodName(),
+      orderNote: orderNote || undefined
+    };
+
+    // Store order data in sessionStorage for the invoice page
+    sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
+
+    // Clear cart
     clearCart();
-    alert('Order placed successfully!');
+
+    // Open invoice in new tab
+    const invoiceUrl = '/invoice';
+
+    // Method 1: Try window.open first
+    const newWindow = window.open(invoiceUrl, '_blank');
+
+    if (newWindow && !newWindow.closed) {
+      console.log('New tab opened successfully');
+    } else {
+      // Method 2: Fallback - create and click a link
+      const link = document.createElement('a');
+      link.href = invoiceUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Redirect main page after a delay
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 2000);
   };
 
   if (items.length === 0) {
@@ -274,7 +341,6 @@ export default function CheckoutPage() {
                               type="text"
                               id="f_name"
                               placeholder="First Name"
-                              required
                               value={billingDetails.firstName}
                               onChange={(e) => handleBillingChange('firstName', e.target.value)}
                             />
@@ -288,7 +354,6 @@ export default function CheckoutPage() {
                               type="text"
                               id="l_name"
                               placeholder="Last Name"
-                              required
                               value={billingDetails.lastName}
                               onChange={(e) => handleBillingChange('lastName', e.target.value)}
                             />
@@ -302,7 +367,6 @@ export default function CheckoutPage() {
                           type="email"
                           id="email"
                           placeholder="Email Address"
-                          required
                           value={billingDetails.email}
                           onChange={(e) => handleBillingChange('email', e.target.value)}
                         />
@@ -354,7 +418,6 @@ export default function CheckoutPage() {
                           type="text"
                           id="street-address"
                           placeholder="Street address Line 1"
-                          required
                           value={billingDetails.address}
                           onChange={(e) => handleBillingChange('address', e.target.value)}
                         />
@@ -793,7 +856,6 @@ export default function CheckoutPage() {
                               type="checkbox"
                               className="custom-control-input"
                               id="terms"
-                              required
                               checked={termsAccepted}
                               onChange={(e) => setTermsAccepted(e.target.checked)}
                             />
