@@ -1,3 +1,7 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useRef } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Marquee from "./components/Marquee";
@@ -7,6 +11,59 @@ import GroupProducts from "./components/GroupProducts";
 import Blog from "./components/Blog";
 
 export default function Home() {
+  const heroSliderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Initialize hero slider after scripts load
+    let retries = 0;
+    const maxRetries = 20;
+    const tryInit = () => {
+      const hasJQ = typeof window !== 'undefined' && (window as any).$;
+      const hasSlick = hasJQ && (window as any).$.fn && typeof (window as any).$.fn.slick === 'function';
+      if (!heroSliderRef.current) return false;
+      if (hasSlick) {
+        if ((window as any).$(heroSliderRef.current).hasClass('slick-initialized')) {
+          (window as any).$(heroSliderRef.current).slick('unslick');
+        }
+        try {
+          (window as any).$(heroSliderRef.current).slick({
+            fade: true,
+            speed: 1000,
+            dots: false,
+            autoplay: true,
+            prevArrow: '<button type="button" class="slick-prev"><i class="pe-7s-angle-left"></i></button>',
+            nextArrow: '<button type="button" class="slick-next"><i class="pe-7s-angle-right"></i></button>',
+            responsive: [{
+              breakpoint: 992,
+              settings: {
+                arrows: false,
+                dots: true
+              }
+            }]
+          });
+        } catch (error) {
+          console.error('Error initializing hero slider:', error);
+        }
+        return true;
+      }
+      return false;
+    };
+
+    const interval = setInterval(() => {
+      if (tryInit() || retries++ >= maxRetries) clearInterval(interval);
+    }, 200);
+
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined' && (window as any).$ && heroSliderRef.current) {
+        const $ = (window as any).$;
+        if ($(heroSliderRef.current).hasClass('slick-initialized')) {
+          $(heroSliderRef.current).slick('unslick');
+        }
+      }
+    };
+  }, []);
+
   return (
     <>
       <Header />
@@ -14,13 +71,20 @@ export default function Home() {
       <main>
         {/* hero slider area start */}
         <section className="slider-area">
-          <div className="hero-slider-active slick-arrow-style slick-arrow-style_hero slick-dot-style">
+          <div 
+            ref={heroSliderRef}
+            className="hero-slider-active slick-arrow-style slick-arrow-style_hero slick-dot-style"
+          >
             {/* single slider item start */}
             <div className="hero-single-slide hero-overlay">
-              <div
-                className="hero-slider-item bg-img"
-                data-bg="/assets/img/banner-gold.png"
-              >
+              <div className="hero-slider-item" style={{ position: 'relative' }}>
+                <Image
+                  src="/assets/img/banner-gold.png"
+                  alt="Family Jewelry Collection"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  priority
+                />
                 <div className="container">
                   <div className="row">
                     <div className="col-md-12">
@@ -44,10 +108,13 @@ export default function Home() {
 
             {/* single slider item start */}
             <div className="hero-single-slide hero-overlay">
-              <div
-                className="hero-slider-item bg-img"
-                data-bg="/assets/img/banner-gold.png"
-              >
+              <div className="hero-slider-item" style={{ position: 'relative' }}>
+                <Image
+                  src="/assets/img/banner-gold.png"
+                  alt="Diamonds Jewelry Collection"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
                 <div className="container">
                   <div className="row">
                     <div className="col-md-12">
@@ -71,10 +138,13 @@ export default function Home() {
 
             {/* single slider item start */}
             <div className="hero-single-slide hero-overlay">
-              <div
-                className="hero-slider-item bg-img"
-                data-bg="/assets/img/banner-gold.png"
-              >
+              <div className="hero-slider-item" style={{ position: 'relative' }}>
+                <Image
+                  src="/assets/img/banner-gold.png"
+                  alt="Grace Designer Jewelry"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
                 <div className="container">
                   <div className="row">
                     <div className="col-md-12">
