@@ -68,6 +68,7 @@ export default function Header() {
                     <nav className="desktop-menu">
                       <ul>
                         <li><Link href="/">Home</Link></li>
+                        <li className="active"><Link href="/our-products">Our Products</Link></li>
                         <li className="active"><Link href="/about-us">About Us</Link></li>
                         <li className="active"><Link href="/our-promises">Our Promises</Link></li>
                         <li className="active"><Link href="/our-services">Our Services</Link></li>
