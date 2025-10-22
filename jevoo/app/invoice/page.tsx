@@ -362,15 +362,15 @@ export default function InvoicePage() {
                     <tfoot>
                       <tr className="table-light">
                         <td colSpan={3} className="text-end"><strong>Subtotal</strong></td>
-                        <td><strong>${orderData.subtotal.toFixed(2)}</strong></td>
+                        <td className="text-end"><strong>${orderData.subtotal.toFixed(2)}</strong></td>
                       </tr>
                       <tr className="table-light">
                         <td colSpan={3} className="text-end"><strong>Shipping</strong></td>
-                        <td><strong>${orderData.shippingCost.toFixed(2)}</strong></td>
+                        <td className="text-end"><strong>${orderData.shippingCost.toFixed(2)}</strong></td>
                       </tr>
                       <tr className="table-dark">
                         <td colSpan={3} className="text-end"><strong>Total</strong></td>
-                        <td><strong>${orderData.total.toFixed(2)}</strong></td>
+                        <td className="text-end"><strong>${orderData.total.toFixed(2)}</strong></td>
                       </tr>
                     </tfoot>
                   </table>
