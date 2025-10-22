@@ -1,12 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ScriptLoader from '../components/ScriptLoader';
-import CartButton from '../components/cart/CartButton';
 import QuickViewModal from '../components/modals/QuickViewModal';
 import ProductReviews from '../components/product/ProductReviews';
 import RelatedProducts from '../components/product/RelatedProducts';

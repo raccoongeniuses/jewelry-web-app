@@ -36,7 +36,7 @@ interface ShippingDetails {
 }
 
 export default function CheckoutPage() {
-  const { items, getTotalPrice, getTotalItems, clearCart } = useCart();
+  const { items, getTotalPrice } = useCart();
 
   // Form states
   const [billingDetails, setBillingDetails] = useState<BillingDetails>({
@@ -722,7 +722,7 @@ export default function CheckoutPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {items.map((item, index) => {
+                            {items.map((item) => {
                               // Create unique key using id, size, and color
                               const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
                               return (
@@ -873,7 +873,7 @@ export default function CheckoutPage() {
                             </div>
                           </div>
                           <div className="payment-method-details" style={{ display: paymentMethod === 'paypal' ? 'block' : 'none' }}>
-                            <p>Pay via PayPal; you can pay with your credit card if you don't have a PayPal account.</p>
+                            <p>Pay via PayPal; you can pay with your credit card if you don&apos;t have a PayPal account.</p>
                           </div>
                         </div>
 

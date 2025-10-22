@@ -8,7 +8,7 @@ interface RelatedProductsProps {
   currentProductId: string;
 }
 
-export default function RelatedProducts({ currentProductId }: RelatedProductsProps) {
+export default function RelatedProducts({ }: RelatedProductsProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Related products data from corano/product-details.html (exact match including the 5th product)

@@ -14,7 +14,7 @@ declare global {
 }
 
 export default function CartModal() {
-  const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems, addToCart } = useCart();
+  const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems } = useCart();
   const [isOpen, setIsOpen] = useState(false);
 
   // Debug logging - remove in production

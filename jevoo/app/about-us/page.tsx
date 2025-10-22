@@ -1,3 +1,5 @@
+import Link from "next/link";
+import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Testimonials from "../components/Testimonials";
@@ -19,9 +21,9 @@ export default function AboutUs() {
                   <nav aria-label="breadcrumb">
                     <ul className="breadcrumb">
                       <li className="breadcrumb-item">
-                        <a href="/">
+                        <Link href="/">
                           <i className="fa fa-home"></i>
-                        </a>
+                        </Link>
                       </li>
                       <li className="breadcrumb-item active" aria-current="page">
                         About us
@@ -41,7 +43,7 @@ export default function AboutUs() {
             <div className="row align-items-center">
               <div className="col-lg-5">
                 <div className="about-thumb">
-                  <img src="/assets/img/jevoo-bespoke.jpg" alt="about thumb" />
+                  <Image src="/assets/img/jevoo-bespoke.jpg" alt="about thumb" width={500} height={400} />
                 </div>
               </div>
               <div className="col-lg-7">
@@ -56,7 +58,7 @@ export default function AboutUs() {
                     Every piece we create is handcrafted to order — designed from your ideas, refined by our artisans, and perfected through the finest materials and techniques. Whether you come to us with a concept, a sketch, or a story, our design team will bring it to life with precision, passion, and artistry.
                   </p>
                   <p>
-                    From classic engagement rings to modern heirlooms, Jevoo stands for personalised luxury that's truly yours — not mass produced, but made with care, character, and purpose.
+                    From classic engagement rings to modern heirlooms, Jevoo stands for personalised luxury that&apos;s truly yours — not mass produced, but made with care, character, and purpose.
                   </p>
                 </div>
               </div>
