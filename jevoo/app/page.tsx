@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Marquee from "./components/Marquee";
@@ -12,6 +12,7 @@ import Blog from "./components/Blog";
 
 export default function Home() {
   const heroSliderRef = useRef<HTMLDivElement>(null);
+  const [sliderInitialized, setSliderInitialized] = useState(false);
 
   useEffect(() => {
     // Initialize hero slider after scripts load
@@ -41,6 +42,8 @@ export default function Home() {
               }
             }]
           });
+          // Mark slider as initialized
+          setSliderInitialized(true);
         } catch (error) {
           console.error('Error initializing hero slider:', error);
         }
@@ -70,10 +73,14 @@ export default function Home() {
 
       <main>
         {/* hero slider area start */}
-        <section className="slider-area">
+        <section className="slider-area" style={{ position: 'relative' }}>
           <div 
             ref={heroSliderRef}
             className="hero-slider-active slick-arrow-style slick-arrow-style_hero slick-dot-style"
+            style={{ 
+              opacity: sliderInitialized ? 1 : 0,
+              transition: 'opacity 0.5s ease-in-out'
+            }}
           >
             {/* single slider item start */}
             <div className="hero-single-slide hero-overlay">
@@ -166,6 +173,38 @@ export default function Home() {
             </div>
             {/* single slider item end */}
           </div>
+          
+          {/* Loading state - show first slide while initializing */}
+          {!sliderInitialized && (
+            <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <div className="hero-slider-item" style={{ position: 'relative' }}>
+                <Image
+                  src="/assets/img/banner-gold.png"
+                  alt="Family Jewelry Collection"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  priority
+                />
+                <div className="container">
+                  <div className="row">
+                    <div className="col-md-12">
+                      <div className="hero-slider-content slide-1">
+                        <h2 className="slide-title">
+                          Family Jewelry <span>Collection</span>
+                        </h2>
+                        <h4 className="slide-desc">
+                          Designer Jewelry Necklaces-Bracelets-Earings
+                        </h4>
+                        <a href="/shop" className="btn btn-hero">
+                          Read More
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
         {/* hero slider area end */}
 
