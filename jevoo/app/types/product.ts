@@ -19,11 +19,13 @@ export interface Product {
 
 export interface CartItem extends Product {
   quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 export interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (item: CartItem) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;

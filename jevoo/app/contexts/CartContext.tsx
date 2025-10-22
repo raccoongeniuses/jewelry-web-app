@@ -8,7 +8,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_TO_CART'; payload: Product }
+  | { type: 'ADD_TO_CART'; payload: CartItem }
   | { type: 'REMOVE_FROM_CART'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' }
@@ -17,20 +17,27 @@ type CartAction =
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_TO_CART':
-      const existingItem = state.items.find(item => item.id === action.payload.id);
+      // Find existing item by id, size, and color
+      const existingItem = state.items.find(item =>
+        item.id === action.payload.id &&
+        item.selectedSize === action.payload.selectedSize &&
+        item.selectedColor === action.payload.selectedColor
+      );
       if (existingItem) {
         return {
           ...state,
           items: state.items.map(item =>
-            item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + 1 }
+            item.id === action.payload.id &&
+            item.selectedSize === action.payload.selectedSize &&
+            item.selectedColor === action.payload.selectedColor
+              ? { ...item, quantity: item.quantity + action.payload.quantity }
               : item
           )
         };
       } else {
         return {
           ...state,
-          items: [...state.items, { ...action.payload, quantity: 1 }]
+          items: [...state.items, { ...action.payload, quantity: action.payload.quantity || 1 }]
         };
       }
 
@@ -81,13 +88,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('coranoCart');
+    // console.log('CartProvider: Loading cart from localStorage:', savedCart);
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
+        // console.log('CartProvider: Parsed cart items:', cartItems);
         dispatch({ type: 'LOAD_CART', payload: cartItems });
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
       }
+    } else {
+      // console.log('CartProvider: No saved cart found, using empty cart');
     }
   }, []);
 
@@ -96,8 +107,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('coranoCart', JSON.stringify(state.items));
   }, [state.items]);
 
-  const addToCart = (product: Product) => {
-    dispatch({ type: 'ADD_TO_CART', payload: product });
+  const addToCart = (item: CartItem) => {
+    dispatch({ type: 'ADD_TO_CART', payload: item });
   };
 
   const removeFromCart = (productId: string) => {

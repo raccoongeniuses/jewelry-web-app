@@ -1,13 +1,61 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import './CartModal.css';
+
+// Extend Window interface to include openCartModal
+declare global {
+  interface Window {
+    openCartModal?: () => void;
+  }
+}
 
 export default function CartModal() {
-  const { items, removeFromCart, updateQuantity, getTotalPrice } = useCart();
+  const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems, addToCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Debug logging - remove in production
+  // console.log('CartModal render:', { items, itemsLength: items.length, isOpen });
+
+  // Expose the openCart function globally so other components can trigger it
+  React.useEffect(() => {
+    window.openCartModal = () => setIsOpen(true);
+    return () => {
+      delete window.openCartModal;
+    };
+  }, []);
+
+  // Close cart when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      // Click on overlay should close cart (handled by onClick on overlay element)
+      if (isOpen && target.classList.contains('offcanvas-overlay')) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside);
+      // Prevent body scroll when cart is open
+      document.body.style.overflow = 'hidden';
+      // Add class to body to control z-index of other elements
+      document.body.classList.add('cart-modal-open');
+    } else {
+      document.body.style.overflow = 'unset';
+      // Remove class from body
+      document.body.classList.remove('cart-modal-open');
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('cart-modal-open');
+    };
+  }, [isOpen]);
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -20,100 +68,180 @@ export default function CartModal() {
   return (
     <>
       {/* Cart Toggle Button */}
-      <button 
-        className="minicart-btn"
-        onClick={() => setIsOpen(!isOpen)}
+      <button
+        className="minicart-btn react-cart-btn"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        aria-label="Shopping cart"
       >
         <i className="pe-7s-shopbag"></i>
-        <div className="notification">{items.length}</div>
+        <div className="notification">{getTotalItems()}</div>
       </button>
 
-      {/* Cart Modal */}
-      {isOpen && (
+      {/* Cart Modal - Following original minicart structure */}
+      <div
+        className={`offcanvas-minicart-wrapper ${isOpen ? 'show' : ''}`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setIsOpen(false);
+          }
+          e.stopPropagation();
+        }}
+      >
         <div className="minicart-inner">
-          <div className="minicart-item-wrapper">
-            {items.length === 0 ? (
-              <div className="text-center p-3">Your cart is empty</div>
-            ) : (
-              <ul>
-                {items.map((item) => (
-                  <li key={item.id} className="minicart-item">
-                    <div className="minicart-thumb">
-                      <Link href={item.url || '/product-details'}>
-                        <Image 
-                          src={item.image} 
-                          alt={item.name}
-                          width={80}
-                          height={80}
-                        />
-                      </Link>
-                    </div>
-                    <div className="minicart-content">
-                      <div className="minicart-header">
-                        <h3 className="product-name">
-                          <Link href={item.url || '/product-details'}>{item.name}</Link>
-                        </h3>
-                        <button 
-                          className="minicart-remove"
-                          onClick={() => removeFromCart(item.id)}
-                        >
-                          <i className="pe-7s-close"></i>
-                        </button>
-                      </div>
-                      <div className="minicart-details">
-                        <div className="pro-qty">
-                          <button 
-                            type="button" 
-                            className="qtybtn dec"
-                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          >
-                            −
-                          </button>
-                          <input 
-                            type="text" 
-                            value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 0)}
-                            className="quantity-input"
-                          />
-                          <button 
-                            type="button" 
-                            className="qtybtn inc"
-                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          >
-                            +
-                          </button>
-                        </div>
-                        <p className="cart-price">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          
-          {items.length > 0 && (
-            <div className="minicart-footer">
-              <div className="minicart-total">
-                <div className="subtotal">
-                  <span className="label">Subtotal:</span>
-                  <span className="ammount">${getTotalPrice().toFixed(2)}</span>
-                </div>
-              </div>
-              <div className="minicart-button">
-                <Link href="/cart" className="btn btn-primary">
-                  View Cart
-                </Link>
-                <Link href="/checkout" className="btn btn-secondary">
-                  Checkout
-                </Link>
-              </div>
+          {/* Overlay */}
+          <div
+            className="offcanvas-overlay"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* Cart Content Panel */}
+          <div className="minicart-inner-content">
+            {/* Close button */}
+            <div className="minicart-close">
+              <i className="pe-7s-close"></i>
             </div>
-          )}
+
+            {/* Cart Content Box */}
+            <div className="minicart-content-box">
+              {items.length === 0 ? (
+                <div className="empty-cart-message">
+                  <div className="empty-cart-icon">
+                    <i className="pe-7s-shopbag"></i>
+                  </div>
+                  <div className="empty-cart-title">Your cart is empty</div>
+                  <div className="empty-cart-text">Looks like you haven&apos;t added any items to your cart yet.</div>
+                </div>
+              ) : (
+                <>
+                  {/* Cart Items Wrapper */}
+                  <div className="minicart-item-wrapper">
+                    {items.map((item) => {
+                      // Create unique key using id, size, and color
+                      const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
+                      return (
+                        <div key={uniqueKey} className="minicart-item">
+                            {/* Product Thumbnail */}
+                            <div className="minicart-thumb">
+                              <Link href={item.url || '/product-details'}>
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  width={85}
+                                  height={85}
+                                  style={{
+                                    objectFit: 'cover'
+                                  }}
+                                />
+                              </Link>
+                            </div>
+
+                            {/* Product Content */}
+                            <div className="minicart-content">
+                              <div className="product-header">
+                                <div className="product-name">
+                                  {item.name}
+                                </div>
+                                <button
+                                  className="minicart-remove"
+                                  onClick={() => removeFromCart(item.id)}
+                                  aria-label="Remove item"
+                                >
+                                  <i className="pe-7s-close"></i>
+                                </button>
+                              </div>
+                              
+                              {/* Size and Color Info */}
+                              {(item.selectedSize || item.selectedColor) && (
+                                <div className="cart-variants">
+                                  {item.selectedSize && (
+                                    <span>Size: <strong>{item.selectedSize}</strong></span>
+                                  )}
+                                  {item.selectedColor && (
+                                    <span>Color: <strong>{item.selectedColor}</strong></span>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="cart-details">
+                                {/* Quantity Controls */}
+                                <div className="pro-qty">
+                                  <button
+                                    type="button"
+                                    className="qtybtn dec"
+                                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                  >
+                                    −
+                                  </button>
+                                  <input
+                                    type="text"
+                                    value={item.quantity}
+                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 0)}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="qtybtn inc"
+                                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+
+                                {/* Price */}
+                                <span className="cart-price">
+                                  ${(item.price * item.quantity).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pricing Box */}
+                  <div className="minicart-pricing-box">
+                    <div className="pricing-item">
+                      <span>sub-total</span>
+                      <span><strong>${getTotalPrice().toFixed(2)}</strong></span>
+                    </div>
+                    <div className="pricing-item">
+                      <span>Eco Tax (-2.00)</span>
+                      <span><strong>${(getTotalPrice() * 0.02).toFixed(2)}</strong></span>
+                    </div>
+                    <div className="pricing-item">
+                      <span>VAT (20%)</span>
+                      <span><strong>${(getTotalPrice() * 0.20).toFixed(2)}</strong></span>
+                    </div>
+                    <div className="pricing-item total">
+                      <span>total</span>
+                      <span><strong>${(getTotalPrice() * 1.22).toFixed(2)}</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="minicart-button">
+                    <Link
+                      href="/cart"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <i className="fa fa-shopping-cart"></i> View Cart
+                    </Link>
+                    <Link
+                      href="/checkout"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <i className="fa fa-share"></i> Checkout
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </>
   );
 }

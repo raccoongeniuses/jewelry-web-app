@@ -102,7 +102,12 @@ export default function ProductInfo({ product, onQuickView }: ProductInfoProps) 
         </div>
         <div className="action_link">
           <CartButton
-            product={{ ...product, quantity } as CartItem}
+            product={{
+              ...product,
+              quantity,
+              selectedSize,
+              selectedColor
+            } as CartItem}
             className="btn btn-cart2"
           >
             Add to cart

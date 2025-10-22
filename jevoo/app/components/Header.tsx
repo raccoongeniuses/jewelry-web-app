@@ -1,8 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import CartModal from './cart/CartModal';
+import { useCart } from '../contexts/CartContext';
 
 export default function Header() {
+  const { getTotalItems } = useCart();
   return (
     <header className="header-area header-wide">
       {/* main header start */}
@@ -133,10 +137,10 @@ export default function Header() {
                 </div>
                 <div className="mobile-menu-toggler">
                   <div className="mini-cart-wrap">
-                    <a href="/cart">
+                    <Link href="/cart">
                       <i className="pe-7s-shopbag"></i>
-                      <div className="notification">0</div>
-                    </a>
+                      <div className="notification">{getTotalItems()}</div>
+                    </Link>
                   </div>
                   <button className="mobile-menu-btn">
                     <span></span>
