@@ -20,29 +20,28 @@ export default function ProductImageGallery({
     setCurrentSlide(selectedImageIndex);
   }, [selectedImageIndex]);
 
+  // Take only the first 5 images (1 main + 4 thumbnails)
+  const displayImages = images.slice(0, 5);
+  const mainImage = displayImages[currentSlide] || displayImages[0];
+
   return (
     <>
-      {/* Main Image Slider */}
+      {/* Main Large Image - Single Image Display */}
       <div className="product-large-slider">
-        {images.map((image, index) => (
-          <div
-            key={index}
-            className={`pro-large-img img-zoom ${index === currentSlide ? 'slick-active' : ''}`}
-          >
-            <Image
-              src={image}
-              alt={`Product image ${index + 1}`}
-              width={500}
-              height={500}
-              className="img-fluid"
-            />
-          </div>
-        ))}
+        <div className="pro-large-img img-zoom">
+          <Image
+            src={mainImage}
+            alt="product-details"
+            width={500}
+            height={500}
+            className="img-fluid"
+          />
+        </div>
       </div>
 
-      {/* Thumbnail Navigation */}
-      <div className="pro-nav slick-row-10 slick-arrow-style">
-        {images.map((image, index) => (
+      {/* Thumbnail Navigation - 4 Small Images Below in Single Row */}
+      <div className="pro-nav slick-row-10 slick-arrow-style" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+        {displayImages.map((image, index) => (
           <div
             key={index}
             className={`pro-nav-thumb ${index === currentSlide ? 'slick-current' : ''}`}
@@ -50,14 +49,22 @@ export default function ProductImageGallery({
               setCurrentSlide(index);
               onImageSelect(index);
             }}
-            style={{ cursor: 'pointer' }}
+            style={{ 
+              cursor: 'pointer',
+              flex: '1',
+              maxWidth: '100px',
+              border: index === currentSlide ? '2px solid #d4af37' : '2px solid transparent',
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}
           >
             <Image
               src={image}
-              alt={`Product thumbnail ${index + 1}`}
+              alt="product-details"
               width={100}
               height={100}
               className="img-fluid"
+              style={{ width: '100%', height: 'auto' }}
             />
           </div>
         ))}

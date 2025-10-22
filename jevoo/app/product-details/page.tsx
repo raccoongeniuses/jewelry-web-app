@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ScriptLoader from '../components/ScriptLoader';
+import LoaderSpinner, { JewelryLoader } from '../components/LoaderSpinner';
 import QuickViewModal from '../components/modals/QuickViewModal';
 import ProductReviews from '../components/product/ProductReviews';
 import RelatedProducts from '../components/product/RelatedProducts';
@@ -14,6 +15,9 @@ import ProductInfo from '../components/product/ProductInfo';
 export default function ProductDetails() {
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [contentLoaded, setContentLoaded] = useState(false);
 
   // Sample product data - in a real app this would come from an API
   const product = {
@@ -52,14 +56,48 @@ export default function ProductDetails() {
     { name: 'Product Details', url: '/product-details' }
   ];
 
+  // Simulate content loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setContentLoaded(true);
+    }, 1000); // 1 second delay to simulate content loading
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Check if everything is loaded
+  useEffect(() => {
+    if (scriptsLoaded && contentLoaded) {
+      // Add a small delay to ensure smooth transition
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [scriptsLoaded, contentLoaded]);
+
   const handleScriptsLoaded = () => {
-    // Scripts are loaded, carousels should initialize automatically
+    setScriptsLoaded(true);
   };
+
+  // Show loader while content is loading
+  if (isLoading) {
+    return (
+      <>
+        <ScriptLoader onScriptsLoaded={handleScriptsLoaded} />
+        <JewelryLoader 
+          fullScreen={true} 
+          size="large"
+          message="Loading beautiful jewelry details..."
+        />
+      </>
+    );
+  }
 
   return (
     <>
       <ScriptLoader onScriptsLoaded={handleScriptsLoaded} />
-      <div className="wrapper">
+      <div className="wrapper animate-fade-in">
         <Header />
 
         <main>
@@ -100,7 +138,9 @@ export default function ProductDetails() {
           <div className="shop-main-wrapper section-padding pb-0">
             <div className="container">
               <div className="row">
+                {/* Product Details Wrapper */}
                 <div className="col-lg-12 order-1 order-lg-2">
+                  {/* Product Details Inner */}
                   <div className="product-details-inner">
                     <div className="row">
                       {/* Product Image Gallery */}
@@ -116,18 +156,20 @@ export default function ProductDetails() {
                       <div className="col-lg-7">
                         <ProductInfo
                           product={product}
-                          onQuickView={() => setIsQuickViewOpen(true)}
                         />
                       </div>
                     </div>
                   </div>
+                  {/* Product Details Inner End */}
+
+                  {/* Product Details Reviews */}
+                  <ProductReviews product={product} />
                 </div>
+                {/* Product Details Wrapper End */}
               </div>
             </div>
           </div>
-
-          {/* Product Reviews Section */}
-          <ProductReviews product={product} />
+          {/* Page Main Wrapper End */}
 
           {/* Related Products Section */}
           <RelatedProducts currentProductId={product.id} />
