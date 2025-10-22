@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import jsPDF from 'jspdf';
@@ -36,6 +36,7 @@ interface OrderData {
     city: string;
     state: string;
     postcode: string;
+    phone: string;
   };
   items: Array<{
     id: string;
@@ -45,6 +46,8 @@ interface OrderData {
     image: string;
     brand?: string;
     colors?: string[];
+    selectedSize?: string;
+    selectedColor?: string;
   }>;
   subtotal: number;
   shippingCost: number;
@@ -54,7 +57,7 @@ interface OrderData {
   orderNote?: string;
 }
 
-export default function InvoicePage() {
+function InvoiceContent() {
   const searchParams = useSearchParams();
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -230,7 +233,7 @@ export default function InvoicePage() {
         <div className="container text-center py-5">
           <div className="alert alert-warning">
             <h4>Order Not Found</h4>
-            <p>We couldn't find the order details for this invoice.</p>
+            <p>We couldn&apos;t find the order details for this invoice.</p>
             <Link href="/" className="btn btn-primary">Return to Shop</Link>
           </div>
         </div>
@@ -481,5 +484,22 @@ export default function InvoicePage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function InvoicePage() {
+  return (
+    <Suspense fallback={
+      <div className="invoice-wrapper">
+        <div className="container text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading your invoice...</p>
+        </div>
+      </div>
+    }>
+      <InvoiceContent />
+    </Suspense>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Product, CartItem } from '../../types/product';
 import CartButton from '../cart/CartButton';
@@ -18,10 +17,9 @@ interface ProductInfoProps {
     categories: string[];
     tags: string[];
   };
-  onQuickView: () => void;
 }
 
-export default function ProductInfo({ product, onQuickView }: ProductInfoProps) {
+export default function ProductInfo({ product }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || '');

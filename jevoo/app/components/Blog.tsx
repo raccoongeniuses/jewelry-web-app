@@ -61,12 +61,12 @@ export default function Blog() {
     let retries = 0;
     const maxRetries = 20;
     const init = () => {
-      const hasJQ = typeof window !== 'undefined' && (window as any).$;
-      const hasSlick = hasJQ && (window as any).$.fn && typeof (window as any).$.fn.slick === 'function';
+      const hasJQ = typeof window !== 'undefined' && window.$;
+      const hasSlick = hasJQ && window.$.fn && typeof window.$.fn.slick === 'function';
       if (!carouselRef.current) return false;
       if (hasSlick) {
         try {
-          const $ = (window as any).$;
+          const $ = window.$;
           if ($(carouselRef.current).hasClass('slick-initialized')) {
             $(carouselRef.current).slick('unslick');
           }
@@ -106,8 +106,8 @@ export default function Blog() {
     }, 200);
     return () => {
       clearInterval(interval);
-      if (typeof window !== 'undefined' && (window as any).$ && carouselRef.current) {
-        const $ = (window as any).$;
+      if (typeof window !== 'undefined' && window.$ && carouselRef.current) {
+        const $ = window.$;
         if ($(carouselRef.current).hasClass('slick-initialized')) {
           $(carouselRef.current).slick('unslick');
         }

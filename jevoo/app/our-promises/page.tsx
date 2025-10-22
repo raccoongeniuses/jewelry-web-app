@@ -1,3 +1,5 @@
+import Link from "next/link";
+import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Testimonials from "../components/Testimonials";
@@ -19,9 +21,9 @@ export default function OurPromises() {
                   <nav aria-label="breadcrumb">
                     <ul className="breadcrumb">
                       <li className="breadcrumb-item">
-                        <a href="/">
+                        <Link href="/">
                           <i className="fa fa-home"></i>
-                        </a>
+                        </Link>
                       </li>
                       <li className="breadcrumb-item active" aria-current="page">
                         Our Promises
@@ -41,7 +43,7 @@ export default function OurPromises() {
             <div className="row align-items-center">
               <div className="col-lg-5">
                 <div className="about-thumb">
-                  <img src="/assets/img/jevoo-bespoke.jpg" alt="about thumb" />
+                  <Image src="/assets/img/jevoo-bespoke.jpg" alt="about thumb" width={500} height={400} />
                 </div>
               </div>
               <div className="col-lg-7">
@@ -50,7 +52,7 @@ export default function OurPromises() {
                   <h5 className="about-sub-title">Crafted for You. Inspired by You.</h5>
                   <p>💫 Our Promises</p>
                   <p>
-                    We understand that jewellery is more than an accessory — it's a reflection of who you are. That's why Jevoo Jewellery is built on three unshakable pillars:
+                    We understand that jewellery is more than an accessory — it&apos;s a reflection of who you are. That&apos;s why Jevoo Jewellery is built on three unshakable pillars:
                   </p>
                   <p>
                     <strong>1. Authenticity You Can Trust</strong><br />

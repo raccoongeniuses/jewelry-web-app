@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 // Type declarations for jQuery
 declare global {
   interface Window {
-    jQuery: any;
-    $: any;
+    jQuery: typeof import('jquery');
+    $: typeof import('jquery');
   }
 }
 

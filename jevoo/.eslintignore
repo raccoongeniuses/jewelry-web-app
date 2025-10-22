@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Production builds
+.next/
+out/
+dist/
+
+# Public assets (third-party libraries)
+public/assets/js/
+public/assets/css/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Environment files
+.env*
+
+# Logs
+*.log

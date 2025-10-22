@@ -7,8 +7,8 @@ import ScriptLoader from './ScriptLoader';
 // Type declarations for jQuery
 declare global {
   interface Window {
-    jQuery: any;
-    $: any;
+    jQuery: typeof import('jquery');
+    $: typeof import('jquery');
   }
 }
 
@@ -126,7 +126,7 @@ const Testimonials = () => {
     };
   }, []);
 
-  const renderStars = (rating: number) => {
+  const renderStars = () => {
     return Array.from({ length: 5 }, (_, index) => (
       <span key={index}>
         <i className="fa fa-star-o"></i>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Testimonials from "../components/Testimonials";
@@ -19,9 +21,9 @@ export default function OurPhilosophy() {
                   <nav aria-label="breadcrumb">
                     <ul className="breadcrumb">
                       <li className="breadcrumb-item">
-                        <a href="/">
+                        <Link href="/">
                           <i className="fa fa-home"></i>
-                        </a>
+                        </Link>
                       </li>
                       <li className="breadcrumb-item active" aria-current="page">
                         Our Philosophy
@@ -41,7 +43,7 @@ export default function OurPhilosophy() {
             <div className="row align-items-center">
               <div className="col-lg-5">
                 <div className="about-thumb">
-                  <img src="/assets/img/jevoo-bespoke.jpg" alt="about thumb" />
+                  <Image src="/assets/img/jevoo-bespoke.jpg" alt="about thumb" width={500} height={400} />
                 </div>
               </div>
               <div className="col-lg-7">
@@ -50,7 +52,7 @@ export default function OurPhilosophy() {
                   <h5 className="about-sub-title">Crafted for You. Inspired by You.</h5>
                   <p>💫 Our Philosophy</p>
                   <p>
-                    Jevoo Jewellery is not just about adornment — it's about storytelling through design.
+                    Jevoo Jewellery is not just about adornment — it&apos;s about storytelling through design.
                   </p>
                   <p>
                     Each piece we craft embodies love, legacy, and individuality. We exist for those who value authenticity, appreciate artistry, and understand that real beauty is made, not mass-produced.

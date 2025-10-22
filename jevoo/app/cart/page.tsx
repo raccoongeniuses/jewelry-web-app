@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ScriptLoader from '../components/ScriptLoader';
@@ -11,7 +10,7 @@ import CartItem from '../components/cart/CartItem';
 import CartSummary from '../components/cart/CartSummary';
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity } = useCart();
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
@@ -168,7 +167,7 @@ export default function CartPage() {
                           <i className="pe-7s-shopbag" style={{ fontSize: '60px', color: '#ddd' }}></i>
                         </div>
                         <h3 className="mb-3">Your cart is empty</h3>
-                        <p className="mb-4">Looks like you haven't added any items to your cart yet.</p>
+                        <p className="mb-4">Looks like you haven&apos;t added any items to your cart yet.</p>
                         <Link href="/" className="btn btn-sqr">
                           <i className="fa fa-arrow-left me-2"></i>
                           Continue Shopping
