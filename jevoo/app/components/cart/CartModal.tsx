@@ -172,19 +172,19 @@ export default function CartModal() {
                                   <button
                                     type="button"
                                     className="qtybtn dec"
-                                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                    onClick={() => handleQuantityChange(item.id, (item.quantity || 1) - 1)}
                                   >
                                     −
                                   </button>
                                   <input
                                     type="text"
-                                    value={item.quantity}
-                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 0)}
+                                    value={item.quantity || 1}
+                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
                                   />
                                   <button
                                     type="button"
                                     className="qtybtn inc"
-                                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                    onClick={() => handleQuantityChange(item.id, (item.quantity || 1) + 1)}
                                   >
                                     +
                                   </button>
@@ -192,7 +192,7 @@ export default function CartModal() {
 
                                 {/* Price */}
                                 <span className="cart-price">
-                                  ${(item.price * item.quantity).toFixed(2)}
+                                  ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
                                 </span>
                               </div>
                             </div>

@@ -139,7 +139,12 @@ export default function Marquee() {
           e.stopPropagation();
 
           if (selectedProductData) {
-            addToCart(selectedProductData);
+            // Convert Product to CartItem by adding quantity property
+            const cartItem = {
+              ...selectedProductData,
+              quantity: 1
+            };
+            addToCart(cartItem);
 
             // Simple feedback animation
             addCartBtn.textContent = "Added!";
@@ -152,10 +157,21 @@ export default function Marquee() {
               }
             }, 1500);
 
-            // On mobile, close details panel after adding to cart
+            // Check if mobile or desktop
             const isMobileDevice = window.innerWidth <= 768;
+
             if (isMobileDevice) {
-              hideDetails();
+              // On mobile, close details panel after adding to cart
+              setTimeout(() => {
+                hideDetails();
+              }, 500); // Small delay to show "Added!" feedback
+            } else {
+              // On desktop, open the cart modal next to the details panel
+              setTimeout(() => {
+                if (window.openCartModal) {
+                  window.openCartModal();
+                }
+              }, 500); // Small delay to show "Added!" feedback
             }
           }
         });
@@ -193,9 +209,50 @@ export default function Marquee() {
 
     document.addEventListener('keydown', handleKeyDown);
 
+    // Monitor cart modal state to center the details panel on desktop
+    const observeCartModal = () => {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const target = mutation.target as HTMLElement;
+            const cartModal = target.closest('.offcanvas-minicart-wrapper');
+
+            if (cartModal && detailsPanelRef.current && detailsOverlayRef.current) {
+              const isCartOpen = cartModal.classList.contains('show');
+
+              if (isCartOpen && isShowingDetails) {
+                // Cart opened - center the details panel
+                detailsPanelRef.current.classList.add('cart-open-centered');
+                detailsOverlayRef.current.classList.add('cart-open-centered');
+              } else {
+                // Cart closed - remove centering
+                detailsPanelRef.current.classList.remove('cart-open-centered');
+                detailsOverlayRef.current.classList.remove('cart-open-centered');
+              }
+            }
+          }
+        });
+      });
+
+      // Start observing the body for class changes on cart modal
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+        subtree: true
+      });
+
+      return observer;
+    };
+
+    const cartObserver = observeCartModal();
+
     return () => {
       clearTimeout(timer);
       document.removeEventListener('keydown', handleKeyDown);
+
+      if (cartObserver) {
+        cartObserver.disconnect();
+      }
 
       // Clean up any leftover placeholders
       const placeholders = document.querySelectorAll('.product-placeholder[data-placeholder="true"]');
@@ -401,12 +458,12 @@ export default function Marquee() {
               detailsThumbRef.current.innerHTML = "";
             }
 
-            // Hide details panel
+            // Hide details panel and clean up state classes
             if (detailsPanelRef.current) {
-              detailsPanelRef.current.classList.remove('active');
+              detailsPanelRef.current.classList.remove('active', 'cart-open-centered');
             }
             if (detailsOverlayRef.current) {
-              detailsOverlayRef.current.classList.remove('active');
+              detailsOverlayRef.current.classList.remove('active', 'cart-open-centered');
             }
             document.body.style.overflow = "";
 

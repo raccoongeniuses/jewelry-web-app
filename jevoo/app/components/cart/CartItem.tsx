@@ -13,7 +13,7 @@ interface CartItemProps {
 }
 
 export default function CartItemComponent({ item, index, onQuantityChange, onRemove }: CartItemProps) {
-  const [quantity, setQuantity] = useState(item.quantity);
+  const [quantity, setQuantity] = useState(item.quantity || 1);
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity > 0) {
@@ -79,9 +79,9 @@ export default function CartItemComponent({ item, index, onQuantityChange, onRem
           </button>
           <input
             type="text"
-            value={quantity}
+            value={quantity || 1}
             onChange={(e) => {
-              const val = parseInt(e.target.value);
+              const val = parseInt(e.target.value) || 1;
               if (!isNaN(val) && val > 0) {
                 handleQuantityChange(val);
               }

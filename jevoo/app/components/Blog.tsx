@@ -134,16 +134,14 @@ export default function Blog() {
               {blogPosts.map((post) => (
                 <div className="blog-post-item" key={post.id}>
                   <figure className="blog-thumb">
-                    <a href={post.url}>
-                      <img src={post.image} alt="blog image" />
-                    </a>
+                    <img src={post.image} alt="blog image" />
                   </figure>
                   <div className="blog-content">
                     <div className="blog-meta">
                       <p>{post.date} | <a href="#">{post.author}</a></p>
                     </div>
                     <h5 className="blog-title">
-                      <a href={post.url}>{post.title}</a>
+                      {post.title}
                     </h5>
                   </div>
                 </div>
