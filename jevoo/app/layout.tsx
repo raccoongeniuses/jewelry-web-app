@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
+import { CartProvider } from "./contexts/CartContext";
+import ModernizrInit from "./components/ModernizrInit";
 
 const lato = Lato({
   weight: ['300', '400', '700', '900'],
@@ -23,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="no-js">
       <head>
-        <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="/assets/img/jevoo-circle.ico" />
         <link rel="stylesheet" href="/assets/css/vendor/bootstrap.min.css" />
         <link rel="stylesheet" href="/assets/css/vendor/pe-icon-7-stroke.css" />
         <link rel="stylesheet" href="/assets/css/vendor/font-awesome.min.css" />
@@ -34,12 +36,16 @@ export default function RootLayout({
         <link rel="stylesheet" href="/assets/css/style.css" />
         <link rel="stylesheet" href="/assets/css/draggable-grid.css" />
       </head>
-      <body className={`${lato.variable} antialiased`}>
-        {children}
-        
+      <body className={`${lato.variable} antialiased`} suppressHydrationWarning>
+        <CartProvider>
+          {children}
+        </CartProvider>
+
+        {/* Modernizr initialization - client side only to prevent hydration mismatch */}
+        <ModernizrInit />
+
         {/* Scripts */}
-        <Script src="/assets/js/vendor/modernizr-3.6.0.min.js" strategy="beforeInteractive" />
-        <Script src="/assets/js/vendor/jquery-3.6.0.min.js" strategy="beforeInteractive" />
+        <Script src="/assets/js/vendor/jquery-3.6.0.min.js" strategy="afterInteractive" />
         <Script src="/assets/js/vendor/bootstrap.bundle.min.js" strategy="afterInteractive" />
         <Script src="/assets/js/plugins/slick.min.js" strategy="afterInteractive" />
         <Script src="/assets/js/plugins/countdown.min.js" strategy="afterInteractive" />

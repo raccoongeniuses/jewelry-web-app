@@ -2063,6 +2063,11 @@ body.fix {
 .minicart-item-wrapper {
   border-bottom: 1px solid #efefef;
 }
+.minicart-item-wrapper ul {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
 .minicart-item-wrapper ul li {
   padding-bottom: 20px;
   margin-bottom: 20px;
@@ -2122,6 +2127,72 @@ body.fix {
   font-size: 14px;
   line-height: 1;
 }
+
+/* Minicart Quantity Controls */
+.cart-qty-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.cart-quantity-label {
+  font-size: 12px;
+  color: #555555;
+  line-height: 1;
+  margin-right: 5px;
+}
+
+.minicart-content .pro-qty {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 80px;
+  height: 28px;
+  position: relative;
+}
+
+.minicart-content .pro-qty input {
+  width: 35px;
+  height: 100%;
+  border: none;
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+  background: transparent;
+  outline: none;
+  padding: 0;
+}
+
+.minicart-content .pro-qty .qtybtn {
+  width: 22px;
+  height: 100%;
+  background: #f8f8f8;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.minicart-content .pro-qty .qtybtn:hover {
+  background: #c29958;
+  color: #fff;
+}
+
+.minicart-content .pro-qty .dec {
+  border-right: 1px solid #e5e5e5;
+}
+
+.minicart-content .pro-qty .inc {
+  border-left: 1px solid #e5e5e5;
+}
 .minicart-remove {
   max-width: 30px;
   -webkit-flex-basis: 30px;
@@ -2134,6 +2205,65 @@ body.fix {
 }
 .minicart-remove:hover {
   color: #c29958;
+}
+
+/* New minicart layout styles */
+.minicart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.minicart-header .product-name {
+  flex: 1;
+  margin-bottom: 0;
+  padding-right: 10px;
+  line-height: 1.3;
+}
+
+.minicart-header .minicart-remove {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.minicart-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.minicart-details .pro-qty {
+  flex-shrink: 0;
+}
+
+.minicart-details .cart-price {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #c29958 !important;
+  text-align: right;
+  margin: 0;
+  min-width: 60px;
+}
+
+/* Responsive adjustments for minicart */
+@media (max-width: 767px) {
+  .minicart-details {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .minicart-details .cart-price {
+    text-align: right;
+    width: 100%;
+  }
 }
 
 .minicart-pricing-box {
@@ -2959,6 +3089,14 @@ body.fix {
 
 /*----- product tab menu start -----*/
 /*----- brand logo style start -----*/
+
+/* Main logo styling for consistency across all pages */
+.logo img {
+  max-height: 100px;
+  width: auto;
+  padding-left: 20%;
+}
+
 .brand-logo-carousel {
   padding: 30px 0;
   border-top: 1px solid #efefef;
@@ -6099,3 +6237,20 @@ blockquote {
 }
 
 /*----- footer area end -----*/
+
+/*----- testimonial background fix -----*/
+.testimonial-area.bg-img,
+section.testimonial-area.section-padding.bg-img,
+.testimonial-area[data-bg] {
+  background-image: url('/assets/img/testimonial/testimonials-bg.jpg') !important;
+}
+
+/* Additional specificity for React components */
+section.testimonial-area {
+  background-image: url('/assets/img/testimonial/testimonials-bg.jpg') !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+  background-color: transparent !important;
+}

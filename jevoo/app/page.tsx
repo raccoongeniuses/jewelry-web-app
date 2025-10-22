@@ -1,5 +1,10 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Marquee from "./components/Marquee";
+import FeaturedProducts from "./components/product/FeaturedProducts";
+import Testimonials from "./components/Testimonials";
+import GroupProducts from "./components/GroupProducts";
+import Blog from "./components/Blog";
 
 export default function Home() {
   return (
@@ -165,218 +170,23 @@ export default function Home() {
         {/* product area end */}
 
         {/* draggable marquee area start */}
-        <section className="draggable-product-marquee">
-          <div className="marquee-wrapper">
-            <div className="grid">
-              {/* First set of columns */}
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-2.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-1.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-4.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/earring-1.png"
-                    alt="Earring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-4.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-5.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-2.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-1.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-7.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-7.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-5.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/earring-1.png"
-                    alt="Earring Collection"
-                  />
-                </div>
-              </div>
-
-              {/* Duplicate set for seamless loop */}
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-5.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-1.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-3.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-3.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-3.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-2.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-4.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-1.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-7.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-              <div className="column">
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-2.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/earring-1.png"
-                    alt="Earring Collection"
-                  />
-                </div>
-                <div className="marquee-item">
-                  <img
-                    src="/assets/draggable-grid-public/ring-3.png"
-                    alt="Ring Collection"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Marquee />
         {/* draggable marquee area end */}
 
-        {/* Vase Details Panel */}
-        <div className="vase-details-overlay" id="vaseDetailsOverlay"></div>
-        <div className="vase-details-panel" id="vaseDetailsPanel">
-          <button className="vase-details-close" id="vaseDetailsClose">
-            ×
-          </button>
-          <div className="vase-details-content">
-            <h3 className="vase-details-title">Golden Ring</h3>
-            <div className="vase-details-thumb" id="vaseDetailsThumb"></div>
-            <div className="vase-details-info">
-              <div className="vase-details-price">$300.00</div>
-              <div className="vase-details-description">
-                Generous in size and striking in presence, the large golden ring
-                makes a bold decorative statement. Its smooth curves and sunny
-                shade are perfect for standing on the floor or dressing up a
-                wide console. Both functional and eye-catching, it brings
-                vitality and a contemporary edge to your interior design.
-              </div>
-              <button className="vase-details-add-cart">Add to Cart</button>
-            </div>
-          </div>
-        </div>
-
         {/* featured product area start */}
-        <section className="feature-product section-padding">
-          <div className="container">
-            <div className="row">
-              <div className="col-12">
-                {/* section title start */}
-                <div className="section-title text-center">
-                  <h2 className="title">featured products</h2>
-                  <p className="sub-title">
-                    Add featured products to weekly lineup
-                  </p>
-                </div>
-                {/* section title end */}
-              </div>
-            </div>
-          </div>
-        </section>
+        <FeaturedProducts />
         {/* featured product area end */}
+
+        {/* testimonial area start (below featured products) */}
+        <Testimonials />
+        {/* testimonial area end */}
+
+        {/* group product area (best seller + on-sale) */}
+        <GroupProducts />
+
+        {/* latest blog area start */}
+        <Blog />
+        {/* latest blog area end */}
       </main>
 
       <Footer />
