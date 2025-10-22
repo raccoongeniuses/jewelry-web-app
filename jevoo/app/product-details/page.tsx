@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ScriptLoader from '../components/ScriptLoader';
-import LoaderSpinner, { JewelryLoader } from '../components/LoaderSpinner';
+import LoaderSpinner, { JewelryLoader, LuxuryJewelryLoader } from '../components/LoaderSpinner';
 import QuickViewModal from '../components/modals/QuickViewModal';
 import ProductReviews from '../components/product/ProductReviews';
 import RelatedProducts from '../components/product/RelatedProducts';
@@ -85,10 +85,10 @@ export default function ProductDetails() {
     return (
       <>
         <ScriptLoader onScriptsLoaded={handleScriptsLoaded} />
-        <JewelryLoader 
+        <LuxuryJewelryLoader 
           fullScreen={true} 
           size="large"
-          message="Loading beautiful jewelry details..."
+          message="Loading exquisite jewelry details..."
         />
       </>
     );
