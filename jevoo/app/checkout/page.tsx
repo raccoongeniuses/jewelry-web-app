@@ -122,12 +122,36 @@ export default function CheckoutPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Remove all form validation - prevent the browser's default validation
-    const form = e.target as HTMLFormElement;
-    const submitButton = form.querySelector('button[type="submit"]');
+    // Form validation
+    const requiredFields = [
+      { field: 'firstName', value: billingDetails.firstName, label: 'First Name' },
+      { field: 'lastName', value: billingDetails.lastName, label: 'Last Name' },
+      { field: 'email', value: billingDetails.email, label: 'Email Address' },
+      { field: 'country', value: billingDetails.country, label: 'Country' },
+      { field: 'address', value: billingDetails.address, label: 'Street Address' },
+      { field: 'city', value: billingDetails.city, label: 'Town / City' },
+      { field: 'postcode', value: billingDetails.postcode, label: 'Postcode / ZIP' }
+    ];
 
-    if (submitButton) {
-      submitButton.removeAttribute('disabled');
+    // Check for empty required fields
+    const emptyFields = requiredFields.filter(field => !field.value.trim());
+    
+    if (emptyFields.length > 0) {
+      alert(`Please fill in the following required fields:\n${emptyFields.map(field => `• ${field.label}`).join('\n')}`);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(billingDetails.email)) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    // Check if account creation is selected but password is empty
+    if (billingDetails.createAccount && !billingDetails.accountPassword.trim()) {
+      alert('Please enter a password for your account.');
+      return;
     }
 
     // Generate order data - always success based on cart
@@ -153,9 +177,6 @@ export default function CheckoutPage() {
     // Store order data in sessionStorage for the invoice page
     sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
 
-    // Clear cart
-    clearCart();
-
     // Open invoice in new tab
     const invoiceUrl = '/invoice';
 
@@ -175,10 +196,7 @@ export default function CheckoutPage() {
       document.body.removeChild(link);
     }
 
-    // Redirect main page after a delay
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 2000);
+    // Don't clear cart or redirect - stay on checkout page
   };
 
   if (items.length === 0) {
@@ -341,6 +359,7 @@ export default function CheckoutPage() {
                               type="text"
                               id="f_name"
                               placeholder="First Name"
+                              required
                               value={billingDetails.firstName}
                               onChange={(e) => handleBillingChange('firstName', e.target.value)}
                             />
@@ -354,6 +373,7 @@ export default function CheckoutPage() {
                               type="text"
                               id="l_name"
                               placeholder="Last Name"
+                              required
                               value={billingDetails.lastName}
                               onChange={(e) => handleBillingChange('lastName', e.target.value)}
                             />
@@ -367,6 +387,7 @@ export default function CheckoutPage() {
                           type="email"
                           id="email"
                           placeholder="Email Address"
+                          required
                           value={billingDetails.email}
                           onChange={(e) => handleBillingChange('email', e.target.value)}
                         />
@@ -388,6 +409,7 @@ export default function CheckoutPage() {
                         <select
                           name="country"
                           id="country"
+                          required
                           value={billingDetails.country}
                           onChange={(e) => handleBillingChange('country', e.target.value)}
                           style={{
@@ -418,6 +440,7 @@ export default function CheckoutPage() {
                           type="text"
                           id="street-address"
                           placeholder="Street address Line 1"
+                          required
                           value={billingDetails.address}
                           onChange={(e) => handleBillingChange('address', e.target.value)}
                         />
@@ -699,8 +722,11 @@ export default function CheckoutPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {items.map((item, index) => (
-                              <tr key={item.id}>
+                            {items.map((item, index) => {
+                              // Create unique key using id, size, and color
+                              const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
+                              return (
+                                <tr key={uniqueKey}>
                                 <td>
                                   <Link href="/product-details">
                                     {item.name} <strong> × {item.quantity}</strong>
@@ -708,7 +734,8 @@ export default function CheckoutPage() {
                                 </td>
                                 <td>${(item.price * item.quantity).toFixed(2)}</td>
                               </tr>
-                            ))}
+                              );
+                            })}
                           </tbody>
                           <tfoot>
                             <tr>

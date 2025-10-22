@@ -320,17 +320,20 @@ export default function InvoicePage() {
                   <table className="table table-bordered">
                     <thead className="table-light">
                       <tr>
-                        <th>Product</th>
-                        <th>Unit Price</th>
-                        <th>Quantity</th>
-                        <th>Total</th>
+                        <th className="text-center">Product</th>
+                        <th className="text-center">Unit Price</th>
+                        <th className="text-center">Quantity</th>
+                        <th className="text-center">Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {orderData.items.map((item) => (
-                        <tr key={item.id}>
-                          <td>
-                            <div className="d-flex align-items-center">
+                      {orderData.items.map((item) => {
+                        // Create unique key using id, size, and color
+                        const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
+                        return (
+                          <tr key={uniqueKey}>
+                          <td className="text-center align-middle">
+                            <div className="d-flex align-items-center justify-content-center">
                               <div className="product-image me-3">
                                 <Image
                                   src={item.image}
@@ -340,7 +343,7 @@ export default function InvoicePage() {
                                   className="img-fluid rounded"
                                 />
                               </div>
-                              <div>
+                              <div className="text-center">
                                 <h6 className="mb-0">{item.name}</h6>
                                 {item.brand && <small className="text-muted">Brand: {item.brand}</small>}
                                 {item.colors && item.colors.length > 0 && (
@@ -349,11 +352,12 @@ export default function InvoicePage() {
                               </div>
                             </div>
                           </td>
-                          <td>${item.price.toFixed(2)}</td>
-                          <td>{item.quantity}</td>
-                          <td><strong>${(item.price * item.quantity).toFixed(2)}</strong></td>
+                          <td className="text-center align-middle">${item.price.toFixed(2)}</td>
+                          <td className="text-center align-middle">{item.quantity}</td>
+                          <td className="text-center align-middle"><strong>${(item.price * item.quantity).toFixed(2)}</strong></td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                     <tfoot>
                       <tr className="table-light">

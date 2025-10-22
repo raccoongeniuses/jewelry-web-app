@@ -120,15 +120,19 @@ export default function CartPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              {items.map((item, index) => (
-                                <CartItem
-                                  key={item.id}
-                                  item={item}
-                                  index={index + 1}
-                                  onQuantityChange={(quantity) => updateQuantity(item.id, quantity)}
-                                  onRemove={() => removeFromCart(item.id)}
-                                />
-                              ))}
+                              {items.map((item, index) => {
+                                // Create unique key using id, size, and color
+                                const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
+                                return (
+                                  <CartItem
+                                    key={uniqueKey}
+                                    item={item}
+                                    index={index + 1}
+                                    onQuantityChange={(quantity) => updateQuantity(item.id, quantity)}
+                                    onRemove={() => removeFromCart(item.id)}
+                                  />
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
