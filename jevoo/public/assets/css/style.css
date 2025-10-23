@@ -6254,3 +6254,258 @@ section.testimonial-area {
   background-attachment: fixed !important;
   background-color: transparent !important;
 }
+
+/*------ Products page pagination styles ------*/
+.pagination-wrapper {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.pagination-wrapper .navigation {
+  display: inline-block;
+}
+
+.pagination-wrapper .nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.pagination-wrapper .page-numbers {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 2px solid #efefef;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 500;
+  color: #222222;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-family: "Lato", sans-serif;
+}
+
+.pagination-wrapper .page-numbers:hover {
+  color: #ffffff;
+  border-color: #c29958;
+  background-color: #c29958;
+}
+
+.pagination-wrapper .page-numbers.current {
+  color: #ffffff;
+  border-color: #c29958;
+  background-color: #c29958;
+}
+
+.pagination-wrapper .page-numbers.dots {
+  border: none;
+  background: none;
+  color: #999999;
+  cursor: default;
+  font-weight: 400;
+}
+
+.pagination-wrapper .page-numbers:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-wrapper .page-numbers:disabled:hover {
+  color: #222222;
+  border-color: #efefef;
+  background-color: transparent;
+}
+
+.pagination-wrapper .prev.page-numbers,
+.pagination-wrapper .next.page-numbers {
+  font-size: 16px;
+}
+
+/* Pagination arrow buttons - gold background, white arrows */
+.pagination-wrapper .prev.page-numbers,
+.pagination-wrapper .next.page-numbers {
+  background-color: #c29958 !important;
+  border-color: #c29958 !important;
+  color: #fff !important;
+}
+
+.pagination-wrapper .prev.page-numbers:hover,
+.pagination-wrapper .next.page-numbers:hover {
+  background-color: #a0854a !important;
+  border-color: #a0854a !important;
+  color: #fff !important;
+}
+
+.pagination-wrapper .prev.page-numbers.disabled,
+.pagination-wrapper .next.page-numbers.disabled {
+  background-color: #f5f5f5 !important;
+  border-color: #e5e5e5 !important;
+  color: #ccc !important;
+}
+
+/* Arrow icons stay white - React Icons */
+.pagination-wrapper .prev.page-numbers svg,
+.pagination-wrapper .next.page-numbers svg {
+  font-size: 14px;
+  color: #fff !important;
+}
+
+.pagination-wrapper .prev.page-numbers:hover svg,
+.pagination-wrapper .next.page-numbers:hover svg {
+  color: #fff !important;
+}
+
+.pagination-wrapper .prev.page-numbers.disabled svg,
+.pagination-wrapper .next.page-numbers.disabled svg {
+  color: #ccc !important;
+}
+
+/* Additional specificity for pagination arrows */
+.pagination-wrapper .nav-links .prev.page-numbers,
+.pagination-wrapper .nav-links .next.page-numbers {
+  background-color: #c29958 !important;
+  border-color: #c29958 !important;
+  color: #fff !important;
+}
+
+.pagination-wrapper .nav-links .prev.page-numbers:hover,
+.pagination-wrapper .nav-links .next.page-numbers:hover {
+  background-color: #a0854a !important;
+  border-color: #a0854a !important;
+  color: #fff !important;
+}
+
+/* Responsive pagination */
+@media (max-width: 767px) {
+  .pagination-wrapper .nav-links {
+    gap: 3px;
+  }
+
+  .pagination-wrapper .page-numbers {
+    min-width: 35px;
+    height: 35px;
+    font-size: 13px;
+    padding: 0 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-wrapper .nav-links {
+    gap: 2px;
+  }
+
+  .pagination-wrapper .page-numbers {
+    min-width: 30px;
+    height: 30px;
+    font-size: 12px;
+    padding: 0 6px;
+  }
+}
+
+/*------ Empty Page Component Styles ------*/
+.empty-page {
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 40px 0;
+}
+
+.empty-page-icon {
+  margin-bottom: 20px;
+}
+
+.empty-page-title {
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.empty-page-description {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.empty-page-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.empty-page-actions .btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.empty-page-actions .btn-primary {
+  background: #c29958;
+  color: #fff;
+}
+
+.empty-page-actions .btn-primary:hover {
+  background: #a0854a;
+  color: #fff;
+}
+
+.empty-page-actions .btn-outline-secondary {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #6c757d;
+}
+
+.empty-page-actions .btn-outline-secondary:hover {
+  background: #6c757d;
+  color: #fff;
+}
+
+/*------ Pagination Info Styles ------*/
+.pagination-info {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+.pagination-info .page-info {
+  font-weight: 500;
+}
+
+/*------ Responsive Empty Page Styles ------*/
+@media (max-width: 768px) {
+  .empty-page {
+    padding: 40px 15px;
+  }
+  
+  .empty-page-title {
+    font-size: 20px;
+  }
+  
+  .empty-page-description {
+    font-size: 14px;
+  }
+  
+  .empty-page-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .empty-page-actions .btn {
+    width: 100%;
+    max-width: 200px;
+  }
+}
