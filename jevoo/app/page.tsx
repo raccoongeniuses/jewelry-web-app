@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Marquee from "./components/Marquee";
-import FeaturedProducts from "./components/product/FeaturedProducts";
-import Testimonials from "./components/Testimonials";
-import GroupProducts from "./components/GroupProducts";
-import Blog from "./components/Blog";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import Marquee from "../components/Marquee";
+import FeaturedProducts from "../components/product/FeaturedProducts";
+import Testimonials from "../components/Testimonials";
+import GroupProducts from "../components/GroupProducts";
+import Blog from "../components/Blog";
 
 export default function Home() {
   const heroSliderRef = useRef<HTMLDivElement>(null);

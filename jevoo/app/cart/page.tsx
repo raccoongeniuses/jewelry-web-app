@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import ScriptLoader from '../components/ScriptLoader';
-import { useCart } from '../contexts/CartContext';
-import CartItem from '../components/cart/CartItem';
-import CartSummary from '../components/cart/CartSummary';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import ScriptLoader from '../../components/ScriptLoader';
+import { useCart } from '../../contexts/CartContext';
+import CartItem from '../../components/cart/CartItem';
+import CartSummary from '../../components/cart/CartSummary';
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity } = useCart();

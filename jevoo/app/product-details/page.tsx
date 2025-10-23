@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import ScriptLoader from '../components/ScriptLoader';
-import LoaderSpinner, { JewelryLoader, LuxuryJewelryLoader } from '../components/LoaderSpinner';
-import QuickViewModal from '../components/modals/QuickViewModal';
-import ProductReviews from '../components/product/ProductReviews';
-import RelatedProducts from '../components/product/RelatedProducts';
-import ProductImageGallery from '../components/product/ProductImageGallery';
-import ProductInfo from '../components/product/ProductInfo';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import ScriptLoader from '../../components/ScriptLoader';
+import LoaderSpinner, { JewelryLoader, LuxuryJewelryLoader } from '../../components/LoaderSpinner';
+import QuickViewModal from '../../components/modals/QuickViewModal';
+import ProductReviews from '../../components/product/ProductReviews';
+import RelatedProducts from '../../components/product/RelatedProducts';
+import ProductImageGallery from '../../components/product/ProductImageGallery';
+import ProductInfo from '../../components/product/ProductInfo';
 
 export default function ProductDetails() {
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);

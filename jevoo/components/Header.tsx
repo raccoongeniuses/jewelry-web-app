@@ -21,24 +21,24 @@ export default function Header() {
               </div>
               <div className="col-lg-6 text-right">
                 <div className="header-top-settings">
-                  <ul className="nav align-items-center justify-content-end">
-                    <li className="curreny-wrap">
+                  <div className="nav align-items-center justify-content-end flex-nowrap">
+                    <div className="curreny-wrap">
                       $ Currency
                       <i className="fa fa-angle-down"></i>
-                      <ul className="dropdown-list curreny-list">
-                        <li><a href="#">$ USD</a></li>
-                        <li><a href="#">€ EURO</a></li>
-                      </ul>
-                    </li>
-                    <li className="language">
+                      <div className="dropdown-list curreny-list">
+                        <a href="#">$ USD</a>
+                        <a href="#">€ EURO</a>
+                      </div>
+                    </div>
+                    <div className="language">
                       <img src="/assets/img/icon/en.png" alt="flag" /> English
                       <i className="fa fa-angle-down"></i>
-                      <ul className="dropdown-list">
-                        <li><a href="#"><img src="/assets/img/icon/en.png" alt="flag" /> english</a></li>
-                        <li><a href="#"><img src="/assets/img/icon/fr.png" alt="flag" /> french</a></li>
-                      </ul>
-                    </li>
-                  </ul>
+                      <div className="dropdown-list">
+                        <a href="#"><img src="/assets/img/icon/en.png" alt="flag" /> english</a>
+                        <a href="#"><img src="/assets/img/icon/fr.png" alt="flag" /> french</a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

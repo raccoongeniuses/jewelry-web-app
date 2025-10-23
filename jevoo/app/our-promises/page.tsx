@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import Testimonials from "../components/Testimonials";
-import Team from "../components/Team";
-import WhyChooseUs from "../components/WhyChooseUs";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import Testimonials from "../../components/Testimonials";
+import Team from "../../components/Team";
+import WhyChooseUs from "../../components/WhyChooseUs";
 
 export default function OurPromises() {
   return (

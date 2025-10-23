@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ProductCard from '../components/product/ProductCard';
-import Pagination from '../components/Pagination';
-import EmptyPage from '../components/EmptyPage';
-import { Product } from '../types/product';
-import { generateProducts } from '../utils/productGenerator';
+import ProductCard from '../../components/product/ProductCard';
+import Pagination from '../../components/Pagination';
+import EmptyPage from '../../components/EmptyPage';
+import { Product } from '../../types/product';
+import { generateProducts } from '../../utils/productGenerator';
 
 // Generate a large number of products for pagination testing (up to 99 pages)
 const allProducts: Product[] = generateProducts(800); // 800 products = 100 pages with 8 products per page

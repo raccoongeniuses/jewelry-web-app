@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
-import { CartProvider } from "./contexts/CartContext";
-import ModernizrInit from "./components/ModernizrInit";
+import { CartProvider } from "../contexts/CartContext";
+import ModernizrInit from "../components/ModernizrInit";
 
 const lato = Lato({
   weight: ['300', '400', '700', '900'],
