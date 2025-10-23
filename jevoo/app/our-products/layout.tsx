@@ -17,7 +17,6 @@ export default function OurProductsLayout({
               <div className="col-12">
                 <div className="breadcrumb-wrap">
                   <nav aria-label="breadcrumb">
-                    <h1>Our Products</h1>
                     <ol className="breadcrumb">
                       <li className="breadcrumb-item">
                         <a href="/">Home</a>

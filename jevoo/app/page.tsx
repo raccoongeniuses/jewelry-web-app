@@ -99,11 +99,14 @@ export default function Home() {
                         <h2 className="slide-title">
                           Family Jewelry <span>Collection</span>
                         </h2>
-                        <h4 className="slide-desc">
+                        <h4 className="slide-desc" style={{
+                          color: '#FFD700',
+                          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.6)'
+                        }}>
                           Designer Jewelry Necklaces-Bracelets-Earings
                         </h4>
-                        <a href="/shop" className="btn btn-hero">
-                          Read More
+                        <a href="/our-products" className="btn btn-hero">
+                          View Products
                         </a>
                       </div>
                     </div>
@@ -129,11 +132,14 @@ export default function Home() {
                         <h2 className="slide-title">
                           Diamonds Jewelry<span>Collection</span>
                         </h2>
-                        <h4 className="slide-desc">
+                        <h4 className="slide-desc" style={{
+                          color: '#FFD700',
+                          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.6)'
+                        }}>
                           Shukra Yogam & Silver Power Silver Saving Schemes.
                         </h4>
-                        <a href="/shop" className="btn btn-hero">
-                          Read More
+                        <a href="/our-products" className="btn btn-hero">
+                          View Products
                         </a>
                       </div>
                     </div>
@@ -159,11 +165,14 @@ export default function Home() {
                         <h2 className="slide-title">
                           Grace Designer<span>Jewelry</span>
                         </h2>
-                        <h4 className="slide-desc">
+                        <h4 className="slide-desc" style={{
+                          color: '#FFD700',
+                          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.6)'
+                        }}>
                           Rings, Occasion Pieces, Pandora & More.
                         </h4>
-                        <a href="/shop" className="btn btn-hero">
-                          Read More
+                        <a href="/our-products" className="btn btn-hero">
+                          View Products
                         </a>
                       </div>
                     </div>
@@ -192,11 +201,14 @@ export default function Home() {
                         <h2 className="slide-title">
                           Family Jewelry <span>Collection</span>
                         </h2>
-                        <h4 className="slide-desc">
-                          Designer Jewelry Necklaces-Bracelets-Earings
+                        <h4 className="slide-desc" style={{
+                          color: '#FFD700',
+                          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.6)'
+                        }}>
+                          Designer Jewelry Necklaces-Bracelets-Earrings
                         </h4>
-                        <a href="/shop" className="btn btn-hero">
-                          Read More
+                        <a href="/our-products" className="btn btn-hero">
+                          View Products
                         </a>
                       </div>
                     </div>
