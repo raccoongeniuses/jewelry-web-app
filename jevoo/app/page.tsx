@@ -96,7 +96,7 @@ export default function Home() {
                   <div className="row">
                     <div className="col-md-12">
                       <div className="hero-slider-content slide-1">
-                        <h2 className="slide-title">
+                        <h2 className="slide-title golden-text">
                           Family Jewelry <span>Collection</span>
                         </h2>
                         <h4 className="slide-desc" style={{
@@ -129,7 +129,7 @@ export default function Home() {
                   <div className="row">
                     <div className="col-md-12">
                       <div className="hero-slider-content slide-2 float-md-end float-none">
-                        <h2 className="slide-title">
+                        <h2 className="slide-title golden-text">
                           Diamonds Jewelry<span>Collection</span>
                         </h2>
                         <h4 className="slide-desc" style={{
@@ -162,7 +162,7 @@ export default function Home() {
                   <div className="row">
                     <div className="col-md-12">
                       <div className="hero-slider-content slide-3">
-                        <h2 className="slide-title">
+                        <h2 className="slide-title golden-text">
                           Grace Designer<span>Jewelry</span>
                         </h2>
                         <h4 className="slide-desc" style={{
@@ -198,7 +198,7 @@ export default function Home() {
                   <div className="row">
                     <div className="col-md-12">
                       <div className="hero-slider-content slide-1">
-                        <h2 className="slide-title">
+                        <h2 className="slide-title golden-text">
                           Family Jewelry <span>Collection</span>
                         </h2>
                         <h4 className="slide-desc" style={{
