@@ -5,7 +5,7 @@ import UploadHttpLink from 'apollo-upload-client/UploadHttpLink.mjs'
 // Create HTTP link with file upload support
 const httpLink = new UploadHttpLink({
   uri:
-    process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
+    process.env.GRAPHQL_ENDPOINT ||
     'http://127.0.0.1:4000/api/graphql',
   headers: {
     'Apollo-Require-Preflight': 'true',

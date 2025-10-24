@@ -5,7 +5,7 @@ dotenv.config()
 
 const config: CodegenConfig = {
   overwrite: true,
-  schema: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT, // GraphQL endpoint
+  schema: process.env.GRAPHQL_ENDPOINT, // GraphQL endpoint
   documents: '**/*.ts?(x)',
   generates: {
     './lib/graphql/generated.ts': {
