@@ -52,7 +52,7 @@ export default function RegisterPage() {
         if (storedUser) {
           router.push('/my-account');
         } else {
-          setError('Authentication failed. Please try logging in manually.');
+          setError('Registration successful! Please login with your credentials.');
           setIsLoading(false);
         }
       }, 1500); // Brief delay to show success message
@@ -110,24 +110,7 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
-        <div className="single-input-item">
-          <div className="login-reg-form-meta">
-            <div className="remember-meta">
-              <div className="custom-control custom-checkbox">
-                <input
-                  type="checkbox"
-                  className="custom-control-input"
-                  id="subnewsletter"
-                  required
-                />
-                <label className="custom-control-label" htmlFor="subnewsletter">
-                  I agree to the Terms & Conditions
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="single-input-item">
+          <div className="single-input-item">
           <button
             type="submit"
             className="btn btn-sqr"

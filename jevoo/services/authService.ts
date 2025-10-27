@@ -136,7 +136,7 @@ export const authService = {
         token: '',
         needsLogin: true
       };
-    } else if (data.message === "success" || data.status === "success" || Object.keys(data).length === 0) {
+    } else if (data.message === "success" || data.status === "success" || Object.keys(data).length === 0 || data.message === "User successfully created.") {
       // Registration succeeded but no auth data returned - need to login separately
       throw new Error('REGISTRATION_SUCCESS_NO_AUTH');
     } else {
