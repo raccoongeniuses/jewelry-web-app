@@ -8,42 +8,42 @@ import { Product } from '../types/product';
 // Sample product data for marquee
 const marqueeProducts: Product[] = [
   {
-    id: 'marquee-1',
+    id: 'golden-ring',
     name: 'Golden Ring',
     price: 300.00,
     image: '/assets/draggable-grid-public/ring-2.png',
     url: '/product-details'
   },
   {
-    id: 'marquee-2',
+    id: 'diamond-ring',
     name: 'Diamond Ring',
     price: 450.00,
     image: '/assets/draggable-grid-public/ring-3.png',
     url: '/product-details'
   },
   {
-    id: 'marquee-3',
+    id: 'silver-ring',
     name: 'Silver Ring',
     price: 250.00,
     image: '/assets/draggable-grid-public/ring-4.png',
     url: '/product-details'
   },
   {
-    id: 'marquee-4',
+    id: 'earring-collection',
     name: 'Earring Collection',
     price: 180.00,
     image: '/assets/draggable-grid-public/earring-1.png',
     url: '/product-details'
   },
   {
-    id: 'marquee-5',
+    id: 'premium-ring',
     name: 'Premium Ring',
     price: 350.00,
     image: '/assets/draggable-grid-public/ring-5.png',
     url: '/product-details'
   },
   {
-    id: 'marquee-6',
+    id: 'luxury-ring',
     name: 'Luxury Ring',
     price: 500.00,
     image: '/assets/draggable-grid-public/ring-7.png',
@@ -134,7 +134,7 @@ export default function Marquee() {
 
       // Add to cart button event
       if (addCartBtn) {
-        addCartBtn.addEventListener("click", function (e) {
+        const handleAddToCart = function (e: Event) {
           e.preventDefault();
           e.stopPropagation();
 
@@ -174,7 +174,14 @@ export default function Marquee() {
               }, 500); // Small delay to show "Added!" feedback
             }
           }
-        });
+        };
+
+        // Remove any existing listener before adding new one
+        addCartBtn.removeEventListener("click", handleAddToCart);
+        addCartBtn.addEventListener("click", handleAddToCart);
+
+        // Store the handler reference for cleanup
+        (addCartBtn as any)._cartHandler = handleAddToCart;
       }
 
       // Wait for GSAP to be available, then initialize marquee
@@ -252,6 +259,13 @@ export default function Marquee() {
 
       if (cartObserver) {
         cartObserver.disconnect();
+      }
+
+      // Clean up the add to cart event listener
+      const cartBtn = document.querySelector('.vase-details-add-cart');
+      if (cartBtn && (cartBtn as any)._cartHandler) {
+        cartBtn.removeEventListener("click", (cartBtn as any)._cartHandler);
+        delete (cartBtn as any)._cartHandler;
       }
 
       // Clean up any leftover placeholders
@@ -495,13 +509,13 @@ export default function Marquee() {
 
     // First set of columns (7 columns)
     const firstSetPatterns = [
-      [0, 1, 2], // ring-2, ring-3, ring-5
-      [3, 0, 2], // earring-1, ring-2, ring-5
-      [0, 1, 4], // ring-2, ring-3, ring-7
-      [4, 2, 3], // ring-7, ring-5, earring-1
-      [1, 0, 4], // ring-3, ring-2, ring-7
-      [3, 2, 1], // earring-1, ring-5, ring-3
-      [0, 4, 3], // ring-2, ring-7, earring-1
+      [0, 1, 2], // golden-ring, diamond-ring, silver-ring
+      [3, 0, 2], // earring-collection, golden-ring, silver-ring
+      [0, 1, 4], // golden-ring, diamond-ring, luxury-ring
+      [4, 2, 3], // luxury-ring, silver-ring, earring-collection
+      [1, 0, 4], // diamond-ring, golden-ring, luxury-ring
+      [3, 2, 1], // earring-collection, silver-ring, diamond-ring
+      [0, 4, 3], // golden-ring, luxury-ring, earring-collection
     ];
 
     firstSetPatterns.forEach((pattern) => {
@@ -525,13 +539,13 @@ export default function Marquee() {
 
     // Duplicate set for seamless loop (7 columns)
     const duplicateSetPatterns = [
-      [2, 0, 1], // ring-5, ring-2, ring-3
-      [3, 4, 0], // earring-1, ring-7, ring-2
-      [2, 0, 4], // ring-5, ring-2, ring-7
-      [0, 3, 1], // ring-2, earring-1, ring-3
-      [1, 0, 4], // ring-3, ring-2, ring-7
-      [3, 2, 1], // earring-1, ring-5, ring-3
-      [0, 4, 3], // ring-2, ring-7, earring-1
+      [2, 0, 1], // silver-ring, golden-ring, diamond-ring
+      [3, 4, 0], // earring-collection, luxury-ring, golden-ring
+      [2, 0, 4], // silver-ring, golden-ring, luxury-ring
+      [0, 3, 1], // golden-ring, earring-collection, diamond-ring
+      [1, 0, 4], // diamond-ring, golden-ring, luxury-ring
+      [3, 2, 1], // earring-collection, silver-ring, diamond-ring
+      [0, 4, 3], // golden-ring, luxury-ring, earring-collection
     ];
 
     duplicateSetPatterns.forEach((pattern) => {
@@ -555,21 +569,21 @@ export default function Marquee() {
 
     // Additional set for large screens (1920px+) - 15 more columns
     const additionalSetPatterns = [
-      [1, 2, 0], // ring-3, ring-5, ring-2
-      [3, 4, 2], // earring-1, ring-7, ring-5
-      [0, 1, 4], // ring-2, ring-3, ring-7
-      [2, 3, 1], // ring-5, earring-1, ring-3
-      [4, 0, 2], // ring-7, ring-2, ring-5
-      [3, 1, 4], // earring-1, ring-3, ring-7
-      [2, 0, 3], // ring-5, ring-2, earring-1
-      [1, 4, 2], // ring-3, ring-7, ring-5
-      [0, 3, 1], // ring-2, earring-1, ring-3
-      [4, 2, 0], // ring-7, ring-5, ring-2
-      [3, 1, 4], // earring-1, ring-3, ring-7
-      [2, 0, 3], // ring-5, ring-2, earring-1
-      [1, 4, 2], // ring-3, ring-7, ring-5
-      [0, 3, 1], // ring-2, earring-1, ring-3
-      [4, 2, 0], // ring-7, ring-5, ring-2
+      [1, 2, 0], // diamond-ring, silver-ring, golden-ring
+      [3, 4, 2], // earring-collection, luxury-ring, silver-ring
+      [0, 1, 4], // golden-ring, diamond-ring, luxury-ring
+      [2, 3, 1], // silver-ring, earring-collection, diamond-ring
+      [4, 0, 2], // luxury-ring, golden-ring, silver-ring
+      [3, 1, 4], // earring-collection, diamond-ring, luxury-ring
+      [2, 0, 3], // silver-ring, golden-ring, earring-collection
+      [1, 4, 2], // diamond-ring, luxury-ring, silver-ring
+      [0, 3, 1], // golden-ring, earring-collection, diamond-ring
+      [4, 2, 0], // luxury-ring, silver-ring, golden-ring
+      [3, 1, 4], // earring-collection, diamond-ring, luxury-ring
+      [2, 0, 3], // silver-ring, golden-ring, earring-collection
+      [1, 4, 2], // diamond-ring, luxury-ring, silver-ring
+      [0, 3, 1], // golden-ring, earring-collection, diamond-ring
+      [4, 2, 0], // luxury-ring, silver-ring, golden-ring
     ];
 
     additionalSetPatterns.forEach((pattern) => {

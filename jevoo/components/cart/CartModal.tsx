@@ -57,11 +57,11 @@ export default function CartModal() {
     };
   }, [isOpen]);
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
+  const handleQuantityChange = (uniqueId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(uniqueId);
     } else {
-      updateQuantity(productId, newQuantity);
+      updateQuantity(uniqueId, newQuantity);
     }
   };
 
@@ -120,10 +120,8 @@ export default function CartModal() {
                   {/* Cart Items Wrapper */}
                   <div className="minicart-item-wrapper">
                     {items.map((item) => {
-                      // Create unique key using id, size, and color
-                      const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
                       return (
-                        <div key={uniqueKey} className="minicart-item">
+                        <div key={item.uniqueId} className="minicart-item">
                             {/* Product Thumbnail */}
                             <div className="minicart-thumb">
                               <Link href={item.url || '/product-details'}>
@@ -147,13 +145,13 @@ export default function CartModal() {
                                 </div>
                                 <button
                                   className="minicart-remove"
-                                  onClick={() => removeFromCart(item.id)}
+                                  onClick={() => removeFromCart(item.uniqueId!)}
                                   aria-label="Remove item"
                                 >
                                   <i className="pe-7s-close"></i>
                                 </button>
                               </div>
-                              
+
                               {/* Size and Color Info */}
                               {(item.selectedSize || item.selectedColor) && (
                                 <div className="cart-variants">
@@ -172,19 +170,19 @@ export default function CartModal() {
                                   <button
                                     type="button"
                                     className="qtybtn dec"
-                                    onClick={() => handleQuantityChange(item.id, (item.quantity || 1) - 1)}
+                                    onClick={() => handleQuantityChange(item.uniqueId!, (item.quantity || 1) - 1)}
                                   >
                                     −
                                   </button>
                                   <input
                                     type="text"
                                     value={item.quantity || 1}
-                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                                    onChange={(e) => handleQuantityChange(item.uniqueId!, parseInt(e.target.value) || 1)}
                                   />
                                   <button
                                     type="button"
                                     className="qtybtn inc"
-                                    onClick={() => handleQuantityChange(item.id, (item.quantity || 1) + 1)}
+                                    onClick={() => handleQuantityChange(item.uniqueId!, (item.quantity || 1) + 1)}
                                   >
                                     +
                                   </button>
