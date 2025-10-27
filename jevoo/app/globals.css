@@ -542,3 +542,11 @@
     font-size: 13px;
   }
 }
+
+/* Account Dropdown Z-Index Fix */
+body.account-dropdown-open .sticky,
+body.account-dropdown-open .header-main-area,
+body.account-dropdown-open .main-header {
+  z-index: 1 !important;
+}
+

@@ -184,7 +184,6 @@ export default function CheckoutPage() {
     const newWindow = window.open(invoiceUrl, '_blank');
 
     if (newWindow && !newWindow.closed) {
-      console.log('New tab opened successfully');
     } else {
       // Method 2: Fallback - create and click a link
       const link = document.createElement('a');

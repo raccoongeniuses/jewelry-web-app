@@ -18,7 +18,6 @@ export default function CartModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   // Debug logging - remove in production
-  // console.log('CartModal render:', { items, itemsLength: items.length, isOpen });
 
   // Expose the openCart function globally so other components can trigger it
   React.useEffect(() => {

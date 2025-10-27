@@ -149,12 +149,6 @@ function setupCartTableEventListeners() {
             const input = proQty.querySelector('.quantity-input');
             const productId = e.target.getAttribute('data-product-id');
 
-            console.log('Cart table button clicked:', {
-                target: e.target,
-                productId: productId,
-                currentValue: input ? input.value : 'no input'
-            });
-
             if (input) {
                 let currentValue = parseInt(input.value) || 1;
 
@@ -178,12 +172,6 @@ function setupCartTableEventListeners() {
             const input = e.target;
             const productId = input.dataset.productId;
             const newQuantity = parseInt(input.value) || 1;
-
-            console.log('Cart table input changed:', {
-                target: e.target,
-                productId: productId,
-                newQuantity: newQuantity
-            });
 
             if (newQuantity < 1) {
                 input.value = 1;

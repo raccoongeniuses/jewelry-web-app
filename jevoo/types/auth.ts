@@ -1,0 +1,43 @@
+export interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  token?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+  needsLogin?: boolean; // Flag to indicate registration succeeded but needs login
+}
+
+export interface ApiError {
+  errors: Array<{
+    name: string;
+    data?: {
+      collection?: string;
+      errors?: Array<{
+        message: string;
+        path?: string;
+      }>;
+    };
+    message: string;
+  }>;
+}
+
+export interface AuthError extends Error {
+  code?: string;
+  field?: string;
+  details?: string;
+}

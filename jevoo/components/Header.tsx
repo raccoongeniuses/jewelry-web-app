@@ -1,11 +1,63 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import CartModal from './cart/CartModal';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
   const { getTotalItems } = useCart();
+  const { user, logout, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+
+  // Handle body class for account dropdown z-index
+  useEffect(() => {
+    if (isAccountDropdownOpen) {
+      document.body.classList.add('account-dropdown-open');
+    } else {
+      document.body.classList.remove('account-dropdown-open');
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('account-dropdown-open');
+    };
+  }, [isAccountDropdownOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      const userDropdown = document.querySelector('.user-hover');
+
+      if (isAccountDropdownOpen && userDropdown && !userDropdown.contains(target)) {
+        setIsAccountDropdownOpen(false);
+      }
+    };
+
+    if (isAccountDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isAccountDropdownOpen]);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.firstName) {
+      return user.firstName;
+    }
+    return user?.email?.split('@')[0] || 'User';
+  };
   return (
     <header className="header-area header-wide">
       {/* main header start */}
@@ -83,24 +135,41 @@ export default function Header() {
 
               {/* mini cart area start */}
               <div className="col-lg-4">
-                <div className="header-right d-flex align-items-center justify-content-xl-between justify-content-lg-end">
-                  <div className="header-search-container">
-                    <button className="search-trigger d-xl-none d-lg-block"><i className="pe-7s-search"></i></button>
-                    <form className="header-search-box d-lg-none d-xl-block">
-                      <input type="text" placeholder="Search entire store hire" className="header-search-field" />
-                      <button className="header-search-btn"><i className="pe-7s-search"></i></button>
-                    </form>
-                  </div>
+                <div className="header-right d-flex align-items-center justify-content-end">
                   <div className="header-configure-area">
                     <ul className="nav justify-content-end">
                       <li className="user-hover">
-                        <a href="#">
-                          <i className="pe-7s-user"></i>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsAccountDropdownOpen(!isAccountDropdownOpen);
+                          }}
+                          style={{cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px'}}
+                        >
+                          {isAuthenticated ? (
+                            <span className="user-name" style={{fontSize: '14px', textTransform: 'capitalize'}}>{getUserDisplayName()}</span>
+                          ) : (
+                            <span className="user-login-text" style={{fontSize: '14px', fontWeight: '500'}}>Log in to your account</span>
+                          )}
+                          <i className="pe-7s-user" style={{fontSize: '18px'}}></i>
                         </a>
-                        <ul className="dropdown-list">
-                          <li><a href="/login-register">login</a></li>
-                          <li><a href="/login-register">register</a></li>
-                          <li><a href="/my-account">my account</a></li>
+                        <ul
+                          className={`dropdown-list ${isAccountDropdownOpen ? 'show' : ''}`}
+                          style={{zIndex: '9999', display: isAccountDropdownOpen ? 'block' : 'none'}}
+                        >
+                          {isAuthenticated ? (
+                            <>
+                              <li><a href="/my-account">my account</a></li>
+                              <li><a href="#" onClick={handleLogout}>logout</a></li>
+                            </>
+                          ) : (
+                            <>
+                              <li><Link href="/login">login</Link></li>
+                              <li><Link href="/register">register</Link></li>
+                            </>
+                          )}
                         </ul>
                       </li>
                       <li>
@@ -204,13 +273,21 @@ export default function Header() {
                 <li>
                   <div className="dropdown mobile-top-dropdown">
                     <a href="#" className="dropdown-toggle" id="myaccount" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      My Account
+                      {isAuthenticated ? getUserDisplayName() : 'My Account'}
                       <i className="fa fa-angle-down"></i>
                     </a>
                     <div className="dropdown-menu" aria-labelledby="myaccount">
-                      <a className="dropdown-item" href="/my-account">my account</a>
-                      <a className="dropdown-item" href="/login-register">login</a>
-                      <a className="dropdown-item" href="/login-register">register</a>
+                      {isAuthenticated ? (
+                        <>
+                          <a className="dropdown-item" href="/my-account">my account</a>
+                          <a className="dropdown-item" href="#" onClick={handleLogout}>logout</a>
+                        </>
+                      ) : (
+                        <>
+                          <Link className="dropdown-item" href="/login">login</Link>
+                          <Link className="dropdown-item" href="/register">register</Link>
+                        </>
+                      )}
                     </div>
                   </div>
                 </li>

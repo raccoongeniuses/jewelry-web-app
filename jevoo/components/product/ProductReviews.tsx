@@ -25,7 +25,6 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle review submission
-    console.log('Review submitted:', reviewForm);
     // Reset form
     setReviewForm({
       name: '',

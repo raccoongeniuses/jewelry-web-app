@@ -3,6 +3,7 @@ import { Lato } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { CartProvider } from "../contexts/CartContext";
+import { AuthProvider } from "../contexts/AuthContext";
 import ModernizrInit from "../components/ModernizrInit";
 
 const lato = Lato({
@@ -37,9 +38,11 @@ export default function RootLayout({
         <link rel="stylesheet" href="/assets/css/draggable-grid.css" />
       </head>
       <body className={`${lato.variable} antialiased`} suppressHydrationWarning>
-        <CartProvider>
-          {children}
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
 
         {/* Modernizr initialization - client side only to prevent hydration mismatch */}
         <ModernizrInit />

@@ -113,17 +113,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('coranoCart');
-    // console.log('CartProvider: Loading cart from localStorage:', savedCart);
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
-        // console.log('CartProvider: Parsed cart items:', cartItems);
         dispatch({ type: 'LOAD_CART', payload: cartItems });
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
       }
     } else {
-      // console.log('CartProvider: No saved cart found, using empty cart');
     }
   }, []);
 
