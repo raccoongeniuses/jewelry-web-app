@@ -6,6 +6,15 @@ import Pagination from '../../components/Pagination';
 import EmptyPage from '../../components/EmptyPage';
 import { Product } from '../../types/product';
 
+// Add jQuery global declaration
+declare global {
+  interface Window {
+    $: any;
+    jQuery: any;
+  }
+}
+
+
 export default function OurProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -15,17 +24,11 @@ export default function OurProductsPage() {
   const [sortBy, setSortBy] = useState<string>('default');
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 500 });
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [categories, setCategories] = useState<{ value: string; label: string }[]>([
+    { value: 'all', label: 'All Products' }
+  ]);
   const productsPerPage = 8; // Show 8 products per page
   const maxPages = 99; // Maximum pages to show in pagination
-
-  const categories = [
-    { value: 'all', label: 'All Products' },
-    { value: 'rings', label: 'Rings' },
-    { value: 'necklaces', label: 'Necklaces' },
-    { value: 'earrings', label: 'Earrings' },
-    { value: 'bracelets', label: 'Bracelets' },
-    { value: 'sets', label: 'Jewelry Sets' },
-  ];
 
   const sortOptions = [
     { value: 'default', label: 'Default' },
@@ -44,6 +47,53 @@ export default function OurProductsPage() {
   // Check if current page is empty
   const isPageEmpty = currentProducts.length === 0;
   const isPageOutOfRange = currentPage > totalPages;
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+
+        const data = await response.json();
+
+        // Transform categories data to match dropdown format
+        const transformedCategories = [
+          { value: 'all', label: 'All Products' },
+          ...data.docs.map((category: any) => ({
+            value: category.slug,
+            label: category.name
+          }))
+        ];
+
+        setCategories(transformedCategories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        // Keep default categories if API fails
+        setCategories([
+          { value: 'all', label: 'All Products' }
+        ]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Reinitialize nice-select for category dropdown when categories are loaded
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.$) {
+      const categorySelect = window.$('#category-select');
+      if (categorySelect.length > 0 && categories.length > 1) {
+        // Remove existing nice-select if any
+        categorySelect.next('.nice-select').remove();
+        // Reinitialize nice-select
+        categorySelect.niceSelect();
+      }
+    }
+  }, [categories]);
 
   // Fetch products from API
   useEffect(() => {
@@ -208,6 +258,7 @@ export default function OurProductsPage() {
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                         className="nice-select"
+                        id="category-select"
                       >
                         {categories.map(category => (
                           <option key={category.value} value={category.value}>
