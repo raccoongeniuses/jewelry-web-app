@@ -27,6 +27,10 @@ export default function OurProductsPage() {
   const [categories, setCategories] = useState<{ value: string; label: string }[]>([
     { value: 'all', label: 'All Products' }
   ]);
+  const [brands, setBrands] = useState<{ value: string; label: string }[]>([
+    { value: 'all', label: 'All Brands' }
+  ]);
+  const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const productsPerPage = 8; // Show 8 products per page
   const maxPages = 99; // Maximum pages to show in pagination
 
@@ -82,6 +86,40 @@ export default function OurProductsPage() {
     fetchCategories();
   }, []);
 
+  // Fetch brands from API
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch('/api/brands');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch brands');
+        }
+
+        const data = await response.json();
+
+        // Transform brands data to match dropdown format
+        const transformedBrands = [
+          { value: 'all', label: 'All Brands' },
+          ...data.docs.map((brand: any) => ({
+            value: brand.slug,
+            label: brand.name
+          }))
+        ];
+
+        setBrands(transformedBrands);
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+        // Keep default brands if API fails
+        setBrands([
+          { value: 'all', label: 'All Brands' }
+        ]);
+      }
+    };
+
+    fetchBrands();
+  }, []);
+
   // Reinitialize nice-select for category dropdown when categories are loaded
   useEffect(() => {
     if (typeof window !== 'undefined' && window.$) {
@@ -94,6 +132,19 @@ export default function OurProductsPage() {
       }
     }
   }, [categories]);
+
+  // Reinitialize nice-select for brand dropdown when brands are loaded
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.$) {
+      const brandSelect = window.$('#brand-select');
+      if (brandSelect.length > 0 && brands.length > 1) {
+        // Remove existing nice-select if any
+        brandSelect.next('.nice-select').remove();
+        // Reinitialize nice-select
+        brandSelect.niceSelect();
+      }
+    }
+  }, [brands]);
 
   // Fetch products from API
   useEffect(() => {
@@ -268,7 +319,24 @@ export default function OurProductsPage() {
                       </select>
                     </div>
                   </div>
-                  <div className="col-lg-5 col-md-12">
+                  <div className="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                    <div className="shop-category">
+                      <label className="filter-label">Brand</label>
+                      <select
+                        value={selectedBrand}
+                        onChange={(e) => setSelectedBrand(e.target.value)}
+                        className="nice-select"
+                        id="brand-select"
+                      >
+                        {brands.map(brand => (
+                          <option key={brand.value} value={brand.value}>
+                            {brand.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12">
                     <div className="shop-price-filter">
                       <label className="filter-label">Price Range: ${priceRange.min} - ${priceRange.max}</label>
                       <div className="price-range-inputs">
@@ -283,11 +351,13 @@ export default function OurProductsPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-1 col-md-12">
+                  {/* Clear filters button hidden for now */}
+                <div className="col-lg-1 col-md-12" style={{ display: 'none' }}>
                     <div className="clear-filters-wrapper">
                       <button
                         onClick={() => {
                           setSelectedCategory('all');
+                          setSelectedBrand('all');
                           setSortBy('default');
                           setPriceRange({ min: 0, max: 500 });
                         }}
@@ -351,6 +421,7 @@ export default function OurProductsPage() {
                 <button
                   onClick={() => {
                     setSelectedCategory('all');
+                    setSelectedBrand('all');
                     setSortBy('default');
                     setPriceRange({ min: 0, max: 500 });
                   }}
