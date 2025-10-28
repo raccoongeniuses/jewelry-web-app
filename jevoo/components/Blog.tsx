@@ -1,63 +1,105 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { extractTextFromContent, truncateText, formatDate, getFeaturedImageUrl } from '@/lib/blog-utils';
+import Link from 'next/link';
+import JewelryLoader from './LoaderSpinner';
+import './Blog.css';
 
-type BlogPost = {
+export interface FeaturedImage {
+  createdAt: string;
+  updatedAt: string;
+  alt: string;
+  filename: string;
+  mimeType: string;
+  filesize: number;
+  width: number;
+  height: number;
+  focalX: number;
+  focalY: number;
   id: string;
-  title: string;
-  date: string;
-  author: string;
-  image: string;
   url: string;
-};
+  thumbnailURL: string | null;
+}
 
-const blogPosts: BlogPost[] = [
-  {
-    id: 'blog-1',
-    title: 'Celebrity Daughter Opens Up About Having Her Eye Color Changed',
-    date: '25/03/2019',
-    author: 'Jevoo Jewellery',
-    image: '/assets/img/blog/blog-img-1.jpg',
-    url: '/blog-details',
-  },
-  {
-    id: 'blog-2',
-    title: 'Children Left Home Alone For 4 Days In TV series Experiment',
-    date: '25/03/2019',
-    author: 'Jevoo Jewellery',
-    image: '/assets/img/blog/blog-img-2.jpg',
-    url: '/blog-details',
-  },
-  {
-    id: 'blog-3',
-    title: 'Lotto Winner Offering Up Money To Any Man That Will Date Her',
-    date: '25/03/2019',
-    author: 'Jevoo Jewellery',
-    image: '/assets/img/blog/blog-img-3.jpg',
-    url: '/blog-details',
-  },
-  {
-    id: 'blog-4',
-    title: 'People are Willing Lie When Comes Money, According to Research',
-    date: '25/03/2019',
-    author: 'Jevoo Jewellery',
-    image: '/assets/img/blog/blog-img-4.jpg',
-    url: '/blog-details',
-  },
-  {
-    id: 'blog-5',
-    title: 'Romantic Love Stories Of Hollywood\'s Biggest Celebrities',
-    date: '25/03/2019',
-    author: 'Jevoo Jewellery',
-    image: '/assets/img/blog/blog-img-5.jpg',
-    url: '/blog-details',
-  },
-];
+export interface BlogPost {
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  generateSlug: boolean;
+  slug: string;
+  content: string;
+  author: string;
+  featuredImage: FeaturedImage;
+  status: string;
+  id: string;
+}
+
+interface BlogPostItem {
+  post: BlogPost;
+  index: number;
+}
+
+function BlogPostCard({ post }: BlogPostItem) {
+  const excerpt = truncateText(extractTextFromContent(post.content));
+  const formattedDate = formatDate(post.createdAt);
+  const imageUrl = getFeaturedImageUrl(post);
+
+  return (
+    <Link href={`/blog/${post.featuredImage.id}`} className="blog-post-item-link">
+      <div className="blog-post-item">
+        <figure className="blog-thumb">
+          <img
+            src={imageUrl}
+            alt={post.featuredImage?.alt || post.title}
+          />
+        </figure>
+        <div className="blog-content">
+          <div className="blog-meta">
+            <p>{formattedDate} | <span>Jevoo Jewellery</span></p>
+          </div>
+          <h5 className="blog-title">
+            {post.title}
+          </h5>
+          <div className="blog-excerpt">
+            <p>{excerpt}</p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function Blog() {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Fetch blog posts from API
+    const fetchBlogPosts = async () => {
+      try {
+        const response = await fetch('/api/blogs');
+        if (!response.ok) {
+          throw new Error('Failed to fetch blog posts');
+        }
+        const data = await response.json();
+        setBlogPosts(data.docs || []);
+      } catch (err) {
+        console.error('Error fetching blog posts:', err);
+        setError('Failed to load blog posts');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogPosts();
+  }, []);
+
+  useEffect(() => {
+    if (blogPosts.length === 0) return;
+
     let retries = 0;
     const maxRetries = 20;
     const init = () => {
@@ -95,15 +137,17 @@ export default function Blog() {
             ]
           });
         } catch (e) {
-          console.error(e);
+          console.error('Error initializing slick carousel:', e);
         }
         return true;
       }
       return false;
     };
+
     const interval = setInterval(() => {
       if (init() || retries++ >= maxRetries) clearInterval(interval);
     }, 200);
+
     return () => {
       clearInterval(interval);
       if (typeof window !== 'undefined' && window.$ && carouselRef.current) {
@@ -113,7 +157,43 @@ export default function Blog() {
         }
       }
     };
-  }, []);
+  }, [blogPosts]);
+
+  if (loading) {
+    return (
+      <section className="latest-blog-area section-padding pt-0">
+        <div className="container">
+          <div className="row">
+            <div className="col-12">
+              <div className="section-title text-center">
+                <h2 className="title">latest blogs</h2>
+                <div className="d-flex justify-content-center mt-4">
+                  <JewelryLoader size="medium" message="Loading beautiful blogs..." />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="latest-blog-area section-padding pt-0">
+        <div className="container">
+          <div className="row">
+            <div className="col-12">
+              <div className="section-title text-center">
+                <h2 className="title">latest blogs</h2>
+                <p className="sub-title text-danger">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="latest-blog-area section-padding pt-0">
@@ -131,20 +211,8 @@ export default function Blog() {
         <div className="row">
           <div className="col-12">
             <div ref={carouselRef} className="blog-carousel-active slick-row-10 slick-arrow-style" data-react-component="true">
-              {blogPosts.map((post) => (
-                <div className="blog-post-item" key={post.id}>
-                  <figure className="blog-thumb">
-                    <img src={post.image} alt="blog image" />
-                  </figure>
-                  <div className="blog-content">
-                    <div className="blog-meta">
-                      <p>{post.date} | <a href="#">{post.author}</a></p>
-                    </div>
-                    <h5 className="blog-title">
-                      {post.title}
-                    </h5>
-                  </div>
-                </div>
+              {blogPosts.map((post, index) => (
+                <BlogPostCard key={post.featuredImage.id} post={post} index={index} />
               ))}
             </div>
           </div>

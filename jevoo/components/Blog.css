@@ -1,0 +1,29 @@
+.blog-post-item-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.blog-post-item-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.blog-post-item-link:hover .blog-post-item {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.blog-post-item-link:hover .blog-title {
+  color: #f7941d;
+}
+
+.blog-post-item {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.blog-post-item .blog-title {
+  transition: color 0.3s ease;
+}
