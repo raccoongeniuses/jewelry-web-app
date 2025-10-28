@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import ProductCard from './ProductCard';
 import { Product } from '../../types/product';
 
@@ -10,6 +11,7 @@ interface RelatedProductsProps {
 
 export default function RelatedProducts({ }: RelatedProductsProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Related products data from corano/product-details.html (exact match including the 5th product)
   const relatedProducts: Product[] = [
@@ -186,8 +188,8 @@ export default function RelatedProducts({ }: RelatedProductsProps) {
               className="product-carousel-4 slick-row-10 slick-arrow-style"
             >
               {relatedProducts.map((product) => (
-                <div key={product.id} className="product-item">
-                  <ProductCard product={product} />
+                <div key={product.id} className="product-item" onClick={() => router.push('/our-products')}>
+                  <ProductCard product={product} disableLinks={true} />
                 </div>
               ))}
             </div>

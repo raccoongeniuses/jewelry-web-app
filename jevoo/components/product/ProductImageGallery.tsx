@@ -21,8 +21,10 @@ export default function ProductImageGallery({
   }, [selectedImageIndex]);
 
   // Take only the first 5 images (1 main + 4 thumbnails)
-  const displayImages = images.slice(0, 5);
-  const mainImage = displayImages[currentSlide] || displayImages[0];
+  // Filter out any empty/undefined images and ensure we have valid URLs
+  const validImages = images.filter(img => img && img.trim() !== '');
+  const displayImages = validImages.length > 0 ? validImages.slice(0, 5) : ['/assets/img/product/product-details-img1.jpg'];
+  const mainImage = displayImages[currentSlide] || displayImages[0] || '/assets/img/product/product-details-img1.jpg';
 
   return (
     <>
@@ -59,7 +61,7 @@ export default function ProductImageGallery({
             }}
           >
             <Image
-              src={image}
+              src={image || '/assets/img/product/product-details-img1.jpg'}
               alt="product-details"
               width={100}
               height={100}

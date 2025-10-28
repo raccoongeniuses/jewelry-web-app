@@ -82,8 +82,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <span>{product.stockCount} in stock</span>
       </div>
 
-      {/* Description */}
-      <p className="pro-desc">{product.description}</p>
+      {/* Short Description */}
+      <p className="pro-desc">{product.shortDescription || product.description}</p>
 
       {/* Quantity and Add to Cart */}
       <div className="quantity-cart-box d-flex align-items-center">

@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { useCart } from '../../contexts/CartContext';
-import { CartItem } from '../../types/product';
+import { Product, CartItem } from '../../types/product';
 
 interface CartButtonProps {
-  product: CartItem;
+  product: Product;
   className?: string;
   children?: React.ReactNode;
   onAddToCart?: () => void; // Optional callback to trigger cart modal
@@ -16,7 +16,14 @@ export default function CartButton({ product, className = 'btn btn-cart', childr
   const [isAdded, setIsAdded] = useState(false);
 
   const handleAddToCart = () => {
-    addToCart(product);
+    // Convert Product to CartItem by adding required quantity
+    const cartItem: CartItem = {
+      ...product,
+      quantity: 1,
+      uniqueId: `${product.id}-${Date.now()}`, // Generate unique ID for cart
+    };
+
+    addToCart(cartItem);
     setIsAdded(true);
 
     // Trigger cart modal open callback if provided

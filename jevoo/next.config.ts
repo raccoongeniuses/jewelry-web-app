@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.jevoo-jewellery.com',
+        port: '',
+        pathname: '/api/media/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -8,6 +8,7 @@ interface ProductReviewsProps {
   product: {
     id: string;
     name: string;
+    description?: string;
     colors?: string[];
     sizes?: string[];
   };
@@ -95,7 +96,7 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                 >
                   <div className="tab-one">
                     <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam fringilla augue nec est tristique auctor. Ipsum metus feugiat sem, quis fermentum turpis eros eget velit. Donec ac tempus ante. Fusce ultricies massa massa. Fusce aliquam, purus eget sagittis vulputate, sapien libero hendrerit est, sed commodo augue nisi non neque.Cras neque metus, consequat et blandit et, luctus a nunc. Etiam gravida vehicula tellus, in imperdiet ligula euismod eget. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nam erat mi, rutrum at sollicitudin rhoncus
+                      {product.description || 'No description available for this product.'}
                     </p>
                   </div>
                 </div>

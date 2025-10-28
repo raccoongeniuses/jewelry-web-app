@@ -5,13 +5,12 @@ import ProductCard from '../../components/product/ProductCard';
 import Pagination from '../../components/Pagination';
 import EmptyPage from '../../components/EmptyPage';
 import { Product } from '../../types/product';
-import { generateProducts } from '../../utils/productGenerator';
-
-// Generate a large number of products for pagination testing (up to 99 pages)
-const allProducts: Product[] = generateProducts(800); // 800 products = 100 pages with 8 products per page
 
 export default function OurProductsPage() {
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(allProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 500 });
@@ -46,13 +45,81 @@ export default function OurProductsPage() {
   const isPageEmpty = currentProducts.length === 0;
   const isPageOutOfRange = currentPage > totalPages;
 
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&page=${currentPage}&limit=${productsPerPage}&depth=1`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+
+        const data = await response.json();
+
+        // Helper function to construct full image URL
+        const getFullImageUrl = (imageUrl: string | undefined) => {
+          if (!imageUrl) return '/placeholder-product.jpg';
+          // If URL already starts with http, return as is
+          if (imageUrl.startsWith('http')) return imageUrl;
+
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+          // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+          if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+            return `${baseUrl}${imageUrl.replace('/api', '')}`;
+          }
+          // Otherwise, prepend the API base URL
+          return `${baseUrl}${imageUrl}`;
+        };
+
+        // Transform API response to Product type
+        const transformedProducts: Product[] = data.docs.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          description: item.description,
+          shortDescription: item.shortDescription || '',
+          price: item.price,
+          salePrice: item.finalPrice,
+          isOnSale: item.isOnSale,
+          category: item.categories?.name || 'uncategorized',
+          image: getFullImageUrl(item.productImage?.url),
+          secondaryImage: getFullImageUrl(item.productImage?.url),
+          images: item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [],
+          stockStatus: item.stockStatus,
+          isFeatured: item.isFeatured,
+          isBestSeller: item.isBestSeller,
+          status: item.status,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        }));
+
+        setProducts(transformedProducts);
+        setFilteredProducts(transformedProducts);
+        setTotalProducts(data.totalDocs || transformedProducts.length);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setProducts([]);
+        setFilteredProducts([]);
+        setTotalProducts(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [currentPage, productsPerPage]);
+
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, sortBy, priceRange]);
 
   useEffect(() => {
-    let filtered = [...allProducts];
+    let filtered = [...products];
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -84,7 +151,7 @@ export default function OurProductsPage() {
     }
 
     setFilteredProducts(filtered);
-  }, [selectedCategory, sortBy, priceRange]);
+  }, [products, selectedCategory, sortBy, priceRange]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -191,15 +258,24 @@ export default function OurProductsPage() {
           <div className="col-12">
             <div className="results-summary">
               <p className="results-text">
-                Showing {filteredProducts.length > 0 ? `${startIndex + 1}-${Math.min(endIndex, filteredProducts.length)}` : '0'} of <span className="results-count">{filteredProducts.length}</span> of <span className="total-count">{allProducts.length}</span> products
+                Showing {filteredProducts.length > 0 ? `${startIndex + 1}-${Math.min(endIndex, filteredProducts.length)}` : '0'} of <span className="results-count">{filteredProducts.length}</span> of <span className="total-count">{totalProducts}</span> products
               </p>
             </div>
           </div>
         </div>
 
         {/* Product Grid or Empty Page */}
-        {isPageEmpty || isPageOutOfRange ? (
-          <EmptyPage 
+        {loading ? (
+          <div className="row">
+            <div className="col-12 text-center py-5">
+              <div className="spinner-border" role="status">
+                <span className="sr-only">Loading...</span>
+              </div>
+              <p className="mt-3">Loading products...</p>
+            </div>
+          </div>
+        ) : isPageEmpty || isPageOutOfRange ? (
+          <EmptyPage
             currentPage={currentPage}
             totalPages={totalPages}
             onGoToFirstPage={handleGoToFirstPage}
@@ -215,7 +291,7 @@ export default function OurProductsPage() {
         )}
 
         {/* No Products Found (when no products match filters) */}
-        {filteredProducts.length === 0 && !isPageEmpty && !isPageOutOfRange && (
+        {filteredProducts.length === 0 && !isPageEmpty && !isPageOutOfRange && !loading && (
           <div className="row">
             <div className="col-12">
               <div className="no-products-found text-center">

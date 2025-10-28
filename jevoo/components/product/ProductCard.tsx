@@ -9,32 +9,50 @@ import QuickViewModal from '../modals/QuickViewModal';
 
 interface ProductCardProps {
   product: Product;
+  disableLinks?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, disableLinks = false }: ProductCardProps) {
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   return (
     <div className="product-item">
       <figure className="product-thumb">
-        <Link href={product.url || '/product-details'}>
-          <Image 
-            className="pri-img" 
-            src={product.image} 
-            alt={product.name}
-            width={300}
-            height={300}
-          />
-          {product.secondaryImage && (
-            <Image 
-              className="sec-img" 
-              src={product.secondaryImage} 
+        {disableLinks ? (
+          <>
+            <Image
+              className="pri-img"
+              src={product.image}
               alt={product.name}
               width={300}
               height={300}
             />
-          )}
-        </Link>
+            <Image
+              className="sec-img"
+              src={product.secondaryImage || product.image}
+              alt={product.name}
+              width={300}
+              height={300}
+            />
+          </>
+        ) : (
+          <Link href={product.slug ? `/products/${product.slug}` : '/products'}>
+            <Image
+              className="pri-img"
+              src={product.image}
+              alt={product.name}
+              width={300}
+              height={300}
+            />
+            <Image
+              className="sec-img"
+              src={product.secondaryImage || product.image}
+              alt={product.name}
+              width={300}
+              height={300}
+            />
+          </Link>
+        )}
         
         <div className="product-badge">
           {product.isNew && (
@@ -63,7 +81,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </a>
         </div>
         
-        <div className="cart-hover">
+        <div className="cart-hover" onClick={(e) => e.stopPropagation()}>
           <CartButton product={product} />
         </div>
       </figure>
@@ -71,7 +89,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="product-caption text-center">
         <div className="product-identity">
           <p className="manufacturer-name">
-            <Link href={product.url || '/product-details'}>{product.brand || 'Brand'}</Link>
+            {disableLinks ? (
+              <span>{product.category || 'Uncategorized'}</span>
+            ) : (
+              <Link href={product.slug ? `/products/${product.slug}` : '/products'}>{product.category || 'Uncategorized'}</Link>
+            )}
           </p>
         </div>
         
@@ -86,14 +108,18 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
         
         <h6 className="product-name">
-          <Link href={product.url || '/product-details'}>{product.name}</Link>
+          {disableLinks ? (
+            <span>{product.name}</span>
+          ) : (
+            <Link href={product.slug ? `/products/${product.slug}` : '/products'}>{product.name}</Link>
+          )}
         </h6>
         
         <div className="price-box">
-          <span className="price-regular">${product.price.toFixed(2)}</span>
-          {product.originalPrice && product.originalPrice > product.price && (
+          <span className="price-regular">${product.salePrice ? product.salePrice.toFixed(2) : product.price.toFixed(2)}</span>
+          {product.salePrice && product.salePrice < product.price && (
             <span className="price-old">
-              <del>${product.originalPrice.toFixed(2)}</del>
+              <del>${product.price.toFixed(2)}</del>
             </span>
           )}
         </div>
