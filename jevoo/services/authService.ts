@@ -84,16 +84,27 @@ export const authService = {
       throw new Error('Invalid response format from server');
     }
 
-    // Ensure the user object has required fields
+    // Extract user data from your actual API response
     const formattedUser = {
-      id: data.user.id || data.user._id || 'unknown',
+      id: data.user.id,
       email: data.user.email,
-      firstName: data.user.firstName,
-      lastName: data.user.lastName,
-      token: data.token
+      // Handle optional fields that might not exist in your API
+      firstName: data.user.firstName || undefined,
+      lastName: data.user.lastName || undefined,
+      // Store additional session data if needed
+      createdAt: data.user.createdAt,
+      sessions: data.user.sessions,
+      customer: data.user.customer,
+      collection: data.user.collection,
+      _strategy: data.user._strategy
     };
 
-    return { user: formattedUser, token: data.token };
+    return {
+      user: formattedUser,
+      token: data.token,
+      exp: data.exp,
+      message: data.message
+    };
   },
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {

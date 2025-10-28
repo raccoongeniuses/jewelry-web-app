@@ -4,6 +4,18 @@ export interface User {
   firstName?: string;
   lastName?: string;
   token?: string;
+  createdAt?: string;
+  sessions?: Array<{
+    id: string;
+    createdAt: string;
+    expiresAt: string;
+  }>;
+  customer?: {
+    docs: string[];
+    hasNextPage: boolean;
+  };
+  collection?: string;
+  _strategy?: string;
 }
 
 export interface LoginCredentials {
@@ -19,6 +31,8 @@ export interface RegisterCredentials {
 export interface AuthResponse {
   user: User;
   token: string;
+  exp?: number; // Token expiration timestamp
+  message?: string; // Response message from API
   needsLogin?: boolean; // Flag to indicate registration succeeded but needs login
 }
 
