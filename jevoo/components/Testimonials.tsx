@@ -7,8 +7,8 @@ import ScriptLoader from './ScriptLoader';
 // Type declarations for jQuery
 declare global {
   interface Window {
-    jQuery: typeof import('jquery');
-    $: typeof import('jquery');
+    jQuery: any;
+    $: any;
   }
 }
 
@@ -55,6 +55,42 @@ const Testimonials = () => {
   const thumbCarouselRef = useRef<HTMLDivElement>(null);
   const contentCarouselRef = useRef<HTMLDivElement>(null);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>(testimonials);
+
+  // Fetch testimonials from API to update name and content only
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const response = await fetch('/api/testimonials');
+        if (!response.ok) {
+          throw new Error('Failed to fetch testimonials');
+        }
+        const data = await response.json();
+
+        // Update only name and content from API, keep original images and design
+        if (data.docs && data.docs.length > 0) {
+          const updatedTestimonials = testimonials.map((testimonial, index) => {
+            const apiItem = data.docs[index];
+            if (apiItem) {
+              return {
+                ...testimonial,
+                name: apiItem.name,
+                content: apiItem.testimony,
+                rating: apiItem.rating || 5
+              };
+            }
+            return testimonial;
+          });
+          setTestimonialsData(updatedTestimonials);
+        }
+      } catch (err) {
+        console.error('Failed to fetch testimonials:', err);
+        // Keep original testimonials if API fails
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
 
   // Initialize carousels when scripts are loaded
   const initializeCarousels = () => {
@@ -126,7 +162,7 @@ const Testimonials = () => {
     };
   }, []);
 
-  const renderStars = () => {
+  const renderStars = (rating: number = 5) => {
     return Array.from({ length: 5 }, (_, index) => (
       <span key={index}>
         <i className="fa fa-star-o"></i>
@@ -175,7 +211,7 @@ const Testimonials = () => {
                 ref={thumbCarouselRef}
                 className="testimonial-thumb-carousel"
               >
-                {testimonials.map((testimonial) => (
+                {testimonialsData.map((testimonial) => (
                   <div key={testimonial.id} className="testimonial-thumb">
                     <Image
                       src={testimonial.image}
@@ -200,7 +236,7 @@ const Testimonials = () => {
                 ref={contentCarouselRef}
                 className="testimonial-content-carousel"
               >
-                {testimonials.map((testimonial) => (
+                {testimonialsData.map((testimonial) => (
                   <div key={testimonial.id} className="testimonial-content">
                     <p>{testimonial.content}</p>
                     <div className="ratings">
