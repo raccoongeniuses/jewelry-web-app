@@ -2365,6 +2365,17 @@ body.fix {
   -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
+  position: relative;
+}
+.hero-slider-item:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1;
 }
 @media only screen and (min-width: 1600px) {
   .hero-slider-item {
@@ -2403,6 +2414,7 @@ body.fix {
 
 .hero-slider-content {
   position: relative;
+  z-index: 2;
 }
 @media only screen and (max-width: 767.98px) {
   .hero-slider-content {
@@ -2485,21 +2497,6 @@ body.fix {
 
 .hero-overlay {
   position: relative;
-}
-.hero-overlay:before {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  content: "";
-  position: absolute;
-  background-color: rgba(255, 255, 255, 0.7);
-  display: none;
-}
-@media only screen and (max-width: 767.98px) {
-  .hero-overlay:before {
-    display: block;
-  }
 }
 
 /*------ hero slider area css end ------*/
