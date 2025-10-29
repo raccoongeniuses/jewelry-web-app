@@ -1,138 +1,108 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Product } from '../../types/product';
 import ProductCard from './ProductCard';
 
-// Sample product data - in a real app, this would come from an API
-const sampleProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Perfect Diamond Jewelry',
-    price: 60.00,
-    originalPrice: 70.00,
-    image: '/assets/img/product/gold-ring.jpg',
-    secondaryImage: '/assets/img/product/gold-rings.jpeg',
-    url: '/product-details',
-    brand: 'Gold',
-    isNew: true,
-    discount: 10,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '2',
-    name: 'Handmade Golden Necklace',
-    price: 50.00,
-    originalPrice: 80.00,
-    image: '/assets/img/product/mony-ring.jpeg',
-    secondaryImage: '/assets/img/product/mony-rings.jpg',
-    url: '/product-details',
-    brand: 'mony',
-    isSale: true,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '3',
-    name: 'Perfect Diamond Jewelry',
-    price: 99.00,
-    image: '/assets/img/product/diamond-ring.jpg',
-    secondaryImage: '/assets/img/product/diamond-rings.jpeg',
-    url: '/product-details',
-    brand: 'Diamond',
-    isNew: true,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '4',
-    name: 'Silver Ring Collection',
-    price: 75.00,
-    originalPrice: 90.00,
-    image: '/assets/img/product/silver-ring.jpg',
-    secondaryImage: '/assets/img/product/silver-rings.jpg',
-    url: '/product-details',
-    brand: 'Silver',
-    isSale: true,
-    discount: 15,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '5',
-    name: 'Citygold Exclusive Ring',
-    price: 60.00,
-    originalPrice: 70.00,
-    image: '/assets/img/product/gold-ring.jpg',
-    secondaryImage: '/assets/img/product/gold-rings.jpeg',
-    url: '/product-details',
-    brand: 'mony',
-    isNew: true,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '6',
-    name: 'Diamond Collection',
-    price: 120.00,
-    originalPrice: 150.00,
-    image: '/assets/img/product/diamond-ring.jpg',
-    secondaryImage: '/assets/img/product/diamond-rings.jpeg',
-    url: '/product-details',
-    brand: 'Diamond',
-    isSale: true,
-    discount: 20,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '7',
-    name: 'Golden Necklace Set',
-    price: 85.00,
-    image: '/assets/img/product/mony-ring.jpeg',
-    secondaryImage: '/assets/img/product/mony-rings.jpg',
-    url: '/product-details',
-    brand: 'Gold',
-    isNew: true,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '8',
-    name: 'Silver Bracelet',
-    price: 45.00,
-    originalPrice: 60.00,
-    image: '/assets/img/product/silver-ring.jpg',
-    secondaryImage: '/assets/img/product/silver-rings.jpg',
-    url: '/product-details',
-    brand: 'Silver',
-    isSale: true,
-    discount: 25,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '9',
-    name: 'Handmade Golden Necklace',
-    price: 50.00,
-    originalPrice: 80.00,
-    image: '/assets/img/product/mony-ring.jpeg',
-    secondaryImage: '/assets/img/product/mony-rings.jpg',
-    url: '/product-details',
-    brand: 'mony',
-    isSale: true,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-  {
-    id: '10',
-    name: 'Perfect Diamond Jewelry',
-    price: 99.00,
-    image: '/assets/img/product/diamond-ring.jpg',
-    secondaryImage: '/assets/img/product/diamond-rings.jpeg',
-    url: '/product-details',
-    brand: 'Diamond',
-    isNew: true,
-    colors: ['lightblue', 'darktan', 'grey', 'brown']
-  },
-];
-
 export default function FeaturedProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
+  // Create a duplicated array for better slider experience when we have few products
+  const getSliderProducts = () => {
+    if (products.length === 0) return [];
+
+    // If we have fewer than 8 products, duplicate the array to create a better slider
+    if (products.length < 8) {
+      const duplicated = [...products, ...products];
+      // If still less than 8, duplicate again
+      if (duplicated.length < 8) {
+        return [...duplicated, ...duplicated];
+      }
+      return duplicated;
+    }
+
+    return products;
+  };
+
+  const sliderProducts = getSliderProducts();
+
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&limit=100&trash=false&sort=-price&where[isFeatured][equals]=true`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch featured products');
+        }
+
+        const data = await response.json();
+
+        // Helper function to construct full image URL (same as our-products page)
+        const getFullImageUrl = (imageUrl: string | undefined) => {
+          if (!imageUrl) return '/placeholder-product.jpg';
+          // If URL already starts with http, return as is
+          if (imageUrl.startsWith('http')) return imageUrl;
+
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+          // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+          if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+            return `${baseUrl}${imageUrl.replace('/api', '')}`;
+          }
+          // Otherwise, prepend the API base URL
+          return `${baseUrl}${imageUrl}`;
+        };
+
+        // Transform API response to Product type (same as our-products page)
+        const transformedProducts: Product[] = data.docs.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          description: item.description,
+          shortDescription: item.shortDescription || '',
+          price: item.price,
+          salePrice: item.finalPrice,
+          originalPrice: item.isOnSale ? item.price : undefined,
+          isOnSale: item.isOnSale,
+          isSale: item.isOnSale,
+          category: item.categories?.name || 'uncategorized',
+          brand: item.brand?.name || '',
+          image: getFullImageUrl(item.productImage?.url),
+          secondaryImage: item.galleries?.[1]?.image?.url ? getFullImageUrl(item.galleries[1].image.url) : getFullImageUrl(item.productImage?.url),
+          images: item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [],
+          stockStatus: item.stockStatus,
+          isFeatured: item.isFeatured,
+          isBestSeller: item.isBestSeller,
+          status: item.status,
+          colors: [], // Not provided in API response
+          sizes: [], // Not provided in API response
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        }));
+
+        setProducts(transformedProducts);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch featured products:', err);
+        setError('Failed to load featured products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    // Initialize slider after products are loaded and scripts are available
+    if (loading || sliderProducts.length === 0) return;
+
     // Initialize slider after scripts load; retry until slick is available
     let retries = 0;
     const maxRetries = 20;
@@ -151,7 +121,7 @@ export default function FeaturedProducts() {
             slidesToScroll: 1,
             rows: 2,
             autoplay: true,
-            infinite: true,
+            infinite: true, // Always infinite since we duplicate products when needed
             prevArrow: '<button type="button" class="slick-prev"><i class="pe-7s-angle-left"></i></button>',
             nextArrow: '<button type="button" class="slick-next"><i class="pe-7s-angle-right"></i></button>',
             responsive: [
@@ -204,7 +174,7 @@ export default function FeaturedProducts() {
       }
       clearInterval(interval);
     };
-  }, []);
+  }, [loading, sliderProducts]);
 
   return (
     <section className="feature-product section-padding">
@@ -221,15 +191,38 @@ export default function FeaturedProducts() {
         </div>
         <div className="row">
           <div className="col-12">
-            <div 
-              ref={sliderRef}
-              className="product-carousel-4_2 slick-row-10 slick-arrow-style"
-              data-react-component="true"
-            >
-              {sampleProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            {loading && (
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading featured products...</span>
+                </div>
+                <p className="mt-3">Loading featured products...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="alert alert-danger text-center" role="alert">
+                {error}
+              </div>
+            )}
+
+            {!loading && !error && products.length === 0 && (
+              <div className="text-center py-5">
+                <p>No featured products available at the moment.</p>
+              </div>
+            )}
+
+            {!loading && !error && products.length > 0 && (
+              <div
+                ref={sliderRef}
+                className="product-carousel-4_2 slick-row-10 slick-arrow-style"
+                data-react-component="true"
+              >
+                {sliderProducts.map((product, index) => (
+                  <ProductCard key={`${product.id}-${index}`} product={product} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
