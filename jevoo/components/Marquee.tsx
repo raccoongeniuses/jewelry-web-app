@@ -5,51 +5,33 @@ import Image from 'next/image';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types/product';
 
-// Sample product data for marquee
-const marqueeProducts: Product[] = [
-  {
-    id: 'golden-ring',
-    name: 'Golden Ring',
-    price: 300.00,
-    image: '/assets/draggable-grid-public/ring-2.png',
-    url: '/product-details'
-  },
-  {
-    id: 'diamond-ring',
-    name: 'Diamond Ring',
-    price: 450.00,
-    image: '/assets/draggable-grid-public/ring-3.png',
-    url: '/product-details'
-  },
-  {
-    id: 'silver-ring',
-    name: 'Silver Ring',
-    price: 250.00,
-    image: '/assets/draggable-grid-public/ring-4.png',
-    url: '/product-details'
-  },
-  {
-    id: 'earring-collection',
-    name: 'Earring Collection',
-    price: 180.00,
-    image: '/assets/draggable-grid-public/earring-1.png',
-    url: '/product-details'
-  },
-  {
-    id: 'premium-ring',
-    name: 'Premium Ring',
-    price: 350.00,
-    image: '/assets/draggable-grid-public/ring-5.png',
-    url: '/product-details'
-  },
-  {
-    id: 'luxury-ring',
-    name: 'Luxury Ring',
-    price: 500.00,
-    image: '/assets/draggable-grid-public/ring-7.png',
-    url: '/product-details'
+// API response type for products
+interface ApiProduct {
+  id: string;
+  name: string;
+  shortDescription: string;
+  price: number;
+  salePrice?: number;
+  finalPrice: number;
+  productImage: {
+    url: string;
+    alt: string;
+  };
+}
+
+// Helper function to construct full image URLs
+const getFullImageUrl = (imageUrl: string | undefined) => {
+  if (!imageUrl) return '/placeholder-product.jpg';
+  // If URL already starts with http, return as is
+  if (imageUrl.startsWith('http')) return imageUrl;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+  if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+    return `${baseUrl}${imageUrl.replace('/api', '')}`;
   }
-];
+  // Otherwise, prepend the API base URL
+  return `${baseUrl}${imageUrl}`;
+};
 
 export default function Marquee() {
   const { addToCart } = useCart();
@@ -65,9 +47,55 @@ export default function Marquee() {
   const [originalNextSibling, setOriginalNextSibling] = useState<Node | null>(null);
   const [isShowingDetails, setIsShowingDetails] = useState(false);
   const [selectedProductData, setSelectedProductData] = useState<Product | null>(null);
+  const [marqueeProducts, setMarqueeProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const response = await fetch(`${apiUrl}/products?pagination=true&limit=100&trash=false&sort=-price&select[name]=true&select[productImage]=true&select[price]=true&select[salePrice]=true&select[shortDescription]=true`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+
+        const data = await response.json();
+
+        // Transform API response to Product type
+        const transformedProducts: Product[] = data.docs.map((item: ApiProduct) => ({
+          id: item.id,
+          name: item.name,
+          price: item.finalPrice,
+          image: getFullImageUrl(item.productImage?.url),
+          shortDescription: item.shortDescription,
+          url: `/products/${item.id}`
+        }));
+
+        // Ensure we have at least 6 products for the original patterns by repeating if needed
+        const finalProducts: Product[] = [];
+        for (let i = 0; i < 6; i++) {
+          finalProducts.push(transformedProducts[i % transformedProducts.length]);
+        }
+
+        setMarqueeProducts(finalProducts);
+      } catch (error) {
+        console.error('Error fetching marquee products:', error);
+        // Fallback to empty array if API fails
+        setMarqueeProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
-    // Initialize marquee animation and functionality
+    // Initialize marquee animation and functionality only when products are loaded
+    if (loading || marqueeProducts.length === 0) return;
+
     const initMarquee = () => {
       const grid = gridRef.current;
       const detailsOverlay = detailsOverlayRef.current;
@@ -272,7 +300,7 @@ export default function Marquee() {
       const placeholders = document.querySelectorAll('.product-placeholder[data-placeholder="true"]');
       placeholders.forEach(placeholder => placeholder.remove());
     };
-  }, [isShowingDetails, selectedProductData]);
+  }, [isShowingDetails, selectedProductData, loading, marqueeProducts]);
 
   const showDetails = (element: HTMLElement, product: Product) => {
     if (isShowingDetails) return;
@@ -336,7 +364,7 @@ export default function Marquee() {
         price.textContent = `$${product.price.toFixed(2)}`;
       }
       if (description) {
-        description.textContent = `Generous in size and striking in presence, the ${product.name.toLowerCase()} makes a bold decorative statement. Its smooth curves and premium materials are perfect for special occasions. Both functional and eye-catching, it brings vitality and a contemporary edge to your jewelry collection.`;
+        description.textContent = product.shortDescription || `Beautiful ${product.name.toLowerCase()} for your jewelry collection.`;
       }
     }
 
@@ -507,15 +535,15 @@ export default function Marquee() {
     const columns: React.ReactElement[] = [];
     let columnIndex = 0;
 
-    // First set of columns (7 columns)
+    // First set of columns (7 columns) - EXACT SAME PATTERNS AS ORIGINAL
     const firstSetPatterns = [
-      [0, 1, 2], // golden-ring, diamond-ring, silver-ring
-      [3, 0, 2], // earring-collection, golden-ring, silver-ring
-      [0, 1, 4], // golden-ring, diamond-ring, luxury-ring
-      [4, 2, 3], // luxury-ring, silver-ring, earring-collection
-      [1, 0, 4], // diamond-ring, golden-ring, luxury-ring
-      [3, 2, 1], // earring-collection, silver-ring, diamond-ring
-      [0, 4, 3], // golden-ring, luxury-ring, earring-collection
+      [0, 1, 2], // product0, product1, product2
+      [3, 0, 2], // product3, product0, product2
+      [0, 1, 4], // product0, product1, product4
+      [4, 2, 3], // product4, product2, product3
+      [1, 0, 4], // product1, product0, product4
+      [3, 2, 1], // product3, product2, product1
+      [0, 4, 3], // product0, product4, product3
     ];
 
     firstSetPatterns.forEach((pattern) => {
@@ -537,15 +565,15 @@ export default function Marquee() {
       columnIndex++;
     });
 
-    // Duplicate set for seamless loop (7 columns)
+    // Duplicate set for seamless loop (7 columns) - EXACT SAME PATTERNS AS ORIGINAL
     const duplicateSetPatterns = [
-      [2, 0, 1], // silver-ring, golden-ring, diamond-ring
-      [3, 4, 0], // earring-collection, luxury-ring, golden-ring
-      [2, 0, 4], // silver-ring, golden-ring, luxury-ring
-      [0, 3, 1], // golden-ring, earring-collection, diamond-ring
-      [1, 0, 4], // diamond-ring, golden-ring, luxury-ring
-      [3, 2, 1], // earring-collection, silver-ring, diamond-ring
-      [0, 4, 3], // golden-ring, luxury-ring, earring-collection
+      [2, 0, 1], // product2, product0, product1
+      [3, 4, 0], // product3, product4, product0
+      [2, 0, 4], // product2, product0, product4
+      [0, 3, 1], // product0, product3, product1
+      [1, 0, 4], // product1, product0, product4
+      [3, 2, 1], // product3, product2, product1
+      [0, 4, 3], // product0, product4, product3
     ];
 
     duplicateSetPatterns.forEach((pattern) => {
@@ -567,23 +595,23 @@ export default function Marquee() {
       columnIndex++;
     });
 
-    // Additional set for large screens (1920px+) - 15 more columns
+    // Additional set for large screens (1920px+) - 15 more columns - EXACT SAME PATTERNS AS ORIGINAL
     const additionalSetPatterns = [
-      [1, 2, 0], // diamond-ring, silver-ring, golden-ring
-      [3, 4, 2], // earring-collection, luxury-ring, silver-ring
-      [0, 1, 4], // golden-ring, diamond-ring, luxury-ring
-      [2, 3, 1], // silver-ring, earring-collection, diamond-ring
-      [4, 0, 2], // luxury-ring, golden-ring, silver-ring
-      [3, 1, 4], // earring-collection, diamond-ring, luxury-ring
-      [2, 0, 3], // silver-ring, golden-ring, earring-collection
-      [1, 4, 2], // diamond-ring, luxury-ring, silver-ring
-      [0, 3, 1], // golden-ring, earring-collection, diamond-ring
-      [4, 2, 0], // luxury-ring, silver-ring, golden-ring
-      [3, 1, 4], // earring-collection, diamond-ring, luxury-ring
-      [2, 0, 3], // silver-ring, golden-ring, earring-collection
-      [1, 4, 2], // diamond-ring, luxury-ring, silver-ring
-      [0, 3, 1], // golden-ring, earring-collection, diamond-ring
-      [4, 2, 0], // luxury-ring, silver-ring, golden-ring
+      [1, 2, 0], // product1, product2, product0
+      [3, 4, 2], // product3, product4, product2
+      [0, 1, 4], // product0, product1, product4
+      [2, 3, 1], // product2, product3, product1
+      [4, 0, 2], // product4, product0, product2
+      [3, 1, 4], // product3, product1, product4
+      [2, 0, 3], // product2, product0, product3
+      [1, 4, 2], // product1, product4, product2
+      [0, 3, 1], // product0, product3, product1
+      [4, 2, 0], // product4, product2, product0
+      [3, 1, 4], // product3, product1, product4
+      [2, 0, 3], // product2, product0, product3
+      [1, 4, 2], // product1, product4, product2
+      [0, 3, 1], // product0, product3, product1
+      [4, 2, 0], // product4, product2, product0
     ];
 
     additionalSetPatterns.forEach((pattern) => {
@@ -715,9 +743,15 @@ export default function Marquee() {
       {/* Draggable Marquee Section */}
       <section className="draggable-product-marquee">
         <div className="marquee-wrapper">
-          <div className="grid" ref={gridRef}>
-            {generateColumns()}
-          </div>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '100px 0', color: '#666' }}>
+              <p>Loading beautiful jewelry...</p>
+            </div>
+          ) : (
+            <div className="grid" ref={gridRef}>
+              {generateColumns()}
+            </div>
+          )}
         </div>
       </section>
 
@@ -731,7 +765,7 @@ export default function Marquee() {
           <div className="vase-details-info">
             <div className="vase-details-price">$300.00</div>
             <div className="vase-details-description">
-              Generous in size and striking in presence, the golden ring makes a bold decorative statement. Its smooth curves and sunny shade are perfect for standing on the floor or dressing up a wide console. Both functional and eye-catching, it brings vitality and a contemporary edge to your interior design.
+              Product description will be displayed here when you select an item.
             </div>
             <button className="vase-details-add-cart" ref={addCartBtnRef}>Add to Cart</button>
           </div>
