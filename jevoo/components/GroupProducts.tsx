@@ -14,11 +14,11 @@ type GroupItem = {
 
 
 
-function GroupList({ items, appendRef, onSlideChange, sliderRef }: { 
-  items: GroupItem[]; 
-  appendRef: React.RefObject<HTMLDivElement>;
+function GroupList({ items, appendRef, onSlideChange, sliderRef }: {
+  items: GroupItem[];
+  appendRef: React.RefObject<HTMLDivElement | null>;
   onSlideChange?: (slideIndex: number) => void;
-  sliderRef?: React.RefObject<HTMLDivElement>;
+  sliderRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
 
