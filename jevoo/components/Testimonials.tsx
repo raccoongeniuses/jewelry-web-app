@@ -50,6 +50,7 @@ const Testimonials = () => {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>(testimonials);
   const carouselInitializedRef = useRef(false);
+  const isInitializingRef = useRef(false);
 
   // Fetch testimonials from API
   useEffect(() => {
@@ -83,12 +84,15 @@ const Testimonials = () => {
 
   // Initialize carousels when scripts are loaded
   const initializeCarousels = () => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
+    // Only run on client side and prevent concurrent initializations
+    if (typeof window === 'undefined' || isInitializingRef.current) return;
     if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
 
     const $ = window.jQuery;
     if (!$ || !$.fn.slick) return;
+
+    // Set initialization flag to prevent concurrent calls
+    isInitializingRef.current = true;
 
     // Check if carousels are already initialized
     const contentExists = $(contentCarouselRef.current).hasClass('slick-initialized');
@@ -112,50 +116,58 @@ const Testimonials = () => {
 
     // Wait a bit for DOM to be ready
     setTimeout(() => {
-      if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
+      if (!thumbCarouselRef.current || !contentCarouselRef.current) {
+        isInitializingRef.current = false;
+        return;
+      }
 
-      // Initialize content carousel
-      $(contentCarouselRef.current).slick({
-        arrows: false,
-        asNavFor: '.testimonial-thumb-carousel',
-        fade: true,
-        adaptiveHeight: true
-      });
+      try {
+        // Initialize content carousel
+        $(contentCarouselRef.current).slick({
+          arrows: false,
+          asNavFor: '.testimonial-thumb-carousel',
+          fade: true,
+          adaptiveHeight: true
+        });
 
-      // Initialize thumb carousel
-      $(thumbCarouselRef.current).slick({
-        slidesToShow: 3,
-        asNavFor: '.testimonial-content-carousel',
-        centerMode: true,
-        arrows: false,
-        centerPadding: 0,
-        focusOnSelect: true
-      });
+        // Initialize thumb carousel
+        $(thumbCarouselRef.current).slick({
+          slidesToShow: 3,
+          asNavFor: '.testimonial-content-carousel',
+          centerMode: true,
+          arrows: false,
+          centerPadding: 0,
+          focusOnSelect: true
+        });
 
-      carouselInitializedRef.current = true;
+        carouselInitializedRef.current = true;
+      } catch (error) {
+        console.warn('Carousel initialization error:', error);
+      } finally {
+        isInitializingRef.current = false;
+      }
     }, 50);
   };
 
+  // Single useEffect to handle all carousel initialization
   useEffect(() => {
-    if (scriptsLoaded) {
-      initializeCarousels();
+    if (scriptsLoaded && testimonialsData.length > 0) {
+      // If testimonials are loaded from API, wait a bit for re-render
+      if (!testimonialsData[0].name.includes('Loading...')) {
+        setTimeout(initializeCarousels, 100);
+      } else {
+        initializeCarousels();
+      }
     }
-  }, [scriptsLoaded]);
+  }, [scriptsLoaded, testimonialsData.length]); // Only depend on length, not the entire array
 
-  // Re-initialize when testimonials data changes
-  useEffect(() => {
-    if (scriptsLoaded && testimonialsData.length > 0 && !testimonialsData[0].name.includes('Loading...')) {
-      setTimeout(initializeCarousels, 100);
-    }
-  }, [testimonialsData, scriptsLoaded]);
-
-  // Re-initialize when page becomes visible (route changes)
+  // Handle page visibility changes separately
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
 
     const handleVisibilityChange = () => {
-      if (!document.hidden && scriptsLoaded) {
+      if (!document.hidden && scriptsLoaded && carouselInitializedRef.current) {
         setTimeout(initializeCarousels, 50);
       }
     };
@@ -174,10 +186,17 @@ const Testimonials = () => {
       if (typeof window !== 'undefined' && window.jQuery && window.jQuery.fn.slick) {
         const $ = window.jQuery;
         try {
-          if (contentCarouselRef.current && $(contentCarouselRef.current).hasClass('slick-initialized')) {
+          // Mark as not initialized to prevent any pending initialization
+          carouselInitializedRef.current = false;
+          isInitializingRef.current = false;
+
+          // Check if elements still exist before trying to destroy slick
+          if (contentCarouselRef.current && contentCarouselRef.current.parentNode &&
+              $(contentCarouselRef.current).hasClass('slick-initialized')) {
             $(contentCarouselRef.current).slick('unslick');
           }
-          if (thumbCarouselRef.current && $(thumbCarouselRef.current).hasClass('slick-initialized')) {
+          if (thumbCarouselRef.current && thumbCarouselRef.current.parentNode &&
+              $(thumbCarouselRef.current).hasClass('slick-initialized')) {
             $(thumbCarouselRef.current).slick('unslick');
           }
         } catch (error) {
