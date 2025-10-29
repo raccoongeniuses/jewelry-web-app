@@ -16,8 +16,8 @@ export default function ModernizrInit() {
     htmlElement.classList.add('js');
 
     return () => {
-      // Cleanup if needed
-      if (script.parentNode) {
+      // Cleanup if needed - only run on client side
+      if (typeof window !== 'undefined' && script.parentNode) {
         script.parentNode.removeChild(script);
       }
     };
