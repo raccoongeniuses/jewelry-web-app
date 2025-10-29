@@ -83,6 +83,8 @@ const Testimonials = () => {
 
   // Initialize carousels when scripts are loaded
   const initializeCarousels = () => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
     if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
 
     const $ = window.jQuery;
@@ -149,6 +151,9 @@ const Testimonials = () => {
 
   // Re-initialize when page becomes visible (route changes)
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+
     const handleVisibilityChange = () => {
       if (!document.hidden && scriptsLoaded) {
         setTimeout(initializeCarousels, 50);
@@ -165,13 +170,18 @@ const Testimonials = () => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (window.jQuery && window.jQuery.fn.slick) {
+      // Only run on client side
+      if (typeof window !== 'undefined' && window.jQuery && window.jQuery.fn.slick) {
         const $ = window.jQuery;
-        if (contentCarouselRef.current && $(contentCarouselRef.current).hasClass('slick-initialized')) {
-          $(contentCarouselRef.current).slick('unslick');
-        }
-        if (thumbCarouselRef.current && $(thumbCarouselRef.current).hasClass('slick-initialized')) {
-          $(thumbCarouselRef.current).slick('unslick');
+        try {
+          if (contentCarouselRef.current && $(contentCarouselRef.current).hasClass('slick-initialized')) {
+            $(contentCarouselRef.current).slick('unslick');
+          }
+          if (thumbCarouselRef.current && $(thumbCarouselRef.current).hasClass('slick-initialized')) {
+            $(thumbCarouselRef.current).slick('unslick');
+          }
+        } catch (error) {
+          console.warn('Error cleaning up slick carousels:', error);
         }
       }
     };
