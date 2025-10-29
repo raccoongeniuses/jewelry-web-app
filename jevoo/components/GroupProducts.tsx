@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Product } from '../types/product';
 
 type GroupItem = {
   id: string;
@@ -11,139 +12,7 @@ type GroupItem = {
   url: string;
 };
 
-const bestSeller: GroupItem[] = [
-  {
-    id: 'bs-1',
-    name: 'Diamond Exclusive Ring',
-    price: 50.0,
-    oldPrice: 29.99,
-    image: '/assets/img/product/diamond-ring.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-2',
-    name: 'Handmade Golden Ring',
-    price: 55.0,
-    oldPrice: 30.0,
-    image: '/assets/img/product/gold-handmade.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-3',
-    name: 'Exclusive Gold Jewelry',
-    price: 45.0,
-    oldPrice: 25.0,
-    image: '/assets/img/product/gold-jewelry.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-4',
-    name: 'Perfect Diamond Earring',
-    price: 50.0,
-    oldPrice: 29.99,
-    image: '/assets/img/product/diamond-earring.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-5',
-    name: 'Handmade Golden Necklace',
-    price: 90.0,
-    oldPrice: 100.0,
-    image: '/assets/img/product/gold-necklace.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-6',
-    name: 'Handmade Golden Necklace',
-    price: 20.0,
-    oldPrice: 30.0,
-    image: '/assets/img/product/gold-necklace.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-7',
-    name: 'Handmade Golden Ring',
-    price: 55.0,
-    oldPrice: 30.0,
-    image: '/assets/img/product/gold-handmade.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'bs-8',
-    name: 'Exclusive Gold Jewelry',
-    price: 45.0,
-    oldPrice: 25.0,
-    image: '/assets/img/product/gold-jewelry.jpeg',
-    url: '/product-details',
-  },
-];
 
-const onSale: GroupItem[] = [
-  {
-    id: 'os-1',
-    name: 'Handmade Golden Necklace',
-    price: 50.0,
-    oldPrice: 29.99,
-    image: '/assets/img/product/gold-necklace.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-2',
-    name: 'Handmade Golden Necklaces',
-    price: 55.0,
-    oldPrice: 30.0,
-    image: '/assets/img/product/gold-necklace.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-3',
-    name: 'Exclusive Silver Top Bracelet',
-    price: 45.0,
-    oldPrice: 25.0,
-    image: '/assets/img/product/gold-necklace.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-4',
-    name: 'Top Perfect Diamond Necklace',
-    price: 50.0,
-    oldPrice: 29.99,
-    image: '/assets/img/product/diamond-necklace.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-5',
-    name: 'Diamond Exclusive Earrings',
-    price: 90.0,
-    oldPrice: 100.0,
-    image: '/assets/img/product/diamond-earring.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-6',
-    name: 'Jevoo Top Exclusive Jewelry',
-    price: 20.0,
-    oldPrice: 30.0,
-    image: '/assets/img/product/gold-jewelry.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-7',
-    name: 'Handmade Golden Ring',
-    price: 55.0,
-    oldPrice: 30.0,
-    image: '/assets/img/product/gold-handmade.jpeg',
-    url: '/product-details',
-  },
-  {
-    id: 'os-8',
-    name: 'Exclusive Gold Jewelry',
-    price: 45.0,
-    oldPrice: 25.0,
-    image: '/assets/img/product/gold-jewelry.jpeg',
-    url: '/product-details',
-  },
-];
 
 function GroupList({ items, appendRef, onSlideChange, sliderRef }: { 
   items: GroupItem[]; 
@@ -245,10 +114,108 @@ function GroupList({ items, appendRef, onSlideChange, sliderRef }: {
 }
 
 export default function GroupProducts() {
+  const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
+  const [onSaleProducts, setOnSaleProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const bestSellerAppendRef = useRef<HTMLDivElement>(null);
   const onSaleAppendRef = useRef<HTMLDivElement>(null);
   const bestSellerSliderRef = useRef<HTMLDivElement>(null);
   const onSaleSliderRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to construct full image URL (same as our-products page)
+  const getFullImageUrl = (imageUrl: string | undefined) => {
+    if (!imageUrl) return '/placeholder-product.jpg';
+    // If URL already starts with http, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+    if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+      return `${baseUrl}${imageUrl.replace('/api', '')}`;
+    }
+    // Otherwise, prepend the API base URL
+    return `${baseUrl}${imageUrl}`;
+  };
+
+  // Transform API product to GroupItem format
+  const transformToGroupItem = (product: Product): GroupItem => ({
+    id: product.id,
+    name: product.name,
+    price: product.salePrice || product.price,
+    oldPrice: product.isOnSale ? product.price : undefined,
+    image: product.image,
+    url: `/products/${product.slug}`
+  });
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch Best Seller products
+        const bestSellerResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&limit=100&trash=false&sort=-price&where[isBestSeller][equals]=true`
+        );
+
+        if (!bestSellerResponse.ok) {
+          throw new Error('Failed to fetch best seller products');
+        }
+
+        const bestSellerData = await bestSellerResponse.json();
+
+        // Fetch On-Sale products
+        const onSaleResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&limit=100&trash=false&sort=-price&where[isOnSale][equals]=true`
+        );
+
+        if (!onSaleResponse.ok) {
+          throw new Error('Failed to fetch on-sale products');
+        }
+
+        const onSaleData = await onSaleResponse.json();
+
+        // Transform API response to Product type (same as FeaturedProducts)
+        const transformProduct = (item: any): Product => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          description: item.description,
+          shortDescription: item.shortDescription || '',
+          price: item.price,
+          salePrice: item.finalPrice,
+          originalPrice: item.isOnSale ? item.price : undefined,
+          isOnSale: item.isOnSale,
+          isSale: item.isOnSale,
+          category: item.categories?.name || 'uncategorized',
+          brand: item.brand?.name || '',
+          image: getFullImageUrl(item.productImage?.url),
+          secondaryImage: item.galleries?.[1]?.image?.url ? getFullImageUrl(item.galleries[1].image.url) : getFullImageUrl(item.productImage?.url),
+          images: item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [],
+          stockStatus: item.stockStatus,
+          isFeatured: item.isFeatured,
+          isBestSeller: item.isBestSeller,
+          status: item.status,
+          colors: [], // Not provided in API response
+          sizes: [], // Not provided in API response
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        });
+
+        const transformedBestSeller = bestSellerData.docs.map(transformProduct);
+        const transformedOnSale = onSaleData.docs.map(transformProduct);
+
+        setBestSellerProducts(transformedBestSeller);
+        setOnSaleProducts(transformedOnSale);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleBestSellerSlideChange = (slideIndex: number) => {
     if (onSaleSliderRef.current && typeof window !== 'undefined' && (window as any).$) {
@@ -292,12 +259,20 @@ export default function GroupProducts() {
                 <h4>best seller product</h4>
                 <div ref={bestSellerAppendRef} className="slick-append"></div>
               </div>
-              <GroupList 
-                items={bestSeller} 
-                appendRef={bestSellerAppendRef} 
-                onSlideChange={handleBestSellerSlideChange}
-                sliderRef={bestSellerSliderRef}
-              />
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading best seller products...</span>
+                  </div>
+                </div>
+              ) : (
+                <GroupList
+                  items={bestSellerProducts.map(transformToGroupItem)}
+                  appendRef={bestSellerAppendRef}
+                  onSlideChange={handleBestSellerSlideChange}
+                  sliderRef={bestSellerSliderRef}
+                />
+              )}
             </div>
           </div>
           <div className="col-lg-3">
@@ -306,12 +281,20 @@ export default function GroupProducts() {
                 <h4>on-sale product</h4>
                 <div ref={onSaleAppendRef} className="slick-append"></div>
               </div>
-              <GroupList 
-                items={onSale} 
-                appendRef={onSaleAppendRef} 
-                onSlideChange={handleOnSaleSlideChange}
-                sliderRef={onSaleSliderRef}
-              />
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading on-sale products...</span>
+                  </div>
+                </div>
+              ) : (
+                <GroupList
+                  items={onSaleProducts.map(transformToGroupItem)}
+                  appendRef={onSaleAppendRef}
+                  onSlideChange={handleOnSaleSlideChange}
+                  sliderRef={onSaleSliderRef}
+                />
+              )}
             </div>
           </div>
         </div>
