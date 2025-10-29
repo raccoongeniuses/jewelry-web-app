@@ -23,29 +23,22 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     id: 'testimonial-1',
-    name: 'Lindsy Niloms',
-    content: 'Vivamus a lobortis ipsum, vel condimentum magna. Etiam id turpis tortor. Nunc scelerisque, nisi a blandit varius, nunc purus venenatis ligula, sed venenatis orci augue nec sapien. Cum sociis natoque',
+    name: 'Loading...',
+    content: 'Loading testimonials...',
     image: '/assets/img/testimonial/testimonials-1.jpg',
     rating: 5
   },
   {
     id: 'testimonial-2',
-    name: 'Daisy Millan',
-    content: 'Vivamus a lobortis ipsum, vel condimentum magna. Etiam id turpis tortor. Nunc scelerisque, nisi a blandit varius, nunc purus venenatis ligula, sed venenatis orci augue nec sapien. Cum sociis natoque',
+    name: 'Loading...',
+    content: 'Loading testimonials...',
     image: '/assets/img/testimonial/testimonials-2.jpg',
     rating: 5
   },
   {
     id: 'testimonial-3',
-    name: 'Anamika Lusy',
-    content: 'Vivamus a lobortis ipsum, vel condimentum magna. Etiam id turpis tortor. Nunc scelerisque, nisi a blandit varius, nunc purus venenatis ligula, sed venenatis orci augue nec sapien. Cum sociis natoque',
-    image: '/assets/img/testimonial/testimonials-3.jpg',
-    rating: 5
-  },
-  {
-    id: 'testimonial-4',
-    name: 'Maria Mora',
-    content: 'Vivamus a lobortis ipsum, vel condimentum magna. Etiam id turpis tortor. Nunc scelerisque, nisi a blandit varius, nunc purus venenatis ligula, sed venenatis orci augue nec sapien. Cum sociis natoque',
+    name: 'Loading...',
+    content: 'Loading testimonials...',
     image: '/assets/img/testimonial/testimonials-3.jpg',
     rating: 5
   }
@@ -56,8 +49,9 @@ const Testimonials = () => {
   const contentCarouselRef = useRef<HTMLDivElement>(null);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>(testimonials);
+  const carouselInitializedRef = useRef(false);
 
-  // Fetch testimonials from API to update name and content only
+  // Fetch testimonials from API
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
@@ -67,21 +61,16 @@ const Testimonials = () => {
         }
         const data = await response.json();
 
-        // Update only name and content from API, keep original images and design
+        // Transform all API data to component format, no limit
         if (data.docs && data.docs.length > 0) {
-          const updatedTestimonials = testimonials.map((testimonial, index) => {
-            const apiItem = data.docs[index];
-            if (apiItem) {
-              return {
-                ...testimonial,
-                name: apiItem.name,
-                content: apiItem.testimony,
-                rating: apiItem.rating || 5
-              };
-            }
-            return testimonial;
-          });
-          setTestimonialsData(updatedTestimonials);
+          const transformedTestimonials = data.docs.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            content: item.testimony,
+            image: item.image?.url ? `https://api.jevoo-jewellery.com${item.image.url}` : '/assets/img/testimonial/testimonials-1.jpg',
+            rating: item.rating || 5
+          }));
+          setTestimonialsData(transformedTestimonials);
         }
       } catch (err) {
         console.error('Failed to fetch testimonials:', err);
@@ -99,31 +88,50 @@ const Testimonials = () => {
     const $ = window.jQuery;
     if (!$ || !$.fn.slick) return;
 
+    // Check if carousels are already initialized
+    const contentExists = $(contentCarouselRef.current).hasClass('slick-initialized');
+    const thumbExists = $(thumbCarouselRef.current).hasClass('slick-initialized');
+
     // Destroy existing carousels if they exist
-    if ($(contentCarouselRef.current).hasClass('slick-initialized')) {
-      $(contentCarouselRef.current).slick('unslick');
+    if (contentExists) {
+      try {
+        $(contentCarouselRef.current).slick('unslick');
+      } catch (e) {
+        console.warn('Content carousel unslick error:', e);
+      }
     }
-    if ($(thumbCarouselRef.current).hasClass('slick-initialized')) {
-      $(thumbCarouselRef.current).slick('unslick');
+    if (thumbExists) {
+      try {
+        $(thumbCarouselRef.current).slick('unslick');
+      } catch (e) {
+        console.warn('Thumb carousel unslick error:', e);
+      }
     }
 
-    // Initialize content carousel
-    $(contentCarouselRef.current).slick({
-      arrows: false,
-      asNavFor: '.testimonial-thumb-carousel',
-      fade: true,
-      adaptiveHeight: true
-    });
+    // Wait a bit for DOM to be ready
+    setTimeout(() => {
+      if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
 
-    // Initialize thumb carousel
-    $(thumbCarouselRef.current).slick({
-      slidesToShow: 3,
-      asNavFor: '.testimonial-content-carousel',
-      centerMode: true,
-      arrows: false,
-      centerPadding: 0,
-      focusOnSelect: true
-    });
+      // Initialize content carousel
+      $(contentCarouselRef.current).slick({
+        arrows: false,
+        asNavFor: '.testimonial-thumb-carousel',
+        fade: true,
+        adaptiveHeight: true
+      });
+
+      // Initialize thumb carousel
+      $(thumbCarouselRef.current).slick({
+        slidesToShow: 3,
+        asNavFor: '.testimonial-content-carousel',
+        centerMode: true,
+        arrows: false,
+        centerPadding: 0,
+        focusOnSelect: true
+      });
+
+      carouselInitializedRef.current = true;
+    }, 50);
   };
 
   useEffect(() => {
@@ -131,6 +139,13 @@ const Testimonials = () => {
       initializeCarousels();
     }
   }, [scriptsLoaded]);
+
+  // Re-initialize when testimonials data changes
+  useEffect(() => {
+    if (scriptsLoaded && testimonialsData.length > 0 && !testimonialsData[0].name.includes('Loading...')) {
+      setTimeout(initializeCarousels, 100);
+    }
+  }, [testimonialsData, scriptsLoaded]);
 
   // Re-initialize when page becomes visible (route changes)
   useEffect(() => {

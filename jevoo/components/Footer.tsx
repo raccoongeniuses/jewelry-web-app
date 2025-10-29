@@ -1,6 +1,84 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [isMessageVisible, setIsMessageVisible] = useState(true);
+
+  // Auto-hide success message after 5 seconds
+  useEffect(() => {
+    if (messageType === 'success' && message) {
+      setIsMessageVisible(true);
+      const timer = setTimeout(() => {
+        setIsMessageVisible(false); // Start fade out
+        setTimeout(() => {
+          setMessage('');
+          setMessageType('');
+          setIsMessageVisible(true);
+        }, 300); // 300ms for fade out animation
+      }, 5000); // 5 seconds
+
+      return () => clearTimeout(timer); // Cleanup timer on component unmount or message change
+    }
+  }, [message, messageType]);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email.trim()) {
+      setIsMessageVisible(true);
+      setMessage('Please enter your email address');
+      setMessageType('error');
+      return;
+    }
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setIsMessageVisible(true);
+      setMessage('Please enter a valid email address');
+      setMessageType('error');
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/newsletter-signups', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsMessageVisible(true);
+        setMessage('Successfully subscribed to newsletter!');
+        setMessageType('success');
+        setEmail(''); // Clear the form
+      } else {
+        setIsMessageVisible(true);
+        setMessage(data.error || 'Failed to subscribe. Please try again.');
+        setMessageType('error');
+      }
+    } catch (error) {
+      setIsMessageVisible(true);
+      setMessage('An error occurred. Please try again later.');
+      setMessageType('error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       {/* Scroll to top */}
@@ -72,17 +150,33 @@ export default function Footer() {
               <div className="col-md-6">
                 <div className="newsletter-wrapper">
                   <h6 className="widget-title-text">Signup for newsletter</h6>
-                  <form className="newsletter-inner" id="mc-form">
-                    <input type="email" className="news-field" id="mc-email" autoComplete="off" placeholder="Enter your email address" />
-                    <button className="news-btn" id="mc-submit">Subscribe</button>
+                  <form className="newsletter-inner" onSubmit={handleNewsletterSubmit}>
+                    <input
+                      type="email"
+                      className="news-field"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                      autoComplete="off"
+                      placeholder="Enter your email address"
+                      required
+                    />
+                    <button
+                      className="news-btn"
+                      type="submit"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Subscribing...' : 'Subscribe'}
+                    </button>
                   </form>
-                  {/* mail-chimp-alerts Start */}
-                  <div className="mailchimp-alerts">
-                    <div className="mailchimp-submitting"></div>
-                    <div className="mailchimp-success"></div>
-                    <div className="mailchimp-error"></div>
-                  </div>
-                  {/* mail-chimp-alerts end */}
+                  {/* Newsletter messages */}
+                  {message && (
+                    <div
+                      className={`mt-2 ${messageType === 'success' ? 'text-success' : 'text-danger'} transition-opacity duration-300 ${isMessageVisible ? 'opacity-100' : 'opacity-0'}`}
+                    >
+                      <small>{message}</small>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="col-md-6">
