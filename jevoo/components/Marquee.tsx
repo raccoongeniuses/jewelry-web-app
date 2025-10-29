@@ -644,9 +644,16 @@ export default function Marquee() {
     const { gsap } = window as any;
 
     // Clean up any existing clones and timelines
-    const existingClone = document.querySelector('.grid-clone');
-    if (existingClone && existingClone.parentNode) {
-      existingClone.parentNode.removeChild(existingClone);
+    const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
+    if (existingClone) {
+      if ((existingClone as any).isConnected) {
+        // Prefer native remove when available to avoid parent/child mismatches
+        if (typeof (existingClone as any).remove === 'function') {
+          (existingClone as any).remove();
+        } else if (existingClone.parentNode) {
+          existingClone.parentNode.removeChild(existingClone);
+        }
+      }
     }
 
     if ((window as any).infiniteMarqueeTimeline) {
@@ -709,9 +716,15 @@ export default function Marquee() {
       }
 
       // Remove clone if it exists
-      const existingClone = document.querySelector('.grid-clone');
-      if (existingClone && existingClone.parentNode) {
-        existingClone.parentNode.removeChild(existingClone);
+      const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
+      if (existingClone) {
+        if ((existingClone as any).isConnected) {
+          if (typeof (existingClone as any).remove === 'function') {
+            (existingClone as any).remove();
+          } else if (existingClone.parentNode) {
+            existingClone.parentNode.removeChild(existingClone);
+          }
+        }
       }
 
       // Restart after resize

@@ -17,8 +17,15 @@ export default function ModernizrInit() {
 
     return () => {
       // Cleanup if needed - only run on client side
-      if (typeof window !== 'undefined' && script.parentNode) {
-        script.parentNode.removeChild(script);
+      if (typeof window !== 'undefined') {
+        const isConnected = (script as any).isConnected;
+        if (isConnected) {
+          if (typeof (script as any).remove === 'function') {
+            (script as any).remove();
+          } else if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+        }
       }
     };
   }, []);
