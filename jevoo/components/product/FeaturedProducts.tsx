@@ -10,25 +10,6 @@ export default function FeaturedProducts() {
   const [error, setError] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Create a duplicated array for better slider experience when we have few products
-  const getSliderProducts = () => {
-    if (products.length === 0) return [];
-
-    // If we have fewer than 8 products, duplicate the array to create a better slider
-    if (products.length < 8) {
-      const duplicated = [...products, ...products];
-      // If still less than 8, duplicate again
-      if (duplicated.length < 8) {
-        return [...duplicated, ...duplicated];
-      }
-      return duplicated;
-    }
-
-    return products;
-  };
-
-  const sliderProducts = getSliderProducts();
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -101,7 +82,7 @@ export default function FeaturedProducts() {
 
   useEffect(() => {
     // Initialize slider after products are loaded and scripts are available
-    if (loading || sliderProducts.length === 0) return;
+    if (loading || products.length === 0) return;
 
     // Initialize slider after scripts load; retry until slick is available
     let retries = 0;
@@ -121,7 +102,7 @@ export default function FeaturedProducts() {
             slidesToScroll: 1,
             rows: 2,
             autoplay: true,
-            infinite: true, // Always infinite since we duplicate products when needed
+            infinite: products.length > 4, // Only infinite if we have enough products
             prevArrow: '<button type="button" class="slick-prev"><i class="pe-7s-angle-left"></i></button>',
             nextArrow: '<button type="button" class="slick-next"><i class="pe-7s-angle-right"></i></button>',
             responsive: [
@@ -174,7 +155,7 @@ export default function FeaturedProducts() {
       }
       clearInterval(interval);
     };
-  }, [loading, sliderProducts]);
+  }, [loading, products]);
 
   return (
     <section className="feature-product section-padding">
@@ -218,8 +199,8 @@ export default function FeaturedProducts() {
                 className="product-carousel-4_2 slick-row-10 slick-arrow-style"
                 data-react-component="true"
               >
-                {sliderProducts.map((product, index) => (
-                  <ProductCard key={`${product.id}-${index}`} product={product} />
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             )}
