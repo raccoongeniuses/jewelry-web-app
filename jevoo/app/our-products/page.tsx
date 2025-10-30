@@ -24,14 +24,14 @@ export default function OurProductsPage() {
   const [sortBy, setSortBy] = useState<string>('default');
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 5000 });
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [categories, setCategories] = useState<{ value: string; label: string }[]>([
-    { value: 'all', label: 'All Products' }
+  const [categories, setCategories] = useState<{ value: string; label: string; id: string }[]>([
+    { value: 'all', label: 'All Products', id: '' }
   ]);
-  const [brands, setBrands] = useState<{ value: string; label: string }[]>([
-    { value: 'all', label: 'All Brands' }
+  const [brands, setBrands] = useState<{ value: string; label: string; id: string }[]>([
+    { value: 'all', label: 'All Brands', id: '' }
   ]);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const productsPerPage = 12; // Show 12 products per page
+  const productsPerPage = 12; // Show 10 products per page
   const maxPages = 99; // Maximum pages to show in pagination
 
   const sortOptions = [
@@ -66,10 +66,11 @@ export default function OurProductsPage() {
 
         // Transform categories data to match dropdown format
         const transformedCategories = [
-          { value: 'all', label: 'All Products' },
+          { value: 'all', label: 'All Products', id: '' },
           ...data.docs.map((category: any) => ({
             value: category.slug,
-            label: category.name
+            label: category.name,
+            id: category.id
           }))
         ];
 
@@ -78,7 +79,7 @@ export default function OurProductsPage() {
         console.error('Error fetching categories:', error);
         // Keep default categories if API fails
         setCategories([
-          { value: 'all', label: 'All Products' }
+          { value: 'all', label: 'All Products', id: '' }
         ]);
       }
     };
@@ -100,10 +101,11 @@ export default function OurProductsPage() {
 
         // Transform brands data to match dropdown format
         const transformedBrands = [
-          { value: 'all', label: 'All Brands' },
+          { value: 'all', label: 'All Brands', id: '' },
           ...data.docs.map((brand: any) => ({
             value: brand.slug,
-            label: brand.name
+            label: brand.name,
+            id: brand.id
           }))
         ];
 
@@ -112,7 +114,7 @@ export default function OurProductsPage() {
         console.error('Error fetching brands:', error);
         // Keep default brands if API fails
         setBrands([
-          { value: 'all', label: 'All Brands' }
+          { value: 'all', label: 'All Brands', id: '' }
         ]);
       }
     };
@@ -127,8 +129,16 @@ export default function OurProductsPage() {
       if (categorySelect.length > 0 && categories.length > 1) {
         // Remove existing nice-select if any
         categorySelect.next('.nice-select').remove();
+        // Remove existing event listeners
+        categorySelect.off('change');
         // Reinitialize nice-select
         categorySelect.niceSelect();
+
+        // Add change event listener for nice-select
+        categorySelect.on('change', (event: any) => {
+          const newValue = window.$(event.target).val();
+          setSelectedCategory(newValue);
+        });
       }
     }
   }, [categories]);
@@ -140,98 +150,137 @@ export default function OurProductsPage() {
       if (brandSelect.length > 0 && brands.length > 1) {
         // Remove existing nice-select if any
         brandSelect.next('.nice-select').remove();
+        // Remove existing event listeners
+        brandSelect.off('change');
         // Reinitialize nice-select
         brandSelect.niceSelect();
+
+        // Add change event listener for nice-select
+        brandSelect.on('change', (event: any) => {
+          const newValue = window.$(event.target).val();
+          setSelectedBrand(newValue);
+        });
       }
     }
   }, [brands]);
 
-  // Fetch products from API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&page=${currentPage}&limit=${productsPerPage}&depth=1&trash=false&sort=-price`
-        );
+  // Fetch products function
+  const fetchProductsWithFilters = async (pageOverride?: number) => {
+    try {
+      setLoading(true);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
+      // Build query parameters
+      const params = new URLSearchParams({
+        pagination: 'true',
+        page: (pageOverride ?? currentPage).toString(),
+        limit: productsPerPage.toString(),
+        depth: '1',
+        trash: 'false',
+        sort: '-price'
+      });
 
-        const data = await response.json();
-
-        // Helper function to construct full image URL
-        const getFullImageUrl = (imageUrl: string | undefined) => {
-          if (!imageUrl) return '/placeholder-product.jpg';
-          // If URL already starts with http, return as is
-          if (imageUrl.startsWith('http')) return imageUrl;
-
-          const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-          // If image URL starts with /api and base URL ends with /api, remove /api from image URL
-          if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
-            return `${baseUrl}${imageUrl.replace('/api', '')}`;
-          }
-          // Otherwise, prepend the API base URL
-          return `${baseUrl}${imageUrl}`;
-        };
-
-        // Transform API response to Product type
-        const transformedProducts: Product[] = data.docs.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          slug: item.slug,
-          description: item.description,
-          shortDescription: item.shortDescription || '',
-          price: item.price,
-          salePrice: item.finalPrice,
-          isOnSale: item.isOnSale,
-          category: item.categories?.name || 'uncategorized',
-          brand: item.brands?.name || 'unbranded',
-          image: getFullImageUrl(item.productImage?.url),
-          secondaryImage: getFullImageUrl(item.productImage?.url),
-          images: item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [],
-          stockStatus: item.stockStatus,
-          isFeatured: item.isFeatured,
-          isBestSeller: item.isBestSeller,
-          status: item.status,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        }));
-
-        setProducts(transformedProducts);
-        setFilteredProducts(transformedProducts);
-        setTotalProducts(data.totalDocs || transformedProducts.length);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        setProducts([]);
-        setFilteredProducts([]);
-        setTotalProducts(0);
-      } finally {
-        setLoading(false);
+      // Add category filter if selected
+      const selectedCategoryObj = categories.find(cat => cat.value === selectedCategory);
+      if (selectedCategoryObj && selectedCategoryObj.id) {
+        params.append('where[categories][equals]', selectedCategoryObj.id);
       }
-    };
 
-    fetchProducts();
-  }, [currentPage, productsPerPage]);
+      // Add brand filter if selected
+      const selectedBrandObj = brands.find(brand => brand.value === selectedBrand);
+      if (selectedBrandObj && selectedBrandObj.id) {
+        params.append('where[brand][equals]', selectedBrandObj.id);
+      }
 
-  // Reset to page 1 when filters change
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || ''}/products?${params.toString()}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+
+      const data = await response.json();
+
+      // Helper function to construct full image URL
+      const getFullImageUrl = (imageUrl: string | undefined) => {
+        if (!imageUrl) return '/placeholder-product.jpg';
+        // If URL already starts with http, return as is
+        if (imageUrl.startsWith('http')) return imageUrl;
+
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+        if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+          return `${baseUrl}${imageUrl.replace('/api', '')}`;
+        }
+        // Otherwise, prepend the API base URL
+        return `${baseUrl}${imageUrl}`;
+      };
+
+      // Transform API response to Product type
+      const transformedProducts: Product[] = data.docs.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        slug: item.slug,
+        description: item.description,
+        shortDescription: item.shortDescription || '',
+        price: item.price,
+        salePrice: item.finalPrice,
+        isOnSale: item.isOnSale,
+        category: item.categories?.name || 'uncategorized',
+        brand: item.brands?.name || 'unbranded',
+        image: getFullImageUrl(item.productImage?.url),
+        secondaryImage: getFullImageUrl(item.productImage?.url),
+        images: item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [],
+        stockStatus: item.stockStatus,
+        isFeatured: item.isFeatured,
+        isBestSeller: item.isBestSeller,
+        status: item.status,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      }));
+
+      setProducts(transformedProducts);
+      setFilteredProducts(transformedProducts);
+      setTotalProducts(data.totalDocs || transformedProducts.length);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setProducts([]);
+      setFilteredProducts([]);
+      setTotalProducts(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch when categories and brands are loaded
+  useEffect(() => {
+    if (categories.length > 1 && brands.length > 1) {
+      fetchProductsWithFilters(1);
+    }
+  }, [categories.length, brands.length]);
+
+  // Fetch products when page changes
+  useEffect(() => {
+    if (categories.length > 1 && brands.length > 1) {
+      fetchProductsWithFilters();
+    }
+  }, [currentPage]);
+
+  // Fetch products immediately when category or brand changes (reset to page 1)
+  useEffect(() => {
+    if (categories.length > 1 && brands.length > 1) {
+      setCurrentPage(1);
+      fetchProductsWithFilters(1);
+    }
+  }, [selectedCategory, selectedBrand]);
+
+  // Reset to page 1 for client-side filters that don't require refetch
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, selectedBrand, sortBy, priceRange]);
+  }, [sortBy, priceRange]);
 
   useEffect(() => {
     let filtered = [...products];
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
-
-    // Filter by brand
-    if (selectedBrand !== 'all') {
-      filtered = filtered.filter(product => product.brand === selectedBrand);
-    }
 
     // Filter by price range
     filtered = filtered.filter(product =>
@@ -253,21 +302,18 @@ export default function OurProductsPage() {
         filtered.sort((a, b) => b.name.localeCompare(a.name));
         break;
       default:
-        // Keep original order
         break;
     }
 
     setFilteredProducts(filtered);
-  }, [products, selectedCategory, selectedBrand, sortBy, priceRange]);
+  }, [products, sortBy, priceRange]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll to top of products when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle going to first page (for empty page)
   const handleGoToFirstPage = () => {
     setCurrentPage(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
