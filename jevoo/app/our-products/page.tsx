@@ -22,7 +22,7 @@ export default function OurProductsPage() {
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
-  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 500 });
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 5000 });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [categories, setCategories] = useState<{ value: string; label: string }[]>([
     { value: 'all', label: 'All Products' }
@@ -31,7 +31,7 @@ export default function OurProductsPage() {
     { value: 'all', label: 'All Brands' }
   ]);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const productsPerPage = 8; // Show 8 products per page
+  const productsPerPage = 12; // Show 12 products per page
   const maxPages = 99; // Maximum pages to show in pagination
 
   const sortOptions = [
@@ -152,7 +152,7 @@ export default function OurProductsPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&page=${currentPage}&limit=${productsPerPage}&depth=1`
+          `${process.env.NEXT_PUBLIC_API_URL || ''}/products?pagination=true&page=${currentPage}&limit=${productsPerPage}&depth=1&trash=false&sort=-price`
         );
 
         if (!response.ok) {
@@ -187,6 +187,7 @@ export default function OurProductsPage() {
           salePrice: item.finalPrice,
           isOnSale: item.isOnSale,
           category: item.categories?.name || 'uncategorized',
+          brand: item.brands?.name || 'unbranded',
           image: getFullImageUrl(item.productImage?.url),
           secondaryImage: getFullImageUrl(item.productImage?.url),
           images: item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [],
@@ -217,7 +218,7 @@ export default function OurProductsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, sortBy, priceRange]);
+  }, [selectedCategory, selectedBrand, sortBy, priceRange]);
 
   useEffect(() => {
     let filtered = [...products];
@@ -225,6 +226,11 @@ export default function OurProductsPage() {
     // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // Filter by brand
+    if (selectedBrand !== 'all') {
+      filtered = filtered.filter(product => product.brand === selectedBrand);
     }
 
     // Filter by price range
@@ -252,7 +258,7 @@ export default function OurProductsPage() {
     }
 
     setFilteredProducts(filtered);
-  }, [products, selectedCategory, sortBy, priceRange]);
+  }, [products, selectedCategory, selectedBrand, sortBy, priceRange]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -343,7 +349,7 @@ export default function OurProductsPage() {
                         <input
                           type="range"
                           min="0"
-                          max="500"
+                          max="5000"
                           value={priceRange.max}
                           onChange={(e) => setPriceRange({...priceRange, max: Number(e.target.value)})}
                           className="price-range-slider"
@@ -359,7 +365,7 @@ export default function OurProductsPage() {
                           setSelectedCategory('all');
                           setSelectedBrand('all');
                           setSortBy('default');
-                          setPriceRange({ min: 0, max: 500 });
+                          setPriceRange({ min: 0, max: 5000 });
                         }}
                         className="clear-filters-btn"
                         title="Clear all filters"
@@ -423,7 +429,7 @@ export default function OurProductsPage() {
                     setSelectedCategory('all');
                     setSelectedBrand('all');
                     setSortBy('default');
-                    setPriceRange({ min: 0, max: 500 });
+                    setPriceRange({ min: 0, max: 5000 });
                   }}
                   className="btn btn-primary"
                 >
