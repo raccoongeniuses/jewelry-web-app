@@ -12,6 +12,43 @@ declare global {
   }
 }
 
+// API Response Types
+type TestimonialImage = {
+  createdAt: string;
+  updatedAt: string;
+  alt: string;
+  filename: string;
+  mimeType: string;
+  filesize: number;
+  width: number;
+  height: number;
+  focalX: number;
+  focalY: number;
+  id: string;
+  url: string;
+  thumbnailURL: string | null;
+};
+
+type APITestimonial = {
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  testimony: string;
+  rating: number;
+  image: TestimonialImage;
+  order: number;
+  status: string;
+  id: string;
+};
+
+type TestimonialResponse = {
+  docs: APITestimonial[];
+  totalPages: number;
+  page: number;
+  limit: number;
+  totalDocs: number;
+};
+
 type Testimonial = {
   id: string;
   name: string;
@@ -20,283 +57,232 @@ type Testimonial = {
   rating: number;
 };
 
-const testimonials: Testimonial[] = [
-  {
-    id: 'testimonial-1',
-    name: 'Loading...',
-    content: 'Loading testimonials...',
-    image: '/assets/img/testimonial/testimonials-1.jpg',
-    rating: 5
-  },
-  {
-    id: 'testimonial-2',
-    name: 'Loading...',
-    content: 'Loading testimonials...',
-    image: '/assets/img/testimonial/testimonials-2.jpg',
-    rating: 5
-  },
-  {
-    id: 'testimonial-3',
-    name: 'Loading...',
-    content: 'Loading testimonials...',
-    image: '/assets/img/testimonial/testimonials-3.jpg',
-    rating: 5
-  }
-];
 
 const Testimonials = () => {
-  // const thumbCarouselRef = useRef<HTMLDivElement>(null);
-  // const contentCarouselRef = useRef<HTMLDivElement>(null);
-  // const [scriptsLoaded, setScriptsLoaded] = useState(false);
-  // const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>(testimonials);
-  // const carouselInitializedRef = useRef(false);
-  // const isInitializingRef = useRef(false);
+  const thumbCarouselRef = useRef<HTMLDivElement>(null);
+  const contentCarouselRef = useRef<HTMLDivElement>(null);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // // Fetch testimonials from API
-  // useEffect(() => {
-  //   const fetchTestimonials = async () => {
-  //     try {
-  //       const response = await fetch('/api/testimonials');
-  //       if (!response.ok) {
-  //         throw new Error('Failed to fetch testimonials');
-  //       }
-  //       const data = await response.json();
+  // Fetch testimonials from API
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      setIsLoading(true);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) {
+          console.error('NEXT_PUBLIC_API_URL is not defined');
+          setIsLoading(false);
+          return;
+        }
 
-  //       // Transform all API data to component format, no limit
-  //       if (data.docs && data.docs.length > 0) {
-  //         const transformedTestimonials = data.docs.map((item: any) => ({
-  //           id: item.id,
-  //           name: item.name,
-  //           content: item.testimony,
-  //           image: item.image?.url ? `https://api.jevoo-jewellery.com${item.image.url}` : '/assets/img/testimonial/testimonials-1.jpg',
-  //           rating: item.rating || 5
-  //         }));
-  //         setTestimonialsData(transformedTestimonials);
-  //       }
-  //     } catch (err) {
-  //       console.error('Failed to fetch testimonials:', err);
-  //       // Keep original testimonials if API fails
-  //     }
-  //   };
+        const response = await fetch(`${apiUrl}/testimonials/?pagination=true&page=1&limit=10&depth=1`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch testimonials');
+        }
+        const data: TestimonialResponse = await response.json();
 
-  //   fetchTestimonials();
-  // }, []);
+        // Convert API testimonials to component format
+        if (data.docs && data.docs.length > 0) {
+          const apiTestimonials: Testimonial[] = data.docs.map((item) => ({
+            id: item.id,
+            name: item.name,
+            content: item.testimony,
+            image: item.image.url.startsWith('/api')
+              ? `https://api.jevoo-jewellery.com${item.image.url}`
+              : `https://api.jevoo-jewellery.com/api${item.image.url}`,
+            rating: item.rating || 5
+          }));
+          setTestimonialsData(apiTestimonials);
+        }
+      } catch (err) {
+        console.error('Failed to fetch testimonials:', err);
+        // Keep empty array if API fails
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // // Initialize carousels when scripts are loaded
-  // const initializeCarousels = () => {
-  //   // Only run on client side and prevent concurrent initializations
-  //   if (typeof window === 'undefined' || isInitializingRef.current) return;
-  //   if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
+    fetchTestimonials();
+  }, []);
 
-  //   const $ = window.jQuery;
-  //   if (!$ || !$.fn.slick) return;
+  // Initialize carousels when scripts are loaded
+  const initializeCarousels = () => {
+    if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
 
-  //   // Set initialization flag to prevent concurrent calls
-  //   isInitializingRef.current = true;
+    const $ = window.jQuery;
+    if (!$ || !$.fn.slick) return;
 
-  //   // Check if carousels are already initialized
-  //   const contentExists = $(contentCarouselRef.current).hasClass('slick-initialized');
-  //   const thumbExists = $(thumbCarouselRef.current).hasClass('slick-initialized');
+    // Destroy existing carousels if they exist
+    if ($(contentCarouselRef.current).hasClass('slick-initialized')) {
+      $(contentCarouselRef.current).slick('unslick');
+    }
+    if ($(thumbCarouselRef.current).hasClass('slick-initialized')) {
+      $(thumbCarouselRef.current).slick('unslick');
+    }
 
-  //   // Destroy existing carousels if they exist
-  //   if (contentExists) {
-  //     try {
-  //       $(contentCarouselRef.current).slick('unslick');
-  //     } catch (e) {
-  //       console.warn('Content carousel unslick error:', e);
-  //     }
-  //   }
-  //   if (thumbExists) {
-  //     try {
-  //       $(thumbCarouselRef.current).slick('unslick');
-  //     } catch (e) {
-  //       console.warn('Thumb carousel unslick error:', e);
-  //     }
-  //   }
+    // Initialize content carousel
+    $(contentCarouselRef.current).slick({
+      arrows: false,
+      asNavFor: '.testimonial-thumb-carousel',
+      fade: true,
+      adaptiveHeight: true
+    });
 
-  //   // Wait a bit for DOM to be ready
-  //   setTimeout(() => {
-  //     if (!thumbCarouselRef.current || !contentCarouselRef.current) {
-  //       isInitializingRef.current = false;
-  //       return;
-  //     }
+    // Initialize thumb carousel
+    $(thumbCarouselRef.current).slick({
+      slidesToShow: 3,
+      asNavFor: '.testimonial-content-carousel',
+      centerMode: true,
+      arrows: false,
+      centerPadding: 0,
+      focusOnSelect: true
+    });
+  };
 
-  //     try {
-  //       // Initialize content carousel
-  //       $(contentCarouselRef.current).slick({
-  //         arrows: false,
-  //         asNavFor: '.testimonial-thumb-carousel',
-  //         fade: true,
-  //         adaptiveHeight: true
-  //       });
+  useEffect(() => {
+    if (scriptsLoaded && testimonialsData.length > 0) {
+      initializeCarousels();
+    }
+  }, [scriptsLoaded, testimonialsData]);
 
-  //       // Initialize thumb carousel
-  //       $(thumbCarouselRef.current).slick({
-  //         slidesToShow: 3,
-  //         asNavFor: '.testimonial-content-carousel',
-  //         centerMode: true,
-  //         arrows: false,
-  //         centerPadding: 0,
-  //         focusOnSelect: true
-  //       });
+  // Re-initialize when page becomes visible (route changes)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && scriptsLoaded) {
+        setTimeout(initializeCarousels, 50);
+      }
+    };
 
-  //       carouselInitializedRef.current = true;
-  //     } catch (error) {
-  //       console.warn('Carousel initialization error:', error);
-  //     } finally {
-  //       isInitializingRef.current = false;
-  //     }
-  //   }, 50);
-  // };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  // // Single useEffect to handle all carousel initialization
-  // useEffect(() => {
-  //   if (scriptsLoaded && testimonialsData.length > 0) {
-  //     // If testimonials are loaded from API, wait a bit for re-render
-  //     if (!testimonialsData[0].name.includes('Loading...')) {
-  //       setTimeout(initializeCarousels, 100);
-  //     } else {
-  //       initializeCarousels();
-  //     }
-  //   }
-  // }, [scriptsLoaded, testimonialsData.length]); // Only depend on length, not the entire array
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [scriptsLoaded]);
 
-  // // Handle page visibility changes separately
-  // useEffect(() => {
-  //   // Only run on client side
-  //   if (typeof window === 'undefined') return;
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (window.jQuery && window.jQuery.fn.slick) {
+        const $ = window.jQuery;
+        if (contentCarouselRef.current && $(contentCarouselRef.current).hasClass('slick-initialized')) {
+          $(contentCarouselRef.current).slick('unslick');
+        }
+        if (thumbCarouselRef.current && $(thumbCarouselRef.current).hasClass('slick-initialized')) {
+          $(thumbCarouselRef.current).slick('unslick');
+        }
+      }
+    };
+  }, []);
 
-  //   const handleVisibilityChange = () => {
-  //     if (!document.hidden && scriptsLoaded && carouselInitializedRef.current) {
-  //       setTimeout(initializeCarousels, 50);
-  //     }
-  //   };
+  const renderStars = (rating: number = 5) => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <span key={index}>
+        <i className={`fa ${index < rating ? 'fa-star' : 'fa-star-o'}`}></i>
+      </span>
+    ));
+  };
 
-  //   document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  //   return () => {
-  //     document.removeEventListener('visibilitychange', handleVisibilityChange);
-  //   };
-  // }, [scriptsLoaded]);
-
-  // // Cleanup on unmount
-  // useEffect(() => {
-  //   return () => {
-  //     // Only run on client side
-  //     if (typeof window !== 'undefined' && window.jQuery && window.jQuery.fn.slick) {
-  //       const $ = window.jQuery;
-  //       try {
-  //         // Mark as not initialized to prevent any pending initialization
-  //         carouselInitializedRef.current = false;
-  //         isInitializingRef.current = false;
-
-  //         // Check if elements still exist before trying to destroy slick
-  //         if (contentCarouselRef.current && contentCarouselRef.current.parentNode &&
-  //             $(contentCarouselRef.current).hasClass('slick-initialized')) {
-  //           $(contentCarouselRef.current).slick('unslick');
-  //         }
-  //         if (thumbCarouselRef.current && thumbCarouselRef.current.parentNode &&
-  //             $(thumbCarouselRef.current).hasClass('slick-initialized')) {
-  //           $(thumbCarouselRef.current).slick('unslick');
-  //         }
-  //       } catch (error) {
-  //         console.warn('Error cleaning up slick carousels:', error);
-  //       }
-  //     }
-  //   };
-  // }, []);
-
-  // const renderStars = (rating: number = 5) => {
-  //   return Array.from({ length: 5 }, (_, index) => (
-  //     <span key={index}>
-  //       <i className="fa fa-star-o"></i>
-  //     </span>
-  //   ));
-  // };
-
-  // return (
-  //   <>
-  //     <ScriptLoader onScriptsLoaded={() => setScriptsLoaded(true)} />
-  //     <section
-  //       className="testimonial-area section-padding"
-  //       style={{
-  //         position: 'relative',
-  //         zIndex: 1,
-  //         minHeight: '600px',
-  //         backgroundColor: 'transparent'
-  //       }}
-  //     >
-  //       {/* Background image overlay */}
-  //       <div
-  //         style={{
-  //           position: 'absolute',
-  //           top: 0,
-  //           left: 0,
-  //           right: 0,
-  //           bottom: 0,
-  //           background: "url('/assets/img/testimonial/testimonials-bg.jpg')",
-  //           zIndex: -1
-  //         }}
-  //       />
-  //       <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-  //       <div className="row">
-  //         <div className="col-12">
-  //           {/* Section title */}
-  //           <div className="section-title text-center">
-  //             <h2 className="title">testimonials</h2>
-  //             <p className="sub-title">What they say</p>
-  //           </div>
-  //         </div>
-  //       </div>
-  //       <div className="row">
-  //         <div className="col-12">
-  //           <div className="testimonial-thumb-wrapper">
-  //             <div
-  //               ref={thumbCarouselRef}
-  //               className="testimonial-thumb-carousel"
-  //             >
-  //               {testimonialsData.map((testimonial) => (
-  //                 <div key={testimonial.id} className="testimonial-thumb">
-  //                   <Image
-  //                     src={testimonial.image}
-  //                     alt="testimonial-thumb"
-  //                     width={120}
-  //                     height={120}
-  //                     style={{
-  //                       borderRadius: '50%',
-  //                       objectFit: 'cover',
-  //                       width: '100px',
-  //                       height: '100px',
-  //                       border: '3px solid #fff',
-  //                       boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-  //                     }}
-  //                   />
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           </div>
-  //           <div className="testimonial-content-wrapper">
-  //             <div
-  //               ref={contentCarouselRef}
-  //               className="testimonial-content-carousel"
-  //             >
-  //               {testimonialsData.map((testimonial) => (
-  //                 <div key={testimonial.id} className="testimonial-content">
-  //                   <p>{testimonial.content}</p>
-  //                   <div className="ratings">
-  //                     {renderStars(testimonial.rating)}
-  //                   </div>
-  //                   <h5 className="testimonial-author">{testimonial.name}</h5>
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </section>
-  //   </>
-  // );
+  return (
+    <>
+      <ScriptLoader onScriptsLoaded={() => setScriptsLoaded(true)} />
+      <section
+        className="testimonial-area section-padding"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          minHeight: '600px',
+          backgroundColor: 'transparent'
+        }}
+      >
+        {/* Background image overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "url('/assets/img/testimonial/testimonials-bg.jpg')",
+            zIndex: -1
+          }}
+        />
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+        <div className="row">
+          <div className="col-12">
+            {/* Section title */}
+            <div className="section-title text-center">
+              <h2 className="title">testimonials</h2>
+              <p className="sub-title">What they say</p>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            {isLoading ? (
+              <div className="text-center" style={{ padding: '60px 0' }}>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="sr-only">Loading testimonials...</span>
+                </div>
+                <p className="mt-3">Loading testimonials...</p>
+              </div>
+            ) : testimonialsData.length === 0 ? (
+              <div className="text-center" style={{ padding: '60px 0' }}>
+                <p>No testimonials available at the moment.</p>
+              </div>
+            ) : (
+              <>
+                <div className="testimonial-thumb-wrapper">
+                  <div
+                    ref={thumbCarouselRef}
+                    className="testimonial-thumb-carousel"
+                  >
+                    {testimonialsData.map((testimonial) => (
+                      <div key={testimonial.id} className="testimonial-thumb">
+                        <Image
+                          src={testimonial.image}
+                          alt="testimonial-thumb"
+                          width={120}
+                          height={120}
+                          style={{
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            width: '100px',
+                            height: '100px',
+                            border: '3px solid #fff',
+                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="testimonial-content-wrapper">
+                  <div
+                    ref={contentCarouselRef}
+                    className="testimonial-content-carousel"
+                  >
+                    {testimonialsData.map((testimonial) => (
+                      <div key={testimonial.id} className="testimonial-content">
+                        <p>{testimonial.content}</p>
+                        <div className="ratings">
+                          {renderStars(testimonial.rating)}
+                        </div>
+                        <h5 className="testimonial-author">{testimonial.name}</h5>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+    </>
+  );
 };
 
 export default Testimonials;
