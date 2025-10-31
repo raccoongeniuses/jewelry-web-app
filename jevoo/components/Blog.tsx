@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { extractTextFromContent, truncateText, formatDate, getFeaturedImageUrl } from '@/lib/blog-utils';
 import Link from 'next/link';
 import JewelryLoader from './LoaderSpinner';
@@ -37,10 +38,10 @@ export interface BlogPost {
 
 interface BlogPostItem {
   post: BlogPost;
-  index: number;
+  index?: number;
 }
 
-function BlogPostCard({ post }: BlogPostItem) {
+function BlogPostCard({ post, index }: BlogPostItem) {
   const excerpt = truncateText(extractTextFromContent(post.content));
   const formattedDate = formatDate(post.createdAt);
   const imageUrl = getFeaturedImageUrl(post);
@@ -49,9 +50,14 @@ function BlogPostCard({ post }: BlogPostItem) {
     <Link href={`/blog/${post.featuredImage.id}`} className="blog-post-item-link">
       <div className="blog-post-item">
         <figure className="blog-thumb">
-          <img
+          <Image
             src={imageUrl}
             alt={post.featuredImage?.alt || post.title}
+            width={post.featuredImage?.width || 600}
+            height={post.featuredImage?.height || 400}
+            style={{ objectFit: 'cover' }}
+            className="blog-thumb-img"
+            priority={typeof index === 'number' ? index < 2 : false}
           />
         </figure>
         <div className="blog-content">
@@ -100,19 +106,22 @@ export default function Blog() {
   useEffect(() => {
     if (blogPosts.length === 0) return;
 
+    // Capture the ref value so the cleanup uses the same element reference the effect started with.
+    const carouselEl = carouselRef.current;
+
     let retries = 0;
     const maxRetries = 20;
     const init = () => {
       const hasJQ = typeof window !== 'undefined' && window.$;
       const hasSlick = hasJQ && window.$.fn && typeof window.$.fn.slick === 'function';
-      if (!carouselRef.current) return false;
+      if (!carouselEl) return false;
       if (hasSlick) {
         try {
           const $ = window.$;
-          if ($(carouselRef.current).hasClass('slick-initialized')) {
-            $(carouselRef.current).slick('unslick');
+          if ($(carouselEl).hasClass('slick-initialized')) {
+            $(carouselEl).slick('unslick');
           }
-          $(carouselRef.current).slick({
+          $(carouselEl).slick({
             speed: 800,
             slidesToShow: 3,
             slidesToScroll: 1,
@@ -150,10 +159,10 @@ export default function Blog() {
 
     return () => {
       clearInterval(interval);
-      if (typeof window !== 'undefined' && window.$ && carouselRef.current) {
+      if (typeof window !== 'undefined' && window.$ && carouselEl) {
         const $ = window.$;
-        if ($(carouselRef.current).hasClass('slick-initialized')) {
-          $(carouselRef.current).slick('unslick');
+        if ($(carouselEl).hasClass('slick-initialized')) {
+          $(carouselEl).slick('unslick');
         }
       }
     };
