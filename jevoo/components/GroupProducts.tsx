@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '../types/product';
+import JewelryLoader from './LoaderSpinner';
 
 type GroupItem = {
   id: string;
@@ -23,10 +24,11 @@ function GroupList({ items, appendRef, onSlideChange, sliderRef }: {
   sliderRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
+  const [isSlickReady, setIsSlickReady] = useState(false);
 
   useEffect(() => {
     let retries = 0;
-    const maxRetries = 20;
+    const maxRetries = 30;
     const init = () => {
       const hasJQ = typeof window !== 'undefined' && (window as any).$;
       const hasSlick = hasJQ && (window as any).$.fn && typeof (window as any).$.fn.slick === 'function';
@@ -55,6 +57,8 @@ function GroupList({ items, appendRef, onSlideChange, sliderRef }: {
               }
             }
           });
+          // Mark slick as ready
+          setIsSlickReady(true);
         } catch (e) {
           console.error(e);
         }
@@ -85,7 +89,17 @@ function GroupList({ items, appendRef, onSlideChange, sliderRef }: {
 
   return (
     <div className="group-list-item-wrapper">
-      <div ref={listRef} className="group-list-carousel" data-react-component="true">
+      <div
+        ref={listRef}
+        className="group-list-carousel"
+        data-react-component="true"
+        style={{
+          opacity: isSlickReady ? 1 : 0,
+          visibility: isSlickReady ? 'visible' : 'hidden',
+          minHeight: isSlickReady ? 'auto' : '400px',
+          transition: 'opacity 0.3s ease-in-out'
+        }}
+      >
         {items.map((item) => (
           <div className="group-slide-item" key={item.id}>
             <div className="group-item">
@@ -119,6 +133,7 @@ export default function GroupProducts() {
   const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
   const [onSaleProducts, setOnSaleProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showContent, setShowContent] = useState(false);
 
   const bestSellerAppendRef = useRef<HTMLDivElement>(null);
   const onSaleAppendRef = useRef<HTMLDivElement>(null);
@@ -213,6 +228,10 @@ export default function GroupProducts() {
         console.error('Failed to fetch products:', error);
       } finally {
         setLoading(false);
+        // Shorter delay since we're hiding content until slick is ready
+        setTimeout(() => {
+          setShowContent(true);
+        }, 300); // 300ms delay to give slick time to start initializing
       }
     };
 
@@ -261,11 +280,9 @@ export default function GroupProducts() {
                 <h4>best seller product</h4>
                 <div ref={bestSellerAppendRef} className="slick-append"></div>
               </div>
-              {loading ? (
+              {loading || !showContent ? (
                 <div className="text-center py-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading best seller products...</span>
-                  </div>
+                  <JewelryLoader size="small" message="Loading best seller products..." />
                 </div>
               ) : (
                 <GroupList
@@ -283,11 +300,9 @@ export default function GroupProducts() {
                 <h4>on-sale product</h4>
                 <div ref={onSaleAppendRef} className="slick-append"></div>
               </div>
-              {loading ? (
+              {loading || !showContent ? (
                 <div className="text-center py-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading on-sale products...</span>
-                  </div>
+                  <JewelryLoader size="small" message="Loading on-sale products..." />
                 </div>
               ) : (
                 <GroupList

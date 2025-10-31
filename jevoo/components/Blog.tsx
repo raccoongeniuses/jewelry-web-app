@@ -81,6 +81,8 @@ export default function Blog() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showContent, setShowContent] = useState(false);
+  const [isSlickReady, setIsSlickReady] = useState(false);
 
   useEffect(() => {
     // Fetch blog posts from API
@@ -97,6 +99,10 @@ export default function Blog() {
         setError('Failed to load blog posts');
       } finally {
         setLoading(false);
+        // Add delay to give slick time to start initializing
+        setTimeout(() => {
+          setShowContent(true);
+        }, 300); // 300ms delay to give slick time to start initializing
       }
     };
 
@@ -104,7 +110,7 @@ export default function Blog() {
   }, []);
 
   useEffect(() => {
-    if (blogPosts.length === 0) return;
+    if (blogPosts.length === 0 || !showContent) return;
 
     // Capture the ref value so the cleanup uses the same element reference the effect started with.
     const carouselEl = carouselRef.current;
@@ -145,6 +151,8 @@ export default function Blog() {
               }
             ]
           });
+          // Mark slick as ready
+          setIsSlickReady(true);
         } catch (e) {
           console.error('Error initializing slick carousel:', e);
         }
@@ -166,9 +174,9 @@ export default function Blog() {
         }
       }
     };
-  }, [blogPosts]);
+  }, [blogPosts, showContent]);
 
-  if (loading) {
+  if (loading || !showContent) {
     return (
       <section className="latest-blog-area section-padding pt-0">
         <div className="container">
@@ -219,7 +227,17 @@ export default function Blog() {
         </div>
         <div className="row">
           <div className="col-12">
-            <div ref={carouselRef} className="blog-carousel-active slick-row-10 slick-arrow-style" data-react-component="true">
+            <div
+              ref={carouselRef}
+              className="blog-carousel-active slick-row-10 slick-arrow-style"
+              data-react-component="true"
+              style={{
+                opacity: isSlickReady ? 1 : 0,
+                visibility: isSlickReady ? 'visible' : 'hidden',
+                minHeight: isSlickReady ? 'auto' : '300px',
+                transition: 'opacity 0.3s ease-in-out'
+              }}
+            >
               {blogPosts.map((post, index) => (
                 <BlogPostCard key={post.featuredImage.id} post={post} index={index} />
               ))}
