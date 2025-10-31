@@ -184,12 +184,57 @@ export default function Home() {
 
           {banners.length > 0 && (
             <>
+              {/* Always show the first banner as a static banner */}
+              <div
+                className="hero-single-slide hero-overlay"
+                style={{
+                  position: 'relative',
+                  opacity: sliderInitialized ? 0 : 1,
+                  transition: 'opacity 0.3s ease-in-out',
+                  pointerEvents: sliderInitialized ? 'none' : 'auto'
+                }}
+              >
+                <div className="hero-slider-item" style={{ position: 'relative' }}>
+                  <Image
+                    src={getFullImageUrl(banners[0].image.url)}
+                    alt={banners[0].image.alt || banners[0].title}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    priority
+                  />
+                  <div className="container">
+                    <div className="row">
+                      <div className="col-md-12">
+                        <div className="hero-slider-content slide-1">
+                          <h2 className="slide-title golden-text">
+                            {banners[0].title}
+                          </h2>
+                          <h4 className="slide-desc" style={{ color: '#ffffff' }}>
+                            {banners[0].subtitle}
+                          </h4>
+                          <a href={banners[0].buttonUrl} className="btn btn-hero">
+                            {banners[0].buttonText}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hidden slick slider that initializes in the background */}
               <div
                 ref={heroSliderRef}
                 className="hero-slider-active slick-arrow-style slick-arrow-style_hero slick-dot-style"
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                   opacity: sliderInitialized ? 1 : 0,
-                  transition: 'opacity 0.3s ease-in-out'
+                  transition: 'opacity 0.5s ease-in-out',
+                  pointerEvents: sliderInitialized ? 'auto' : 'none'
                 }}
               >
                 {/* Dynamic banner slides */}
@@ -224,38 +269,6 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-
-              {/* Loading state - show first banner while slider is initializing */}
-              {!sliderInitialized && (
-                <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
-                  <div className="hero-slider-item" style={{ position: 'relative' }}>
-                    <Image
-                      src={getFullImageUrl(banners[0].image.url)}
-                      alt={banners[0].image.alt || banners[0].title}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      priority
-                    />
-                    <div className="container">
-                      <div className="row">
-                        <div className="col-md-12">
-                          <div className="hero-slider-content slide-1">
-                            <h2 className="slide-title golden-text">
-                              {banners[0].title}
-                            </h2>
-                            <h4 className="slide-desc" style={{ color: '#ffffff' }}>
-                              {banners[0].subtitle}
-                            </h4>
-                            <a href={banners[0].buttonUrl} className="btn btn-hero">
-                              {banners[0].buttonText}
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </>
           )}
 
