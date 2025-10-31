@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Product } from '../../types/product';
 import CartButton from '../cart/CartButton';
 import QuickViewModal from '../modals/QuickViewModal';
+import WishlistButton from '../wishlist/WishlistButton';
 
 interface ProductCardProps {
   product: Product;
@@ -68,17 +69,15 @@ export default function ProductCard({ product, disableLinks = false }: ProductCa
         </div>
         
         <div className="button-group">
-          <a href="/wishlist" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist">
-            <i className="pe-7s-like"></i>
-          </a>
+          <WishlistButton product={product} />
           <a href="/compare" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to Compare">
             <i className="pe-7s-refresh-2"></i>
           </a>
-          <a href="#" onClick={(e) => { e.preventDefault(); setIsQuickViewOpen(true); }}>
+          {/* <a href="#" onClick={(e) => { e.preventDefault(); setIsQuickViewOpen(true); }}>
             <span data-bs-toggle="tooltip" data-bs-placement="left" title="Quick View">
               <i className="pe-7s-search"></i>
             </span>
-          </a>
+          </a> */}
         </div>
         
         <div className="cart-hover" onClick={(e) => e.stopPropagation()}>

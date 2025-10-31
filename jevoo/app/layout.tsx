@@ -4,6 +4,7 @@ import "./globals.css";
 import Script from "next/script";
 import { CartProvider } from "../contexts/CartContext";
 import { AuthProvider } from "../contexts/AuthContext";
+import { WishlistProvider } from "../components/wishlist/WishlistProvider";
 import ModernizrInit from "../components/ModernizrInit";
 
 const lato = Lato({
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body className={`${lato.variable} antialiased`} suppressHydrationWarning>
         <AuthProvider>
           <CartProvider>
-            {children}
+            <WishlistProvider>
+              {children}
+            </WishlistProvider>
           </CartProvider>
         </AuthProvider>
 

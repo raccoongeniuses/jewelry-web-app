@@ -7,10 +7,12 @@ import { useState, useEffect } from 'react';
 import CartModal from './cart/CartModal';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useWishlist } from './wishlist/WishlistProvider';
 
 export default function Header() {
   const { getTotalItems } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
+  const { getWishlistCount } = useWishlist();
   const router = useRouter();
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
 
@@ -206,7 +208,7 @@ export default function Header() {
                       <li>
                         <a href="/wishlist">
                           <i className="pe-7s-like"></i>
-                          <div className="notification">0</div>
+                          <div className="notification">{getWishlistCount()}</div>
                         </a>
                       </li>
                       <li>
