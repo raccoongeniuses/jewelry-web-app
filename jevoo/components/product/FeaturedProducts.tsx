@@ -3,11 +3,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Product } from '../../types/product';
 import ProductCard from './ProductCard';
+import JewelryLoader from '../LoaderSpinner';
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showContent, setShowContent] = useState(false);
+  const [isSlickReady, setIsSlickReady] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,6 +77,10 @@ export default function FeaturedProducts() {
         setError('Failed to load featured products');
       } finally {
         setLoading(false);
+        // Add delay to give slick time to start initializing (longer delay for featured products)
+        setTimeout(() => {
+          setShowContent(true);
+        }, 300); // delay for featured products
       }
     };
 
@@ -82,7 +89,7 @@ export default function FeaturedProducts() {
 
   useEffect(() => {
     // Initialize slider after products are loaded and scripts are available
-    if (loading || products.length === 0) return;
+    if (loading || products.length === 0 || !showContent) return;
 
     // Initialize slider after scripts load; retry until slick is available
     let retries = 0;
@@ -133,6 +140,8 @@ export default function FeaturedProducts() {
               }
             ]
           });
+          // Mark slick as ready
+          setIsSlickReady(true);
         } catch (error) {
           console.error('Error initializing slider:', error);
         }
@@ -155,7 +164,7 @@ export default function FeaturedProducts() {
       }
       clearInterval(interval);
     };
-  }, [loading, products]);
+  }, [loading, products, showContent]);
 
   return (
     <section className="feature-product section-padding">
@@ -172,32 +181,29 @@ export default function FeaturedProducts() {
         </div>
         <div className="row">
           <div className="col-12">
-            {loading && (
+            {loading || !showContent ? (
               <div className="text-center py-5">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading featured products...</span>
-                </div>
-                <p className="mt-3">Loading featured products...</p>
+                <JewelryLoader size="medium" message="Loading featured products..." />
               </div>
-            )}
-
-            {error && (
+            ) : error ? (
               <div className="alert alert-danger text-center" role="alert">
                 {error}
               </div>
-            )}
-
-            {!loading && !error && products.length === 0 && (
+            ) : products.length === 0 ? (
               <div className="text-center py-5">
                 <p>No featured products available at the moment.</p>
               </div>
-            )}
-
-            {!loading && !error && products.length > 0 && (
+            ) : (
               <div
                 ref={sliderRef}
                 className="product-carousel-4_2 slick-row-10 slick-arrow-style"
                 data-react-component="true"
+                style={{
+                  opacity: isSlickReady ? 1 : 0,
+                  visibility: isSlickReady ? 'visible' : 'hidden',
+                  minHeight: isSlickReady ? 'auto' : '400px',
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
               >
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />

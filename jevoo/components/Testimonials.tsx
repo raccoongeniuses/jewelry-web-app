@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import ScriptLoader from './ScriptLoader';
+import JewelryLoader from './LoaderSpinner';
 
 // Type declarations for jQuery
 declare global {
@@ -64,6 +65,8 @@ const Testimonials = () => {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showContent, setShowContent] = useState(false);
+  const [isSlickReady, setIsSlickReady] = useState(false);
 
   // Fetch testimonials from API
   useEffect(() => {
@@ -101,6 +104,10 @@ const Testimonials = () => {
         // Keep empty array if API fails
       } finally {
         setIsLoading(false);
+        // Add delay to give slick time to start initializing
+        setTimeout(() => {
+          setShowContent(true);
+        }, 300); // delay for testimonials
       }
     };
 
@@ -109,7 +116,7 @@ const Testimonials = () => {
 
   // Initialize carousels when scripts are loaded
   const initializeCarousels = () => {
-    if (!thumbCarouselRef.current || !contentCarouselRef.current) return;
+    if (!thumbCarouselRef.current || !contentCarouselRef.current || !showContent) return;
 
     const $ = window.jQuery;
     if (!$ || !$.fn.slick) return;
@@ -139,13 +146,16 @@ const Testimonials = () => {
       centerPadding: 0,
       focusOnSelect: true
     });
+
+    // Mark slick as ready
+    setIsSlickReady(true);
   };
 
   useEffect(() => {
-    if (scriptsLoaded && testimonialsData.length > 0) {
+    if (scriptsLoaded && testimonialsData.length > 0 && showContent) {
       initializeCarousels();
     }
-  }, [scriptsLoaded, testimonialsData]);
+  }, [scriptsLoaded, testimonialsData, showContent]);
 
   // Re-initialize when page becomes visible (route changes)
   useEffect(() => {
@@ -221,12 +231,9 @@ const Testimonials = () => {
         </div>
         <div className="row">
           <div className="col-12">
-            {isLoading ? (
+            {isLoading || !showContent ? (
               <div className="text-center" style={{ padding: '60px 0' }}>
-                <div className="spinner-border text-primary" role="status">
-                  <span className="sr-only">Loading testimonials...</span>
-                </div>
-                <p className="mt-3">Loading testimonials...</p>
+                <JewelryLoader size="medium" message="Loading testimonials..." />
               </div>
             ) : testimonialsData.length === 0 ? (
               <div className="text-center" style={{ padding: '60px 0' }}>
@@ -238,6 +245,12 @@ const Testimonials = () => {
                   <div
                     ref={thumbCarouselRef}
                     className="testimonial-thumb-carousel"
+                    style={{
+                      opacity: isSlickReady ? 1 : 0,
+                      visibility: isSlickReady ? 'visible' : 'hidden',
+                      minHeight: isSlickReady ? 'auto' : '150px',
+                      transition: 'opacity 0.3s ease-in-out'
+                    }}
                   >
                     {testimonialsData.map((testimonial) => (
                       <div key={testimonial.id} className="testimonial-thumb">
@@ -263,6 +276,12 @@ const Testimonials = () => {
                   <div
                     ref={contentCarouselRef}
                     className="testimonial-content-carousel"
+                    style={{
+                      opacity: isSlickReady ? 1 : 0,
+                      visibility: isSlickReady ? 'visible' : 'hidden',
+                      minHeight: isSlickReady ? 'auto' : '200px',
+                      transition: 'opacity 0.3s ease-in-out'
+                    }}
                   >
                     {testimonialsData.map((testimonial) => (
                       <div key={testimonial.id} className="testimonial-content">
