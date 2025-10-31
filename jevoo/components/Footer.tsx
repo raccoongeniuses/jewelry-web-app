@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
 export default function Footer() {
@@ -70,7 +71,8 @@ export default function Footer() {
         setMessage(data.error || 'Failed to subscribe. Please try again.');
         setMessageType('error');
       }
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setIsMessageVisible(true);
       setMessage('An error occurred. Please try again later.');
       setMessageType('error');
@@ -96,7 +98,13 @@ export default function Footer() {
                   <div className="widget-title">
                     <div className="widget-logo">
                       <Link href="/">
-                        <img src="/assets/img/jevoo-bespoke.jpg" alt="brand logo" style={{maxHeight: '100px', width: 'auto', paddingLeft: '20%'}} />
+                        <Image
+                          src="/assets/img/jevoo-bespoke.jpg"
+                          alt="brand logo"
+                          width={180}
+                          height={100}
+                          style={{ maxHeight: '100px', width: 'auto', paddingLeft: '20%' }}
+                        />
                       </Link>
                     </div>
                   </div>

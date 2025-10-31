@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Product } from '../types/product';
 
 type GroupItem = {
@@ -88,13 +90,13 @@ function GroupList({ items, appendRef, onSlideChange, sliderRef }: {
           <div className="group-slide-item" key={item.id}>
             <div className="group-item">
               <div className="group-item-thumb">
-                <a href={item.url}>
-                  <img src={item.image} alt="" />
-                </a>
+                <Link href={item.url}>
+                  <Image src={item.image} alt={item.name || 'product image'} width={300} height={300} style={{ objectFit: 'contain' }} />
+                </Link>
               </div>
               <div className="group-item-desc">
                 <h5 className="group-product-name">
-                  <a href={item.url}>{item.name}</a>
+                  <Link href={item.url}>{item.name}</Link>
                 </h5>
                 <div className="price-box">
                   <span className="price-regular">${item.price.toFixed(2)}</span>
@@ -242,9 +244,9 @@ export default function GroupProducts() {
           <div className="col-lg-6">
             <div className="group-product-banner">
               <figure className="banner-statistics">
-                <a href="#">
-                  <img src="/assets/img/banner-gold.png" alt="product banner" />
-                </a>
+                <Link href="#">
+                  <Image src="/assets/img/banner-gold.png" alt="product banner" width={600} height={360} style={{ objectFit: 'contain' }} />
+                </Link>
                 <div className="banner-content banner-content_style3 text-center">
                   <h6 className="banner-text1">BEAUTIFUL</h6>
                   <h2 className="banner-text2">Wedding Rings</h2>
