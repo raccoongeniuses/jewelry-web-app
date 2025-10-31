@@ -9,13 +9,94 @@ import FeaturedProducts from "../components/product/FeaturedProducts";
 import Testimonials from "../components/Testimonials";
 import GroupProducts from "../components/GroupProducts";
 import Blog from "../components/Blog";
+import LoaderSpinner, { LuxuryJewelryLoader } from "../components/LoaderSpinner";
+
+interface BannerImage {
+  createdAt: string;
+  updatedAt: string;
+  alt: string;
+  filename: string;
+  mimeType: string;
+  filesize: number;
+  width: number;
+  height: number;
+  focalX: number;
+  focalY: number;
+  id: string;
+  url: string;
+  thumbnailURL: null;
+}
+
+interface Banner {
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  subtitle: string;
+  image: BannerImage;
+  buttonText: string;
+  buttonUrl: string;
+  order: number;
+  status: string;
+  id: string;
+}
+
+interface BannerResponse {
+  docs: Banner[];
+  totalDocs: number;
+  limit: number;
+  totalPages: number;
+  page: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: null;
+  nextPage: null;
+}
+
+const getFullImageUrl = (imageUrl: string | undefined) => {
+  if (!imageUrl) return '/placeholder-product.jpg';
+  if (imageUrl.startsWith('http')) return imageUrl;
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+  if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+    return `${baseUrl}${imageUrl.replace('/api', '')}`;
+  }
+  // Otherwise, prepend the API base URL
+  return `${baseUrl}${imageUrl}`;
+};
 
 export default function Home() {
   const heroSliderRef = useRef<HTMLDivElement>(null);
   const [sliderInitialized, setSliderInitialized] = useState(false);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [bannersLoading, setBannersLoading] = useState(true);
+
+  // Fetch banners from API
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const response = await fetch('/api/banners');
+        if (response.ok) {
+          const data: BannerResponse = await response.json();
+          // Sort banners by order field
+          const sortedBanners = data.docs.sort((a, b) => a.order - b.order);
+          setBanners(sortedBanners);
+        }
+      } catch (error) {
+        console.error('Error fetching banners:', error);
+      } finally {
+        setBannersLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, []);
 
   useEffect(() => {
-    // Initialize hero slider after scripts load
+    // Only initialize when banners are loaded and we have data
+    if (bannersLoading || banners.length === 0) return;
+
     let retries = 0;
     const maxRetries = 20;
     const tryInit = () => {
@@ -42,8 +123,10 @@ export default function Home() {
               }
             }]
           });
-          // Mark slider as initialized
-          setSliderInitialized(true);
+          // Mark slider as initialized after a short delay to ensure slick is ready
+          setTimeout(() => {
+            setSliderInitialized(true);
+          }, 100);
         } catch (error) {
           console.error('Error initializing hero slider:', error);
         }
@@ -53,7 +136,13 @@ export default function Home() {
     };
 
     const interval = setInterval(() => {
-      if (tryInit() || retries++ >= maxRetries) clearInterval(interval);
+      if (tryInit() || retries++ >= maxRetries) {
+        clearInterval(interval);
+        // If we couldn't initialize after max retries, still show the banners
+        if (retries >= maxRetries) {
+          setSliderInitialized(true);
+        }
+      }
     }, 200);
 
     return () => {
@@ -65,7 +154,7 @@ export default function Home() {
         }
       }
     };
-  }, []);
+  }, [bannersLoading, banners.length]);
 
   return (
     <>
@@ -73,132 +162,136 @@ export default function Home() {
 
       <main>
         {/* hero slider area start */}
-        <section className="slider-area" style={{ position: 'relative' }}>
-          <div 
-            ref={heroSliderRef}
-            className="hero-slider-active slick-arrow-style slick-arrow-style_hero slick-dot-style"
-            style={{ 
-              opacity: sliderInitialized ? 1 : 0,
-              transition: 'opacity 0.5s ease-in-out'
-            }}
-          >
-            {/* single slider item start */}
-            <div className="hero-single-slide hero-overlay">
-              <div className="hero-slider-item" style={{ position: 'relative' }}>
-                <Image
-                  src="/assets/img/banner-gold.png"
-                  alt="Family Jewelry Collection"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  priority
-                />
-                <div className="container">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <div className="hero-slider-content slide-1">
-                        <h2 className="slide-title golden-text">
-                          Family Jewelry <span>Collection</span>
-                        </h2>
-                        <h4 className="slide-desc" style={{ color: '#ffffff' }}>
-                          Designer Jewelry Necklaces-Bracelets-Earrings
-                        </h4>
-                        <a href="/our-products" className="btn btn-hero">
-                          View Products
-                        </a>
-                      </div>
+        <section className="slider-area" style={{ position: 'relative', minHeight: '600px' }}>
+          {/* Initial loading state - show jewelry loader while fetching banners */}
+          {bannersLoading && (
+            <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2, background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' }}>
+              <div className="container">
+                <div className="row">
+                  <div className="col-md-12">
+                    <div className="hero-slider-content text-center" style={{ paddingTop: '150px' }}>
+                      <LuxuryJewelryLoader
+                        size="large"
+                        message="Loading beautiful jewelry collections..."
+                        className="animate-fade-in"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            {/* single slider item end */}
+          )}
 
-            {/* single slider item start */}
-            <div className="hero-single-slide hero-overlay">
-              <div className="hero-slider-item" style={{ position: 'relative' }}>
-                <Image
-                  src="/assets/img/banner-gold.png"
-                  alt="Diamonds Jewelry Collection"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                />
-                <div className="container">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <div className="hero-slider-content slide-2 float-md-end float-none">
-                        <h2 className="slide-title golden-text">
-                          Diamonds Jewelry<span>Collection</span>
-                        </h2>
-                        <h4 className="slide-desc" style={{ color: '#ffffff' }}>
-                          Shukra Yogam & Silver Power Silver Saving Schemes.
-                        </h4>
-                        <a href="/our-products" className="btn btn-hero">
-                          View Products
-                        </a>
+          {banners.length > 0 && (
+            <>
+              <div
+                ref={heroSliderRef}
+                className="hero-slider-active slick-arrow-style slick-arrow-style_hero slick-dot-style"
+                style={{
+                  opacity: sliderInitialized ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
+              >
+                {/* Dynamic banner slides */}
+                {banners.map((banner, index) => (
+                  <div key={banner.id} className="hero-single-slide hero-overlay">
+                    <div className="hero-slider-item" style={{ position: 'relative' }}>
+                      <Image
+                        src={getFullImageUrl(banner.image.url)}
+                        alt={banner.image.alt || banner.title}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        priority={index === 0}
+                      />
+                      <div className="container">
+                        <div className="row">
+                          <div className="col-md-12">
+                            <div className={`hero-slider-content slide-${index + 1} ${index === 1 ? 'float-md-end float-none' : ''}`}>
+                              <h2 className="slide-title golden-text">
+                                {banner.title}
+                              </h2>
+                              <h4 className="slide-desc" style={{ color: '#ffffff' }}>
+                                {banner.subtitle}
+                              </h4>
+                              <a href={banner.buttonUrl} className="btn btn-hero">
+                                {banner.buttonText}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            </div>
-            {/* single slider item end */}
 
-            {/* single slider item start */}
-            <div className="hero-single-slide hero-overlay">
-              <div className="hero-slider-item" style={{ position: 'relative' }}>
-                <Image
-                  src="/assets/img/banner-gold.png"
-                  alt="Grace Designer Jewelry"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                />
-                <div className="container">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <div className="hero-slider-content slide-3">
-                        <h2 className="slide-title golden-text">
-                          Grace Designer<span>Jewelry</span>
-                        </h2>
-                        <h4 className="slide-desc" style={{ color: '#ffffff' }}>
-                          Rings, Occasion Pieces, Pandora & More.
-                        </h4>
-                        <a href="/our-products" className="btn btn-hero">
-                          View Products
-                        </a>
+              {/* Loading state - show first banner with jewelry loader while slider is initializing */}
+              {!sliderInitialized && (
+                <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
+                  <div className="hero-slider-item" style={{ position: 'relative' }}>
+                    <Image
+                      src={getFullImageUrl(banners[0].image.url)}
+                      alt={banners[0].image.alt || banners[0].title}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      priority
+                    />
+                    <div className="container">
+                      <div className="row">
+                        <div className="col-md-12">
+                          <div className="hero-slider-content slide-1">
+                            <h2 className="slide-title golden-text">
+                              {banners[0].title}
+                            </h2>
+                            <h4 className="slide-desc" style={{ color: '#ffffff' }}>
+                              {banners[0].subtitle}
+                            </h4>
+                            <a href={banners[0].buttonUrl} className="btn btn-hero">
+                              {banners[0].buttonText}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Overlay loader while slider initializes */}
+                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                      <div className="text-center">
+                        <LoaderSpinner
+                          size="large"
+                          color="#d4af37"
+                          message="Preparing slider..."
+                          className="animate-fade-in"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            {/* single slider item end */}
-          </div>
-          
-          {/* Loading state - show first slide while initializing */}
-          {!sliderInitialized && (
-            <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-              <div className="hero-slider-item" style={{ position: 'relative' }}>
-                <Image
-                  src="/assets/img/banner-gold.png"
-                  alt="Family Jewelry Collection"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  priority
-                />
-                <div className="container">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <div className="hero-slider-content slide-1">
-                        <h2 className="slide-title golden-text">
-                          Family Jewelry <span>Collection</span>
-                        </h2>
-                        <h4 className="slide-desc" style={{ color: '#ffffff' }}>
-                          Designer Jewelry Necklaces-Bracelets-Earrings
-                        </h4>
-                        <a href="/our-products" className="btn btn-hero">
-                          View Products
-                        </a>
-                      </div>
+              )}
+            </>
+          )}
+
+          {/* Error state - if no banners loaded */}
+          {!bannersLoading && banners.length === 0 && (
+            <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1, background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' }}>
+              <div className="container">
+                <div className="row">
+                  <div className="col-md-12">
+                    <div className="hero-slider-content text-center" style={{ paddingTop: '150px' }}>
+                      <h2 className="slide-title golden-text mb-4">
+                        Welcome to Our Jewelry Collection
+                      </h2>
+                      <h4 className="slide-desc" style={{ color: '#ffffff', marginBottom: '30px' }}>
+                        Discover exquisite pieces crafted with precision and passion
+                      </h4>
+                      <a href="/our-products" className="btn btn-hero me-3">
+                        Explore Collection
+                      </a>
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="btn btn-outline-light"
+                      >
+                        Try Again
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -278,24 +371,15 @@ export default function Home() {
         </section>
         {/* product area end */}
 
-        {/* draggable marquee area start */}
         <Marquee />
-        {/* draggable marquee area end */}
-
-        {/* featured product area start */}
+ 
         <FeaturedProducts />
-        {/* featured product area end */}
-
-        {/* testimonial area start (below featured products) */}
+    
         <Testimonials />
-        {/* testimonial area end */}
 
-        {/* group product area (best seller + on-sale) */}
         <GroupProducts />
-
-        {/* latest blog area start */}
+ 
         <Blog />
-        {/* latest blog area end */}
       </main>
 
       <Footer />
