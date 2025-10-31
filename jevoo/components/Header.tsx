@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import CartModal from './cart/CartModal';
 import { useCart } from '../contexts/CartContext';
@@ -13,6 +13,26 @@ export default function Header() {
   const { user, logout, isAuthenticated } = useAuth();
   const router = useRouter();
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+
+  const pathname = usePathname();
+
+  const desktopNavItems = [
+    { href: "/", label: "Home" },
+    { href: "/our-products", label: "Our Products" },
+    { href: "/about-us", label: "About Us" },
+    { href: "/our-promises", label: "Our Promises" },
+    { href: "/our-services", label: "Our Services" },
+    { href: "/our-philosophy", label: "Our Philosophy" },
+  ];
+
+  const mobileNavItems = [
+    { href: "/", label: "Home" },
+    { href: "/our-products", label: "Our Products" },
+    { href: "/about-us", label: "About Us" },
+    { href: "/our-promises", label: "Our Promises" },
+    { href: "/our-services", label: "Our Services" },
+    { href: "/our-philosophy", label: "Our Philosophy" },
+  ];
 
   // Handle body class for account dropdown z-index
   useEffect(() => {
@@ -129,15 +149,13 @@ export default function Header() {
               <div className="col-lg-6 position-static">
                 <div className="main-menu-area">
                   <div className="main-menu">
-                    {/* main menu navbar start */}
                     <nav className="desktop-menu">
                       <ul>
-                        <li><Link href="/">Home</Link></li>
-                        <li className="active"><Link href="/our-products">Our Products</Link></li>
-                        <li className="active"><Link href="/about-us">About Us</Link></li>
-                        <li className="active"><Link href="/our-promises">Our Promises</Link></li>
-                        <li className="active"><Link href="/our-services">Our Services</Link></li>
-                        <li className="active"><Link href="/our-philosophy">Our Philosophy</Link></li>
+                        {desktopNavItems.map((item) => (
+                          <li key={item.href} className={pathname === item.href ? "active" : ""}>
+                            <Link href={item.href}>{item.label}</Link>
+                          </li>
+                        ))}
                       </ul>
                     </nav>
                     {/* main menu navbar end */}
@@ -266,11 +284,11 @@ export default function Header() {
             <div className="mobile-navigation">
               <nav>
                 <ul className="mobile-menu">
-                  <li><Link href="/">Home</Link></li>
-                  <li className="active"><Link href="/about-us">About Us</Link></li>
-                  <li className="active"><Link href="/our-promises">Our Promises</Link></li>
-                  <li className="active"><Link href="/our-services">Our Services</Link></li>
-                  <li className="active"><Link href="/our-philosophy">Our Philosophy</Link></li>
+                  {mobileNavItems.map((item) => (
+                    <li key={item.href} className={pathname === item.href ? "active" : ""}>
+                      <Link href={item.href}>{item.label}</Link>
+                    </li>
+                  ))}
                 </ul>
               </nav>
             </div>

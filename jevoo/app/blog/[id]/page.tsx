@@ -1,10 +1,14 @@
-'use client';
+ 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { BlogPost } from '@/components/Blog';
 import { extractTextFromContent, formatDate, getFeaturedImageUrl } from '@/lib/blog-utils';
 import JewelryLoader from '@/components/LoaderSpinner';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -66,7 +70,7 @@ export default function BlogDetailPage() {
             <div className="col-12">
               <div className="text-center py-5">
                 <h2 className="text-danger">{error || 'Blog post not found'}</h2>
-                <a href="/" className="btn btn-primary mt-3">Back to Home</a>
+                <Link href="/" className="btn btn-primary mt-3">Back to Home</Link>
               </div>
             </div>
           </div>
@@ -80,17 +84,21 @@ export default function BlogDetailPage() {
   const imageUrl = getFeaturedImageUrl(blogPost);
 
   return (
-    <section className="blog-details-area section-padding">
+    <>
+      <Header />
+      <section className="blog-details-area section-padding">
       <div className="container">
         <div className="row">
           <div className="col-lg-8 offset-lg-2">
             <div className="blog-details-wrapper">
               {/* Blog Image */}
-              <div className="blog-details-thumb mb-4">
-                <img
+              <div className="blog-details-thumb mb-4 position-relative" style={{ minHeight: 400 }}>
+                <Image
                   src={imageUrl}
                   alt={blogPost.featuredImage?.alt || blogPost.title}
-                  className="img-fluid w-100"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  className="img-fluid w-100 object-cover"
                 />
               </div>
 
@@ -136,15 +144,17 @@ export default function BlogDetailPage() {
 
               {/* Back to Blogs Button */}
               <div className="text-center mt-5">
-                <a href="/" className="btn btn-primary">
+                <Link href="/" className="blog-meta">
                   <i className="fa fa-arrow-left mr-2"></i>
                   Back to Home
-                </a>
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+      </section>
+      <Footer />
+    </>
   );
 }
