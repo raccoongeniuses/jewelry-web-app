@@ -108,7 +108,7 @@ export default function LoginPage() {
         </div>
         <div className="single-input-item mt-3">
           <div className="login-register-switch">
-            Don't have an account?
+            Don&#39;t have an account?
             <Link href="/register" className="ms-1">Register</Link>
           </div>
         </div>

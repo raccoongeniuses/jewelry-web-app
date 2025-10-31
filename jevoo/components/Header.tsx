@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import CartModal from './cart/CartModal';
@@ -83,11 +84,17 @@ export default function Header() {
                       </div>
                     </div>
                     <div className="language">
-                      <img src="/assets/img/icon/en.png" alt="flag" /> English
+                      <Image src="/assets/img/icon/en.png" alt="flag" width={20} height={14} style={{display: 'inline', marginRight: '4px'}} /> English
                       <i className="fa fa-angle-down"></i>
                       <div className="dropdown-list">
-                        <a href="#"><img src="/assets/img/icon/en.png" alt="flag" /> english</a>
-                        <a href="#"><img src="/assets/img/icon/fr.png" alt="flag" /> french</a>
+                        <a href="#">
+                          <Image src="/assets/img/icon/en.png" alt="flag" width={20} height={14} style={{display: 'inline', marginRight: '4px'}} />
+                          english
+                        </a>
+                        <a href="#">
+                          <Image src="/assets/img/icon/fr.png" alt="flag" width={20} height={14} style={{display: 'inline', marginRight: '4px'}} />
+                          french
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -106,7 +113,13 @@ export default function Header() {
               <div className="col-lg-2">
                 <div className="logo">
                   <Link href="/">
-                    <img src="/assets/img/jevoo-bespoke.jpg" alt="Brand Logo" style={{maxHeight: '100px', width: 'auto', paddingLeft: '20%'}} />
+                    <Image
+                      src="/assets/img/jevoo-bespoke.jpg"
+                      alt="Brand Logo"
+                      width={200}
+                      height={100}
+                      style={{height: '100px', width: 'auto', paddingLeft: '20%'}}
+                    />
                   </Link>
                 </div>
               </div>
@@ -201,7 +214,14 @@ export default function Header() {
               <div className="mobile-main-header">
                 <div className="mobile-logo">
                   <Link href="/">
-                    <img src="/assets/img/jevoo-bespoke.jpg" alt="Brand Logo" style={{maxHeight: '100px', width: 'auto', paddingLeft: '20%'}} />
+                    <Image
+                      src="/assets/img/jevoo-bespoke.jpg"
+                      alt="Brand Logo"
+                      width={200}
+                      height={100}
+                      quality={75}
+                      style={{height: '100px', width: 'auto', paddingLeft: '20%'}}
+                    />
                   </Link>
                 </div>
                 <div className="mobile-menu-toggler">

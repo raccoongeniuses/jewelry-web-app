@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { BlogPost } from '@/components/Blog';
-import { extractTextFromContent, truncateText, formatDate, getFeaturedImageUrl } from '@/lib/blog-utils';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { BlogPost } from "@/components/Blog";
+import Header from "@/components/Header";
+import {
+  extractTextFromContent,
+  truncateText,
+  formatDate,
+  getFeaturedImageUrl,
+} from "@/lib/blog-utils";
+import Footer from "@/components/Footer";
 
 function BlogPostCard({ post }: { post: BlogPost }) {
   const excerpt = truncateText(extractTextFromContent(post.content));
@@ -14,10 +22,14 @@ function BlogPostCard({ post }: { post: BlogPost }) {
     <div className="col-lg-6 mb-4">
       <div className="blog-item">
         <div className="blog-thumb">
-          <img
-            src={imageUrl}
+          <Image
+            src={imageUrl || "/assets/img/default.jpg"}
             alt={post.featuredImage?.alt || post.title}
+            quality={75}
+            width={1200}
+            height={675}
             className="img-fluid w-100"
+            style={{ objectFit: "cover" }}
           />
         </div>
         <div className="blog-content">
@@ -26,9 +38,7 @@ function BlogPostCard({ post }: { post: BlogPost }) {
             <span className="blog-author ml-3">By Jevoo Jewellery</span>
           </div>
           <h4 className="blog-title">
-            <Link href={`/blog/${post.slug}`}>
-              {post.title}
-            </Link>
+            <Link href={`/blog/${post.slug}`}>{post.title}</Link>
           </h4>
           <p className="blog-excerpt">{excerpt}</p>
           <Link href={`/blog/${post.slug}`} className="read-more">
@@ -48,15 +58,15 @@ export default function BlogListingPage() {
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
-        const response = await fetch('/api/blogs');
+        const response = await fetch("/api/blogs");
         if (!response.ok) {
-          throw new Error('Failed to fetch blog posts');
+          throw new Error("Failed to fetch blog posts");
         }
         const data = await response.json();
         setBlogPosts(data.docs || []);
       } catch (err) {
-        console.error('Error fetching blog posts:', err);
-        setError('Failed to load blog posts');
+        console.error("Error fetching blog posts:", err);
+        setError("Failed to load blog posts");
       } finally {
         setLoading(false);
       }
@@ -100,36 +110,44 @@ export default function BlogListingPage() {
   }
 
   return (
-    <section className="blog-area section-padding">
-      <div className="container">
-        <div className="row">
-          <div className="col-12">
-            {/* section title start */}
-            <div className="section-title text-center">
-              <h2 className="title">Our Blog</h2>
-              <p className="sub-title">Read our latest articles and insights</p>
-            </div>
-            {/* section title end */}
-          </div>
-        </div>
-
-        {blogPosts.length === 0 ? (
+    <>
+      <Header />
+      <section className="blog-area section-padding">
+        <div className="container">
           <div className="row">
             <div className="col-12">
-              <div className="text-center py-5">
-                <h3>No blog posts available</h3>
-                <p className="text-muted">Check back later for new content.</p>
+              {/* section title start */}
+              <div className="section-title text-center">
+                <h2 className="title">Our Blog</h2>
+                <p className="sub-title">
+                  Read our latest articles and insights
+                </p>
               </div>
+              {/* section title end */}
             </div>
           </div>
-        ) : (
-          <div className="row">
-            {blogPosts.map((post) => (
-              <BlogPostCard key={post.createdAt} post={post} />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+
+          {blogPosts.length === 0 ? (
+            <div className="row">
+              <div className="col-12">
+                <div className="text-center py-5">
+                  <h3>No blog posts available</h3>
+                  <p className="text-muted">
+                    Check back later for new content.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="row">
+              {blogPosts.map((post) => (
+                <BlogPostCard key={post.createdAt} post={post} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+      <Footer />
+    </>
   );
 }
