@@ -225,7 +225,7 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Loading state - show first banner with jewelry loader while slider is initializing */}
+              {/* Loading state - show first banner while slider is initializing */}
               {!sliderInitialized && (
                 <div className="hero-single-slide hero-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
                   <div className="hero-slider-item" style={{ position: 'relative' }}>
@@ -251,17 +251,6 @@ export default function Home() {
                             </a>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    {/* Overlay loader while slider initializes */}
-                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                      <div className="text-center">
-                        <LoaderSpinner
-                          size="large"
-                          color="#d4af37"
-                          message="Preparing slider..."
-                          className="animate-fade-in"
-                        />
                       </div>
                     </div>
                   </div>
