@@ -164,6 +164,27 @@ export default function OurProductsPage() {
     }
   }, [brands]);
 
+  // Initialize nice-select for sort dropdown
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.$) {
+      const sortSelect = window.$('#sort-select');
+      if (sortSelect.length > 0) {
+        // Remove existing nice-select if any
+        sortSelect.next('.nice-select').remove();
+        // Remove existing event listeners
+        sortSelect.off('change');
+        // Initialize nice-select
+        sortSelect.niceSelect();
+
+        // Add change event listener for nice-select
+        sortSelect.on('change', (event: any) => {
+          const newValue = window.$(event.target).val();
+          setSortBy(newValue);
+        });
+      }
+    }
+  }, []);
+
   // Fetch products function
   const fetchProductsWithFilters = async (pageOverride?: number) => {
     try {
@@ -176,8 +197,25 @@ export default function OurProductsPage() {
         limit: productsPerPage.toString(),
         depth: '1',
         trash: 'false',
-        sort: '-price'
       });
+
+      // Add sorting parameter based on selected sort option
+      switch (sortBy) {
+        case 'price-low':
+          params.append('sort', 'price');
+          break;
+        case 'price-high':
+          params.append('sort', '-price');
+          break;
+        case 'name-asc':
+          params.append('sort', 'name');
+          break;
+        case 'name-desc':
+          params.append('sort', '-name');
+          break;
+        default:
+          break;
+      }
 
       // Add category filter if selected
       const selectedCategoryObj = categories.find(cat => cat.value === selectedCategory);
@@ -274,10 +312,18 @@ export default function OurProductsPage() {
     }
   }, [selectedCategory, selectedBrand]);
 
+  // Fetch products immediately when sort changes (reset to page 1)
+  useEffect(() => {
+    if (categories.length > 1 && brands.length > 1) {
+      setCurrentPage(1);
+      fetchProductsWithFilters(1);
+    }
+  }, [sortBy]);
+
   // Reset to page 1 for client-side filters that don't require refetch
   useEffect(() => {
     setCurrentPage(1);
-  }, [sortBy, priceRange]);
+  }, [priceRange]);
 
   useEffect(() => {
     let filtered = [...products];
@@ -287,26 +333,8 @@ export default function OurProductsPage() {
       product.price >= priceRange.min && product.price <= priceRange.max
     );
 
-    // Sort products
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-asc':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'name-desc':
-        filtered.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      default:
-        break;
-    }
-
     setFilteredProducts(filtered);
-  }, [products, sortBy, priceRange]);
+  }, [products, priceRange]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -342,6 +370,7 @@ export default function OurProductsPage() {
                     <div className="shop-sortby">
                       <label className="filter-label">Sort By</label>
                       <select
+                        id="sort-select"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                         className="nice-select"
