@@ -39,14 +39,18 @@ export interface CartItem extends Product {
   selectedSize?: string;
   selectedColor?: string;
   uniqueId?: string;
+  cartItemId?: string; // Store the cart item ID from API response
 }
 
 export interface CartContextType {
   items: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (uniqueId: string) => void;
-  updateQuantity: (uniqueId: string, quantity: number) => void;
-  clearCart: () => void;
+  loading: boolean;
+  error: string | null;
+  addToCart: (item: CartItem) => Promise<void>;
+  removeFromCart: (uniqueId: string) => Promise<void>;
+  updateQuantity: (uniqueId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  refreshCart: () => Promise<void>;
   getTotalPrice: () => number;
   getTotalItems: () => number;
 }

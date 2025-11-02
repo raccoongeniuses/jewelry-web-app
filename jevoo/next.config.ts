@@ -21,6 +21,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Add API rewrites to avoid CORS issues
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/cart/:path*',
+  //       destination: 'https://api.jevoo-jewellery.com/api/cart/:path*',
+  //     },
+  //     {
+  //       source: '/api/proxy/cart/:path*',
+  //       destination: 'https://api.jevoo-jewellery.com/api/cart/:path*',
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;

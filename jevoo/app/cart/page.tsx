@@ -10,7 +10,7 @@ import CartItem from '../../components/cart/CartItem';
 import CartSummary from '../../components/cart/CartSummary';
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity } = useCart();
+  const { items, removeFromCart, updateQuantity, getTotalPrice, loading, error } = useCart();
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
@@ -34,23 +34,15 @@ export default function CartPage() {
   ];
 
   const calculateSubtotal = () => {
-    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return getTotalPrice();
   };
 
-  const calculateEcoTax = () => {
-    return calculateSubtotal() * 0.02; // 2% Eco Tax
-  };
-
-  const calculateVAT = () => {
-    return calculateSubtotal() * 0.20; // 20% VAT
+  const calculateDiscount = () => {
+    return appliedCoupon ? calculateSubtotal() * 0.10 : 0; // 10% discount for demo
   };
 
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const ecoTax = calculateEcoTax();
-    const vat = calculateVAT();
-    const discount = appliedCoupon ? subtotal * 0.10 : 0; // 10% discount for demo
-    return subtotal + ecoTax + vat - discount;
+    return calculateSubtotal() - calculateDiscount();
   };
 
   const handleScriptsLoaded = () => {
@@ -127,8 +119,20 @@ export default function CartPage() {
                                     key={uniqueKey}
                                     item={item}
                                     index={index + 1}
-                                    onQuantityChange={(quantity) => updateQuantity(item.id, quantity)}
-                                    onRemove={() => removeFromCart(item.id)}
+                                    onQuantityChange={async (quantity) => {
+                                      try {
+                                        await updateQuantity(item.uniqueId!, quantity);
+                                      } catch (error) {
+                                        console.error('Failed to update quantity:', error);
+                                      }
+                                    }}
+                                    onRemove={async () => {
+                                      try {
+                                        await removeFromCart(item.uniqueId!);
+                                      } catch (error) {
+                                        console.error('Failed to remove item:', error);
+                                      }
+                                    }}
                                   />
                                 );
                               })}
@@ -183,10 +187,8 @@ export default function CartPage() {
                       {/* Cart Calculation Area */}
                       <CartSummary
                         subtotal={calculateSubtotal()}
-                        ecoTax={calculateEcoTax()}
-                        vat={calculateVAT()}
                         total={calculateTotal()}
-                        discount={appliedCoupon ? calculateSubtotal() * 0.10 : 0}
+                        discount={calculateDiscount()}
                         couponCode={appliedCoupon}
                       />
                     </div>
