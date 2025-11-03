@@ -5,6 +5,7 @@ export interface User {
   lastName?: string;
   token?: string;
   createdAt?: string;
+  updatedAt?: string;
   sessions?: Array<{
     id: string;
     createdAt: string;

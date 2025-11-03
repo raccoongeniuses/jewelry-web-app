@@ -50,11 +50,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login(credentials);
 
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
+      // Fetch additional user data from /users/me endpoint
+      try {
+        const userMeData = await authService.fetchUserMe(response.token);
 
-      return response;
+        // Merge user data with the detailed user data from /users/me
+        const mergedUser = {
+          ...response.user,
+          ...userMeData.user,
+          token: response.token, // Ensure we preserve the original token
+          sessions: userMeData.user?.sessions || response.user.sessions,
+          customer: userMeData.user?.customer || response.user.customer,
+          createdAt: userMeData.user?.createdAt || response.user.createdAt,
+          updatedAt: userMeData.user?.updatedAt
+        };
+
+        // Store merged user in localStorage
+        localStorage.setItem('user', JSON.stringify(mergedUser));
+        setUser(mergedUser);
+
+        return { ...response, user: mergedUser };
+      } catch (userMeError) {
+        console.warn('Failed to fetch additional user data, using basic login data:', userMeError);
+
+        // Store user in localStorage with basic data
+        localStorage.setItem('user', JSON.stringify(response.user));
+        setUser(response.user);
+
+        return response;
+      }
     } catch (error) {
       throw error;
     }
