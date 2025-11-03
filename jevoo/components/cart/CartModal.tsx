@@ -14,7 +14,7 @@ declare global {
 }
 
 export default function CartModal() {
-  const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems } = useCart();
+  const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems, loading, error } = useCart();
   const [isOpen, setIsOpen] = useState(false);
 
   // Debug logging - remove in production
@@ -56,11 +56,11 @@ export default function CartModal() {
     };
   }, [isOpen]);
 
-  const handleQuantityChange = (uniqueId: string, newQuantity: number) => {
+  const handleQuantityChange = async (uniqueId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeFromCart(uniqueId);
+      await removeFromCart(uniqueId);
     } else {
-      updateQuantity(uniqueId, newQuantity);
+      await updateQuantity(uniqueId, newQuantity);
     }
   };
 
@@ -198,23 +198,26 @@ export default function CartModal() {
                     })}
                   </div>
 
+                  {/* Loading indicator */}
+                  {loading && (
+                    <div className="cart-loading">
+                      <div className="spinner"></div>
+                      <span>Updating cart...</span>
+                    </div>
+                  )}
+
+                  {/* Error message */}
+                  {error && (
+                    <div className="cart-error">
+                      <span>{error}</span>
+                    </div>
+                  )}
+
                   {/* Pricing Box */}
                   <div className="minicart-pricing-box">
-                    <div className="pricing-item">
-                      <span>sub-total</span>
-                      <span><strong>${getTotalPrice().toFixed(2)}</strong></span>
-                    </div>
-                    <div className="pricing-item">
-                      <span>Eco Tax (-2.00)</span>
-                      <span><strong>${(getTotalPrice() * 0.02).toFixed(2)}</strong></span>
-                    </div>
-                    <div className="pricing-item">
-                      <span>VAT (20%)</span>
-                      <span><strong>${(getTotalPrice() * 0.20).toFixed(2)}</strong></span>
-                    </div>
                     <div className="pricing-item total">
-                      <span>total</span>
-                      <span><strong>${(getTotalPrice() * 1.22).toFixed(2)}</strong></span>
+                      <span>Total</span>
+                      <span><strong>${getTotalPrice().toFixed(2)}</strong></span>
                     </div>
                   </div>
 

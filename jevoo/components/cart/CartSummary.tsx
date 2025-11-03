@@ -4,14 +4,12 @@ import Link from 'next/link';
 
 interface CartSummaryProps {
   subtotal: number;
-  ecoTax: number;
-  vat: number;
   total: number;
   discount: number;
   couponCode: string | null;
 }
 
-export default function CartSummary({ subtotal, ecoTax, vat, total, discount, couponCode }: CartSummaryProps) {
+export default function CartSummary({ subtotal, total, discount, couponCode }: CartSummaryProps) {
   return (
     <div className="cart-calculator-wrapper">
       <div className="cart-calculate-items">
@@ -20,7 +18,7 @@ export default function CartSummary({ subtotal, ecoTax, vat, total, discount, co
           <table className="table">
             <tbody>
               <tr className="subtotal">
-                <td>Sub Total</td>
+                <td>Subtotal</td>
                 <td>${subtotal.toFixed(2)}</td>
               </tr>
               {discount > 0 && (
@@ -34,14 +32,6 @@ export default function CartSummary({ subtotal, ecoTax, vat, total, discount, co
                   <td className="text-success">-${discount.toFixed(2)}</td>
                 </tr>
               )}
-              <tr className="eco-tax">
-                <td>Eco Tax (2%)</td>
-                <td>${ecoTax.toFixed(2)}</td>
-              </tr>
-              <tr className="vat">
-                <td>VAT (20%)</td>
-                <td>${vat.toFixed(2)}</td>
-              </tr>
               <tr className="total">
                 <td>Total</td>
                 <td className="total-amount">${total.toFixed(2)}</td>
