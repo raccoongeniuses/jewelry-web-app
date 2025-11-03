@@ -6,7 +6,7 @@ import MyAccountLayout from '@/components/MyAccountLayout';
 import Link from 'next/link';
 
 export default function MyAccountPage() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -19,103 +19,28 @@ export default function MyAccountPage() {
   });
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [userMeData, setUserMeData] = useState(null);
-
-  // Debug authentication state on component mount
-  useEffect(() => {
-    console.log('🔍 AUTHENTICATION DEBUG:');
-    console.log('   - isAuthenticated:', isAuthenticated);
-    console.log('   - user object:', user);
-    console.log('   - localStorage user:', localStorage.getItem('user'));
-    console.log('   - localStorage token:', localStorage.getItem('token'));
-
-    // Try to parse stored user if exists
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        console.log('   - parsed stored user:', parsedUser);
-        console.log('   - parsed user token:', parsedUser.token);
-      } catch (e) {
-        console.log('   - failed to parse stored user:', e);
-      }
-    }
-  }, [isAuthenticated, user]);
 
   // Fetch user data from /users/me endpoint when component mounts
   useEffect(() => {
     const fetchUserMeData = async () => {
-      console.log('🔄 Attempting to fetch /users/me data...');
-      console.log('🔍 Is authenticated:', isAuthenticated);
-      console.log('🔍 User object:', user);
-      console.log('🔍 User token exists:', !!user?.token);
-      console.log('🔍 User email:', user?.email);
-      console.log('🔍 User ID:', user?.id);
-
-      // Always try to fetch if we have any user object, even if token might be in different field
-      let token = user?.token || localStorage.getItem('token');
-
-      // Try to extract token from stored auth response if available
-      if (!token) {
-        try {
-          const storedAuthResponse = localStorage.getItem('authResponse');
-          if (storedAuthResponse) {
-            const authData = JSON.parse(storedAuthResponse);
-            token = authData.token;
-            console.log('🔍 Found token in stored auth response');
-          }
-        } catch (e) {
-          console.log('🔍 No stored auth response found');
-        }
-      }
-
-      console.log('🔍 Token to use:', token ? `${token.substring(0, 20)}...` : 'none');
-
-      if (isAuthenticated && user && (user?.token || token)) {
+      if (isAuthenticated && user?.token) {
         try {
           const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.jevoo-jewellery.com/api';
-          const url = `${API_BASE_URL}/users/me`;
-          console.log('🌐 Fetching from URL:', url);
-
-          console.log('📤 Making fetch request...');
-          const response = await fetch(url, {
+          await fetch(`${API_BASE_URL}/users/me`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${user?.token || token}`,
+              'Authorization': `Bearer ${user.token}`,
             },
           });
-
-          console.log('📥 Response received');
-          console.log('📊 Response status:', response.status);
-          console.log('📊 Response ok:', response.ok);
-          console.log('📊 Response headers:', response.headers);
-
-          if (response.ok) {
-            const data = await response.json();
-            setUserMeData(data);
-            console.log('✅ User data from /users/me:', data);
-          } else {
-            console.error('❌ Failed to fetch user data from /users/me. Status:', response.status);
-            const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
-          }
         } catch (error) {
-          console.error('❌ Error fetching user data:', error);
+          console.error('Error fetching user data:', error);
         }
-      } else {
-        console.log('❌ Not fetching /users/me - conditions not met');
-        console.log('   - isAuthenticated:', isAuthenticated);
-        console.log('   - user exists:', !!user);
-        console.log('   - token exists:', !!(user?.token || localStorage.getItem('token')));
       }
     };
 
-    // Add a small delay to ensure all auth state is loaded
-    const timeoutId = setTimeout(fetchUserMeData, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, user?.id, user?.email]); // Changed dependencies to be more reliable
+    fetchUserMeData();
+  }, [isAuthenticated, user?.token]);
 
   useEffect(() => {
     // Handle tab switching
