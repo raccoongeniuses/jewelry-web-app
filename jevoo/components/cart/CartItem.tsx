@@ -36,10 +36,10 @@ export default function CartItemComponent({ item, index, onQuantityChange, onRem
     <tr>
       <td className="pro-number">{index}</td>
       <td className="pro-thumbnail">
-        <Link href="/product-details">
+        <Link href={`/product-details?slug=${item.slug || 'product-slug'}`}>
           <Image
-            src={item.image}
-            alt={item.name}
+            src={item.image || '/placeholder-product.jpg'}
+            alt={typeof item.name === 'string' ? item.name : 'Product'}
             width={100}
             height={100}
             className="img-fluid"
@@ -47,15 +47,22 @@ export default function CartItemComponent({ item, index, onQuantityChange, onRem
         </Link>
       </td>
       <td className="pro-title">
-        <Link href="/product-details">{item.name}</Link>
+        <Link href={`/product-details?slug=${item.slug || 'product-slug'}`}>
+          {typeof item.name === 'string' ? item.name : 'Product Name'}
+        </Link>
         {item.brand && (
           <div className="manufacturer-name">
-            <small>Brand: {item.brand}</small>
+            <small>Brand: {typeof item.brand === 'string' ? item.brand : item.brand?.name || 'Unknown'}</small>
           </div>
         )}
-        {item.colors && item.colors.length > 0 && (
+        {item.selectedColor && (
           <div className="color-options mt-1">
-            <small>Color: {item.colors[0]}</small>
+            <small>Color: {typeof item.selectedColor === 'string' ? item.selectedColor : item.selectedColor?.name || 'Selected'}</small>
+          </div>
+        )}
+        {item.selectedSize && (
+          <div className="size-options mt-1">
+            <small>Size: {item.selectedSize}</small>
           </div>
         )}
       </td>
@@ -117,10 +124,10 @@ export default function CartItemComponent({ item, index, onQuantityChange, onRem
         </div>
       </td>
       <td className="pro-price">
-        <span className="amount">${(item.price * item.quantity).toFixed(2)}</span>
-        {item.originalPrice && item.originalPrice > item.price && (
+        <span className="amount">${(parseFloat(String(item.price || 0)) * item.quantity).toFixed(2)}</span>
+        {item.originalPrice && parseFloat(String(item.originalPrice)) > parseFloat(String(item.price || 0)) && (
           <small className="text-muted d-block">
-            <del>${(item.originalPrice * item.quantity).toFixed(2)}</del>
+            <del>${(parseFloat(String(item.originalPrice)) * item.quantity).toFixed(2)}</del>
           </small>
         )}
       </td>

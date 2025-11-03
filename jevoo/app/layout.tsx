@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
-import { Lato } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { CartProvider } from "../contexts/CartContext";
 import { AuthProvider } from "../contexts/AuthContext";
 import { WishlistProvider } from "../components/wishlist/WishlistProvider";
 import ModernizrInit from "../components/ModernizrInit";
-
-const lato = Lato({
-  weight: ['300', '400', '700', '900'],
-  style: ['normal', 'italic'],
-  subsets: ["latin"],
-  variable: "--font-lato",
-});
 
 export const metadata: Metadata = {
   title: "Jevoo Jewellery - Jewelry Shop eCommerce",
@@ -38,7 +30,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="/assets/css/style.css" />
         <link rel="stylesheet" href="/assets/css/draggable-grid.css" />
       </head>
-      <body className={`${lato.variable} antialiased`} suppressHydrationWarning>
+      <body className="antialiased" suppressHydrationWarning>
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
@@ -61,8 +53,20 @@ export default function RootLayout({
         <Script src="/assets/js/plugins/imagesloaded.pkgd.min.js" strategy="afterInteractive" />
         <Script src="/assets/js/plugins/ajaxchimp.js" strategy="afterInteractive" />
         <Script src="/assets/js/plugins/ajax-mail.js" strategy="afterInteractive" />
-        <Script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfmCVTjRI007pC1Yk2o2d_EhgkjTsFVN8" strategy="afterInteractive" />
-        <Script src="/assets/js/plugins/google-map.js" strategy="afterInteractive" />
+        {/* <Script
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfmCVTjRI007pC1Yk2o2d_EhgkjTsFVN8"
+          strategy="afterInteractive"
+          onError={(e) => {
+            console.error('Failed to load Google Maps API:', e);
+          }}
+        />
+        <Script
+          src="/assets/js/plugins/google-map.js"
+          strategy="afterInteractive"
+          onError={(e) => {
+            console.error('Failed to load Google Map plugin:', e);
+          }}
+        /> */}
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" strategy="afterInteractive" />
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js" strategy="afterInteractive" />
         <Script src="/assets/js/main.js" strategy="afterInteractive" />

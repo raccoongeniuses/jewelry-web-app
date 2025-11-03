@@ -2,7 +2,9 @@ $.fn.elExists = function() {
     return this.length > 0;
 };
 
-var myCenter=new google.maps.LatLng(23.7637313,90.4294556);
+// Check if google maps API is loaded and we're in browser environment
+if (typeof window !== 'undefined' && window.google && window.google.maps) {
+    var myCenter=new google.maps.LatLng(23.7637313,90.4294556);
     function initialize()
     {
         var mapProp = {
@@ -145,8 +147,10 @@ var myCenter=new google.maps.LatLng(23.7637313,90.4294556);
         map.setOptions({styles: styles});
         marker.setMap(map);
     }
-if($('#google-map').elExists()){
-    google.maps.event.addDomListener(window, 'load', initialize);
+
+    if($('#google-map').elExists()){
+        google.maps.event.addDomListener(window, 'load', initialize);
+    }
 }
 
 
