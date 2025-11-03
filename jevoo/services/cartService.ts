@@ -1,8 +1,7 @@
 import { CartResponse, CartAddRequest, CartApiError } from '@/types/cart';
 import { CartItem } from '@/types/product';
 
-// Use full API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.jevoo-jewellery.com';
 
 const handleApiError = async (response: Response): Promise<CartApiError> => {
   let errorMessage = 'An error occurred. Please try again.';
@@ -59,11 +58,25 @@ const getAuthHeaders = (): Record<string, string> => {
     'Content-Type': 'application/json',
   };
 
-  // Add token if available in localStorage
+  // Only add token on client side
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    // First try to get token from stored user object (consistent with auth service)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.token) {
+          headers['Authorization'] = `Bearer ${user.token}`;
+        }
+      } catch (error) {
+        console.error('Error parsing stored user for token:', error);
+      }
+    }
+
+    // Fallback to direct token storage if available
+    const directToken = localStorage.getItem('authToken');
+    if (directToken && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${directToken}`;
     }
   }
 
@@ -109,7 +122,7 @@ export const cartService = {
   },
 
   async updateQuantity(itemId: string, quantity: number): Promise<CartResponse> {
-    const response = await fetch(`${API_BASE_URL}/cart`, {
+    const response = await fetch(`${API_BASE_URL}/cart/update`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -127,13 +140,12 @@ export const cartService = {
     return data;
   },
 
-  async removeFromCart(productId: string, productAttributes?: Record<string, any>): Promise<CartResponse> {
+  async removeFromCart(itemId: string): Promise<CartResponse> {
     const response = await fetch(`${API_BASE_URL}/cart/remove`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        productId,
-        productAttributes: productAttributes || {}
+        itemId
       }),
     });
 

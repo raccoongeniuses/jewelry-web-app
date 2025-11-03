@@ -48,9 +48,14 @@ export interface CartContextType {
   error: string | null;
   addToCart: (item: CartItem) => Promise<void>;
   removeFromCart: (uniqueId: string) => Promise<void>;
+  confirmRemoveFromCart: () => Promise<void>;
   updateQuantity: (uniqueId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
   getTotalPrice: () => number;
   getTotalItems: () => number;
+  showConfirmationModal: boolean;
+  confirmationMessage: string;
+  confirmationItemName: string;
+  cancelConfirmation: () => void;
 }

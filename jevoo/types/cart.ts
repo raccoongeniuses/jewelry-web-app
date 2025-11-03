@@ -30,7 +30,7 @@ export interface CartItemResponse {
 }
 
 export interface CartResponse {
-  cart: {
+  cart?: {
     createdAt: string;
     updatedAt: string;
     sessionId: string;
@@ -40,6 +40,10 @@ export interface CartResponse {
     status: string;
     expiresAt: string;
     id: string;
+  };
+  items?: CartItemResponse[];
+  data?: {
+    items: CartItemResponse[];
   };
 }
 
@@ -52,6 +56,10 @@ export interface CartAddRequest {
 export interface CartUpdateRequest {
   itemId: string;
   quantity: number;
+}
+
+export interface CartRemoveRequest {
+  itemId: string;
 }
 
 export interface CartApiError {
