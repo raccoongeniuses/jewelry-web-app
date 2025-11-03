@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { logout } from '@/contexts/AuthContext';
 import MyAccountLayout from '@/components/MyAccountLayout';
 import Link from 'next/link';
 
@@ -20,6 +19,28 @@ export default function MyAccountPage() {
   });
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Fetch user data from /users/me endpoint when component mounts
+  useEffect(() => {
+    const fetchUserMeData = async () => {
+      if (isAuthenticated && user?.token) {
+        try {
+          const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.jevoo-jewellery.com/api';
+          await fetch(`${API_BASE_URL}/users/me`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${user.token}`,
+            },
+          });
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserMeData();
+  }, [isAuthenticated, user?.token]);
 
   useEffect(() => {
     // Handle tab switching

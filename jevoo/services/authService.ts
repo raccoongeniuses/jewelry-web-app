@@ -63,6 +63,24 @@ const handleApiError = async (response: Response): Promise<AuthError> => {
 };
 
 export const authService = {
+  async fetchUserMe(token: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await handleApiError(response);
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
+  },
+
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/users/login`, {
       method: 'POST',
