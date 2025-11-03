@@ -53,12 +53,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Fetch additional user data from /users/me endpoint
       try {
         const userMeData = await authService.fetchUserMe(response.token);
-
-        // Merge user data with the detailed user data from /users/me
         const mergedUser = {
           ...response.user,
           ...userMeData.user,
-          token: response.token, // Ensure we preserve the original token
+          token: response.token, 
           sessions: userMeData.user?.sessions || response.user.sessions,
           customer: userMeData.user?.customer || response.user.customer,
           createdAt: userMeData.user?.createdAt || response.user.createdAt,
