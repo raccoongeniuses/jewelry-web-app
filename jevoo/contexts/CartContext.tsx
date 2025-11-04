@@ -6,6 +6,7 @@ import { cartService, cartItemToAddRequest } from '../services/cartService';
 import { CartItemResponse, CartResponse } from '../types/cart';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 import SuccessModal from '../components/ui/SuccessModal';
+import { useAuth } from './AuthContext';
 
 interface CartState {
   items: CartItem[];
@@ -17,6 +18,7 @@ interface CartState {
   pendingRemoveItem: string | null;
   showSuccessModal: boolean;
   successMessage: string;
+  sessionId: string | null;
 }
 
 type CartAction =
@@ -31,7 +33,8 @@ type CartAction =
   | { type: 'SHOW_CONFIRMATION_MODAL'; payload: { message: string; itemName: string; uniqueId: string } }
   | { type: 'HIDE_CONFIRMATION_MODAL' }
   | { type: 'SHOW_SUCCESS_MODAL'; payload: string }
-  | { type: 'HIDE_SUCCESS_MODAL' };
+  | { type: 'HIDE_SUCCESS_MODAL' }
+  | { type: 'SET_SESSION_ID'; payload: string };
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
@@ -225,6 +228,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         successMessage: '',
       };
 
+    case 'SET_SESSION_ID':
+      return {
+        ...state,
+        sessionId: action.payload,
+      };
+
     default:
       return state;
   }
@@ -233,6 +242,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     loading: false,
@@ -242,8 +252,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     confirmationItemName: '',
     pendingRemoveItem: null,
     showSuccessModal: false,
-    successMessage: ''
+    successMessage: '',
+    sessionId: null
   });
+
+  // Handle cart clearing on logout
+  useEffect(() => {
+    // If user logs out (isAuthenticated becomes false), clear the cart
+    if (!isAuthenticated && state.items.length > 0) {
+      dispatch({ type: 'CLEAR_CART' });
+      localStorage.removeItem('coranoCart');
+    }
+  }, [isAuthenticated]);
 
   // Load cart from API on mount, fallback to localStorage
   useEffect(() => {
@@ -269,8 +289,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const response = await cartService.getCart();
-
-        console.log('API Response:', response); // Debug log
 
         // Handle different response formats
         let apiItems: CartItemResponse[] | null = null;
@@ -328,12 +346,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     loadCart();
-  }, []);
+  }, [isAuthenticated]); // Reload cart when authentication state changes
+
+  // Generate guest session ID for cart transfer purposes
+  const ensureGuestSessionId = () => {
+    if (!isAuthenticated) {
+      let sessionId = localStorage.getItem('guestSessionId');
+      if (!sessionId) {
+        sessionId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+        localStorage.setItem('guestSessionId', sessionId);
+      }
+      return sessionId;
+    }
+    return null;
+  };
 
   // Save cart to localStorage whenever items change (for offline functionality)
   useEffect(() => {
     localStorage.setItem('coranoCart', JSON.stringify(state.items));
-  }, [state.items]);
+
+    // Ensure guest session ID exists when guest has items in cart
+    if (!isAuthenticated && state.items.length > 0) {
+      ensureGuestSessionId();
+    }
+  }, [state.items, isAuthenticated]);
 
   const addToCart = async (item: CartItem) => {
     try {
@@ -342,31 +378,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // First add to local state for immediate UI feedback
       dispatch({ type: 'ADD_TO_CART', payload: item });
 
-      // Then call API to persist
-      const request = cartItemToAddRequest(item);
-      const response = await cartService.addToCart(request);
+      // Call API for both guests and authenticated users to get sessionId
+      try {
+        const request = cartItemToAddRequest(item);
+        const response = await cartService.addToCart(request);
 
-      console.log('Add to cart response:', response); // Debug log
+        // Store sessionId from API response
+        if (response && response.cart && response.cart.sessionId) {
+          dispatch({ type: 'SET_SESSION_ID', payload: response.cart.sessionId });
+          localStorage.setItem('guestSessionId', response.cart.sessionId);
+        }
 
-      // Handle different response formats
-      let apiItems: CartItemResponse[] | null = null;
-      if (response && response.cart && response.cart.items) {
-        apiItems = response.cart.items;
-      } else if (response && response.items) {
-        apiItems = response.items;
-      } else if (Array.isArray(response)) {
-        apiItems = response;
-      } else if (response && response.data && response.data.items) {
-        apiItems = response.data.items;
-      }
+        // Only sync cart items for authenticated users
+        if (isAuthenticated) {
+          // Handle different response formats
+          let apiItems: CartItemResponse[] | null = null;
+          if (response && response.cart && response.cart.items) {
+            apiItems = response.cart.items;
+          } else if (response && response.items) {
+            apiItems = response.items;
+          } else if (Array.isArray(response)) {
+            apiItems = response;
+          } else if (response && response.data && response.data.items) {
+            apiItems = response.data.items;
+          }
 
-      if (apiItems && Array.isArray(apiItems)) {
-        dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          if (apiItems && Array.isArray(apiItems)) {
+            dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          }
+        }
+      } catch (apiError) {
+        console.error('API error adding item to cart:', apiError);
+        // Don't show error to user for guest users, just continue with local state
+        dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to sync with server' : null });
       }
     } catch (error) {
       console.error('Error adding item to cart:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to add item to cart' });
-      // Keep local state changes on API error so user doesn't lose their action
+      // Don't show errors for guest users since they're expected to work offline
+      dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to add item to cart' : null });
     }
   };
 
@@ -406,20 +455,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Item not found in cart');
       }
 
-      // Use the cart item ID directly if available (from API response)
-      // Fallback to parsing from uniqueId for backward compatibility
-      const cartItemId = item.cartItemId || item.uniqueId?.split('-').pop();
-      if (!cartItemId) {
-        throw new Error('Cart item ID not found');
-      }
-
       // First remove from local state for immediate UI feedback
       dispatch({ type: 'REMOVE_FROM_CART', payload: state.pendingRemoveItem });
 
-      // Then call API to persist using cart item ID
-      const response = await cartService.removeFromCart(cartItemId);
+      // Only call API if user is authenticated and item has cartItemId
+      if (isAuthenticated && item.cartItemId) {
+        try {
+          const response = await cartService.removeFromCart(item.cartItemId);
 
-      console.log('Remove from cart response:', response); // Debug log
+          // Handle different response formats to sync with server
+          let apiItems: CartItemResponse[] | null = null;
+          if (response && response.cart && response.cart.items) {
+            apiItems = response.cart.items;
+          } else if (response && response.items && Array.isArray(response.items)) {
+            apiItems = response.items;
+          } else if (Array.isArray(response)) {
+            apiItems = response;
+          } else if (response && response.data && response.data.items && Array.isArray(response.data.items)) {
+            apiItems = response.data.items;
+          }
+
+          if (apiItems && Array.isArray(apiItems)) {
+            dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          }
+        } catch (apiError) {
+          console.error('API error removing item from cart:', apiError);
+          dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to sync with server' : null });
+        }
+      }
 
       // Show success modal regardless of API response format
       // The item has already been removed from local state
@@ -427,22 +490,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: 'SHOW_SUCCESS_MODAL',
         payload: 'Item successfully removed from cart!'
       });
-
-      // Handle different response formats to sync with server
-      let apiItems: CartItemResponse[] | null = null;
-      if (response && response.cart && response.cart.items) {
-        apiItems = response.cart.items;
-      } else if (response && response.items && Array.isArray(response.items)) {
-        apiItems = response.items;
-      } else if (Array.isArray(response)) {
-        apiItems = response;
-      } else if (response && response.data && response.data.items && Array.isArray(response.data.items)) {
-        apiItems = response.data.items;
-      }
-
-      if (apiItems && Array.isArray(apiItems)) {
-        dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
-      }
     } catch (error) {
       console.error('Error removing item from cart:', error);
       // Still show success modal since item was removed from local state
@@ -450,7 +497,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: 'SHOW_SUCCESS_MODAL',
         payload: 'Item removed from cart!'
       });
-      // Keep local state changes on API error so user doesn't lose their action
     }
   };
 
@@ -464,40 +510,37 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Item not found in cart');
       }
 
-      // Use the cart item ID directly if available (from API response)
-      // Fallback to parsing from uniqueId for backward compatibility
-      const cartItemId = item.cartItemId || item.uniqueId?.split('-').pop();
-      if (!cartItemId) {
-        throw new Error('Cart item ID not found');
-      }
-
       // First update local state for immediate UI feedback
       dispatch({ type: 'UPDATE_QUANTITY', payload: { uniqueId, quantity } });
 
-      // Then call API to persist using cart item ID
-      const response = await cartService.updateQuantity(cartItemId, quantity);
+      // Only call API if user is authenticated and item has cartItemId
+      if (isAuthenticated && item.cartItemId) {
+        try {
+          const response = await cartService.updateQuantity(item.cartItemId, quantity);
 
-      console.log('Update quantity response:', response); // Debug log
+          // Handle different response formats
+          let apiItems: CartItemResponse[] | null = null;
+          if (response && response.cart && response.cart.items) {
+            apiItems = response.cart.items;
+          } else if (response && response.items) {
+            apiItems = response.items;
+          } else if (Array.isArray(response)) {
+            apiItems = response;
+          } else if (response && response.data && response.data.items) {
+            apiItems = response.data.items;
+          }
 
-      // Handle different response formats
-      let apiItems: CartItemResponse[] | null = null;
-      if (response && response.cart && response.cart.items) {
-        apiItems = response.cart.items;
-      } else if (response && response.items) {
-        apiItems = response.items;
-      } else if (Array.isArray(response)) {
-        apiItems = response;
-      } else if (response && response.data && response.data.items) {
-        apiItems = response.data.items;
-      }
-
-      if (apiItems && Array.isArray(apiItems)) {
-        dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          if (apiItems && Array.isArray(apiItems)) {
+            dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          }
+        } catch (apiError) {
+          console.error('API error updating item quantity:', apiError);
+          dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to sync with server' : null });
+        }
       }
     } catch (error) {
       console.error('Error updating item quantity:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to update item quantity' });
-      // Keep local state changes on API error so user doesn't lose their action
+      dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to update item quantity' : null });
     }
   };
 
@@ -508,28 +551,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // First clear local state for immediate UI feedback
       dispatch({ type: 'CLEAR_CART' });
 
-      // Then call API to persist
-      const response = await cartService.clearCart();
+      // Only call API if user is authenticated
+      if (isAuthenticated) {
+        try {
+          const response = await cartService.clearCart();
 
-      console.log('Clear cart response:', response); // Debug log
+          // Handle different response formats - should be empty array
+          let apiItems: CartItemResponse[] = [];
+          if (response && response.cart && response.cart.items) {
+            apiItems = response.cart.items;
+          } else if (response && response.items) {
+            apiItems = response.items;
+          } else if (Array.isArray(response)) {
+            apiItems = response;
+          } else if (response && response.data && response.data.items) {
+            apiItems = response.data.items;
+          }
 
-      // Handle different response formats - should be empty array
-      let apiItems: CartItemResponse[] = [];
-      if (response && response.cart && response.cart.items) {
-        apiItems = response.cart.items;
-      } else if (response && response.items) {
-        apiItems = response.items;
-      } else if (Array.isArray(response)) {
-        apiItems = response;
-      } else if (response && response.data && response.data.items) {
-        apiItems = response.data.items;
+          dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+        } catch (apiError) {
+          console.error('API error clearing cart:', apiError);
+          dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to sync with server' : null });
+        }
       }
-
-      dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
     } catch (error) {
       console.error('Error clearing cart:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to clear cart' });
-      // Keep local state changes on API error so user doesn't lose their action
+      dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to clear cart' : null });
     }
   };
 
@@ -538,7 +585,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dispatch({ type: 'SET_ERROR', payload: null });
 
       const response = await cartService.getCart();
-      console.log('Refresh cart response:', response); // Debug log
 
       // Handle different response formats
       let apiItems: CartItemResponse[] | null = null;

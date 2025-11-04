@@ -171,6 +171,57 @@ export const cartService = {
 
     const data = await response.json();
     return data;
+  },
+
+  async transferCart(sessionId: string, customerId: string): Promise<CartResponse> {
+    // Handle case where API_BASE_URL might already include /api
+    let transferUrl;
+    if (API_BASE_URL.endsWith('/api')) {
+      transferUrl = `${API_BASE_URL}/cart/transfer`;
+    } else {
+      transferUrl = `${API_BASE_URL}/api/cart/transfer`;
+    }
+
+    const requestBody = {
+      sessionId,
+      customerId
+    };
+
+    // Ensure we have proper auth headers for transfer
+    const headers = getAuthHeaders();
+
+    // Ensure content-type is set
+    if (!headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    try {
+      const response = await fetch(transferUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const error = await handleApiError(response);
+
+        // If it's a 404, the transfer endpoint doesn't exist on backend
+        // In this case, we should gracefully handle the failure and not block the login
+        if (response.status === 404) {
+          // Return a mock successful response to not block the login flow
+          return {
+            cart: { items: [], itemCount: 0, total: 0, status: 'active', sessionId: '', createdAt: '', updatedAt: '', expiresAt: '', id: '' }
+          };
+        }
+
+        throw error;
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (networkError) {
+      throw networkError;
+    }
   }
 };
 

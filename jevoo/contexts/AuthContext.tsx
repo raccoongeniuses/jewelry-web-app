@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, LoginCredentials, RegisterCredentials, AuthResponse } from '@/types/auth';
 import { authService } from '@/services/authService';
+import { cartService } from '@/services/cartService';
 
 interface AuthContextType {
   user: User | null;
@@ -56,12 +57,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const mergedUser = {
           ...response.user,
           ...userMeData.user,
-          token: response.token, 
+          token: response.token,
           sessions: userMeData.user?.sessions || response.user.sessions,
           customer: userMeData.user?.customer || response.user.customer,
           createdAt: userMeData.user?.createdAt || response.user.createdAt,
           updatedAt: userMeData.user?.updatedAt
         };
+
+        // Check if there's a guest cart that needs to be transferred
+        const guestCartItems = localStorage.getItem('coranoCart');
+
+        if (guestCartItems) {
+          try {
+            const cartItems = JSON.parse(guestCartItems);
+
+            if (Array.isArray(cartItems) && cartItems.length > 0) {
+              // Get the guest session ID from localStorage (stored by cart context)
+              let guestSessionId = localStorage.getItem('guestSessionId') ||
+                                   document.cookie.split(';')
+                                     .find(cookie => cookie.trim().startsWith('sessionId='))
+                                     ?.split('=')[1];
+
+              // Get customer ID only from user.customer.docs[0].id (docs is an array)
+              const customerId = mergedUser.customer?.docs?.[0]?.id;
+
+              if (guestSessionId && customerId) {
+                try {
+                  // Transfer cart from guest to logged-in user
+                  await cartService.transferCart(guestSessionId, customerId);
+
+                  // Clear guest cart and session ID after successful transfer
+                  localStorage.removeItem('coranoCart');
+                  localStorage.removeItem('guestSessionId');
+                } catch (transferError) {
+                  console.error('Failed to transfer cart:', transferError);
+                  // Continue with login even if transfer fails
+                }
+              }
+            }
+          } catch (parseError) {
+            console.error('Failed to parse guest cart:', parseError);
+          }
+        }
 
         // Store merged user in localStorage
         localStorage.setItem('user', JSON.stringify(mergedUser));
@@ -129,6 +166,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear cart from localStorage when user logs out
+    localStorage.removeItem('coranoCart');
     localStorage.removeItem('user');
     setUser(null);
   };
