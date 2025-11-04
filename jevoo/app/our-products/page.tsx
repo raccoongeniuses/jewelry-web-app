@@ -43,10 +43,9 @@ export default function OurProductsPage() {
   ];
 
   // Calculate pagination values
-  const totalPages = Math.min(Math.ceil(filteredProducts.length / productsPerPage), maxPages);
+  const totalPages = Math.min(Math.ceil(totalProducts / productsPerPage), maxPages);
   const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  const currentProducts = filteredProducts;
   
   // Check if current page is empty
   const isPageEmpty = currentProducts.length === 0;
@@ -460,7 +459,7 @@ export default function OurProductsPage() {
           <div className="col-12">
             <div className="results-summary">
               <p className="results-text">
-                Showing {filteredProducts.length > 0 ? `${startIndex + 1}-${Math.min(endIndex, filteredProducts.length)}` : '0'} of <span className="results-count">{filteredProducts.length}</span> of <span className="total-count">{totalProducts}</span> products
+                Showing {currentProducts.length > 0 ? `${startIndex + 1}-${Math.min(startIndex + currentProducts.length, totalProducts)}` : '0'} of <span className="results-count">{totalProducts}</span> products
               </p>
             </div>
           </div>
