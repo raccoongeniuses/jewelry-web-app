@@ -58,10 +58,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Price */}
       <div className="price-box">
-        <span className="price-regular">${product.price.toFixed(2)}</span>
-        {product.originalPrice && product.originalPrice > product.price && (
+        <span className="price-regular">${product.salePrice ? product.salePrice.toFixed(2) : product.price.toFixed(2)}</span>
+        {product.salePrice && (
           <span className="price-old">
-            <del>${product.originalPrice.toFixed(2)}</del>
+            <del>${product.price.toFixed(2)}</del>
           </span>
         )}
       </div>

@@ -1,89 +1,102 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProductCard from './ProductCard';
 import { Product } from '../../types/product';
+import { fetchRelatedProducts, RelatedProductItem } from '../../utils/relatedProductsApi';
 
 interface RelatedProductsProps {
-  currentProductId: string;
+  slug: string;
 }
 
-export default function RelatedProducts({ }: RelatedProductsProps) {
+export default function RelatedProducts({ slug }: RelatedProductsProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Related products data from corano/product-details.html (exact match including the 5th product)
-  const relatedProducts: Product[] = [
-    {
-      id: '2',
-      name: 'Perfect Diamond Jewelry',
-      price: 60.00,
-      originalPrice: 70.00,
-      image: '/assets/img/product/diamond-ring.jpg',
-      secondaryImage: '/assets/img/product/diamond-rings.jpeg',
-      brand: 'Gold',
-      colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'],
-      isNew: true,
-      discount: 10,
-      url: '/product-details'
-    },
-    {
-      id: '3',
-      name: 'Handmade Golden Necklace',
-      price: 50.00,
-      originalPrice: 80.00,
-      image: '/assets/img/product/mony-ring.jpeg',
-      secondaryImage: '/assets/img/product/mony-rings.jpg',
-      brand: 'mony',
-      colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'],
-      isNew: true,
-      isSale: true,
-      discount: 38,
-      url: '/product-details'
-    },
-    {
-      id: '4',
-      name: 'Perfect Diamond Jewelry',
-      price: 99.00,
-      image: '/assets/img/product/diamond-earring.jpeg',
-      secondaryImage: '/assets/img/product/diamond-necklace.jpeg',
-      brand: 'Diamond',
-      colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'],
-      isNew: true,
-      url: '/product-details'
-    },
-    {
-      id: '5',
-      name: 'Diamond Exclusive Ornament',
-      price: 55.00,
-      originalPrice: 75.00,
-      image: '/assets/img/product/diamond-ring.jpeg',
-      secondaryImage: '/assets/img/product/diamond-ring-1.jpeg',
-      brand: 'silver',
-      colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'],
-      isSale: true,
-      discount: 15,
-      url: '/product-details'
-    },
-    {
-      id: '6',
-      name: 'Citygold Exclusive Ring',
-      price: 60.00,
-      originalPrice: 70.00,
-      image: '/assets/img/product/gold-necklace.jpeg',
-      secondaryImage: '/assets/img/product/gold-necklace-details-1.jpeg',
-      brand: 'mony',
-      colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'],
-      isNew: true,
-      discount: 20,
-      url: '/product-details'
+  // Helper function to construct full image URL
+  const getFullImageUrl = (imageUrl: string | undefined) => {
+    if (!imageUrl) return '/placeholder-product.jpg';
+    // If URL already starts with http, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    // If image URL starts with /api and base URL ends with /api, remove /api from image URL
+    if (imageUrl.startsWith('/api') && baseUrl.endsWith('/api')) {
+      return `${baseUrl}${imageUrl.replace('/api', '')}`;
     }
-  ];
+    // Otherwise, prepend the API base URL
+    return `${baseUrl}${imageUrl}`;
+  };
+
+  // Transform API data to Product interface
+  const transformRelatedProduct = (item: RelatedProductItem): Product => {
+    const relatedProduct = item.relatedProduct;
+
+    // Get gallery images with full URLs
+    const galleryImages = relatedProduct.galleries.map(gallery => getFullImageUrl(gallery.image.url));
+    const primaryImage = getFullImageUrl(relatedProduct.productImage.url);
+
+    // Use the API pricing data directly as requested
+    // price: Original price from API
+    // salePrice: Sale price from API (if exists)
+    const originalPrice = relatedProduct.price;
+    const salePrice = relatedProduct.salePrice;
+
+    return {
+      id: relatedProduct.id,
+      name: relatedProduct.name,
+      slug: relatedProduct.slug,
+      price: originalPrice, // Original price from API
+      salePrice: salePrice, // Sale price from API (if exists)
+      originalPrice: salePrice ? originalPrice : undefined,
+      image: primaryImage,
+      secondaryImage: galleryImages.length > 0 ? galleryImages[0] : undefined,
+      images: galleryImages,
+      brand: relatedProduct.brand.name,
+      category: relatedProduct.categories.name,
+      isNew: relatedProduct.isNew,
+      isSale: salePrice ? true : false, // Show as sale if salePrice exists
+      isOnSale: salePrice ? true : false, // Show as on sale if salePrice exists
+      discount: salePrice && originalPrice > salePrice
+        ? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
+        : undefined,
+      url: `/products/${relatedProduct.slug}`,
+      colors: [],
+      sizes: [],
+    };
+  };
+
+  // Fetch related products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchRelatedProducts(slug);
+        const transformedProducts = response.docs.map(transformRelatedProduct);
+        setRelatedProducts(transformedProducts);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching related products:', err);
+        setError('Failed to load related products');
+        // Set empty array to prevent infinite loading
+        setRelatedProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchProducts();
+    }
+  }, [slug]);
 
   useEffect(() => {
     // Initialize Slick carousel exactly like corano
-    if (typeof window !== 'undefined' && carouselRef.current) {
+    if (typeof window !== 'undefined' && carouselRef.current && relatedProducts.length > 0) {
       const initSlickCarousel = () => {
         const $ = (window as any).$;
         if ($ && $.fn && $.fn.slick) {
@@ -166,7 +179,7 @@ export default function RelatedProducts({ }: RelatedProductsProps) {
         }
       }
     };
-  }, []);
+  }, [relatedProducts]); // Re-initialize when products change
 
   return (
     <section className="related-products section-padding">
@@ -182,17 +195,46 @@ export default function RelatedProducts({ }: RelatedProductsProps) {
         </div>
         <div className="row">
           <div className="col-12">
-            {/* Use the exact same structure and classes as corano */}
-            <div
-              ref={carouselRef}
-              className="product-carousel-4 slick-row-10 slick-arrow-style"
-            >
-              {relatedProducts.map((product) => (
-                <div key={product.id} className="product-item" onClick={() => router.push('/our-products')}>
-                  <ProductCard product={product} disableLinks={true} />
+            {loading && (
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="sr-only">Loading related products...</span>
                 </div>
-              ))}
-            </div>
+                <p className="mt-3">Loading related products...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="text-center py-5">
+                <div className="alert alert-warning">
+                  <p>{error}</p>
+                </div>
+              </div>
+            )}
+
+            {!loading && !error && relatedProducts.length === 0 && (
+              <div className="text-center py-5">
+                <p className="text-muted">No related products found.</p>
+              </div>
+            )}
+
+            {!loading && !error && relatedProducts.length > 0 && (
+              /* Use the exact same structure and classes as corano */
+              <div
+                ref={carouselRef}
+                className="product-carousel-4 slick-row-10 slick-arrow-style"
+              >
+                {relatedProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="product-item"
+                    onClick={() => router.push(product.url || '/our-products')}
+                  >
+                    <ProductCard product={product} disableLinks={true} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -61,7 +61,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     const fetchProduct = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ''}/products/slug/${resolvedParams.slug}?depth=1`
+          `${process.env.NEXT_PUBLIC_API_URL || ''}/products/slug/${resolvedParams.slug}`
         );
 
         if (!response.ok) {
@@ -70,14 +70,9 @@ export default function ProductPage({ params }: ProductPageProps) {
 
         const item = await response.json();
 
-        // Debug: Log the API response to see the structure
-        console.log('API Response:', item);
-        console.log('Product Image URL:', item.productImage?.url);
-        console.log('Galleries:', item.galleries);
 
         // Transform API response to Product type
         const mainImageUrl = getFullImageUrl(item.productImage?.url);
-        console.log('Main Image URL:', mainImageUrl);
 
         const transformedProduct: ExtendedProduct = {
           id: item.id,
@@ -85,9 +80,8 @@ export default function ProductPage({ params }: ProductPageProps) {
           slug: item.slug,
           description: item.description,
           shortDescription: item.shortDescription || '',
-          price: item.isOnSale ? item.salePrice : item.price,
-          salePrice: item.finalPrice,
-          originalPrice: item.isOnSale ? item.price : item.salePrice,
+          price: item.price,
+          salePrice: item.salePrice,
           isOnSale: item.isOnSale,
           category: item.categories?.name || 'uncategorized',
           brand: item.brand?.name || 'Brand',
@@ -95,7 +89,6 @@ export default function ProductPage({ params }: ProductPageProps) {
           secondaryImage: mainImageUrl,
           images: (() => {
             const galleryImages = item.galleries?.map((gallery: any) => getFullImageUrl(gallery.image?.url)).filter(Boolean) || [];
-            console.log('Gallery Images:', galleryImages);
             // If we have gallery images, include them, otherwise just use the main image
             return galleryImages.length > 0 ? [mainImageUrl, ...galleryImages].slice(0, 5) : [mainImageUrl];
           })(),
@@ -109,8 +102,8 @@ export default function ProductPage({ params }: ProductPageProps) {
           colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'], // Default colors
           sizes: ['S', 'M', 'L', 'XL'], // Default sizes
           inStock: item.stockStatus === 'in_stock',
-          stockCount: item.stock || 100, // Use stock from API or default to 100
-          isNew: false, // You can determine this from createdAt if needed
+          stockCount: item.stock || 100,
+          isNew: false,
           isSale: item.isOnSale,
           discount: item.isOnSale && item.price > item.finalPrice
             ? Math.round(((item.price - item.finalPrice) / item.price) * 100)
@@ -121,6 +114,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           categories: [item.categories?.name || 'Jewelry'], // Convert category to array
           tags: ['jewelry', 'luxury', 'premium'], // Default tags
         };
+
 
         setProduct(transformedProduct);
       } catch (error) {
@@ -283,7 +277,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Page Main Wrapper End */}
 
           {/* Related Products Section */}
-          <RelatedProducts currentProductId={product.id} />
+          <RelatedProducts slug={product.slug} />
         </main>
 
         <Footer />

@@ -116,7 +116,7 @@ export default function ProductCard({ product, disableLinks = false }: ProductCa
         
         <div className="price-box">
           <span className="price-regular">${product.salePrice ? product.salePrice.toFixed(2) : product.price.toFixed(2)}</span>
-          {product.salePrice && product.salePrice < product.price && (
+          {product.salePrice && (
             <span className="price-old">
               <del>${product.price.toFixed(2)}</del>
             </span>
