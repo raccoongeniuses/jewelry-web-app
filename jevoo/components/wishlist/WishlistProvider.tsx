@@ -3,48 +3,104 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '../../types/product';
 import { WishlistItem, WishlistContextType } from '../../types/wishlist';
+import { useAuth } from '../../contexts/AuthContext';
+import { wishlistService } from '../../services/wishlistService';
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ show: boolean; message: string; product?: string } | null>(null);
+  const { user, isAuthenticated } = useAuth();
 
-  // Load wishlist from localStorage on mount
+  // Load wishlist from API when user is authenticated
   useEffect(() => {
-    try {
-      const savedWishlist = localStorage.getItem('wishlist');
-      if (savedWishlist) {
-        const parsedItems = JSON.parse(savedWishlist);
-        setItems(parsedItems);
+    const loadWishlist = async () => {
+      if (isAuthenticated && user?.token) {
+        try {
+          setLoading(true);
+          setError(null);
+          const wishlistItems = await wishlistService.getWishlist(user.token);
+
+          // Remove duplicates based on product ID
+          const uniqueItems = Array.isArray(wishlistItems) ?
+            wishlistItems.filter((item, index, arr) =>
+              arr.findIndex(i => i.id === item.id) === index
+            ) : [];
+
+          setItems(uniqueItems);
+        } catch (err: any) {
+          console.error('Error loading wishlist from API:', err);
+          setError(err.message || 'Failed to load wishlist');
+          // Set empty array on error to prevent undefined issues
+          setItems([]);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Clear wishlist when user is not authenticated
+        setItems([]);
       }
-    } catch (error) {
-      console.error('Error loading wishlist from localStorage:', error);
-    }
-  }, []);
+    };
 
-  // Save wishlist to localStorage whenever it changes
-  useEffect(() => {
+    loadWishlist();
+  }, [isAuthenticated, user?.token]);
+
+  const addToWishlist = async (product: Product) => {
+    if (!isAuthenticated || !user?.token) {
+      setError('Please login to add items to your wishlist');
+      return;
+    }
+
+    // Check if item already exists in wishlist
+    if (isInWishlist(product.id)) {
+      return;
+    }
+
     try {
-      localStorage.setItem('wishlist', JSON.stringify(items));
-    } catch (error) {
-      console.error('Error saving wishlist to localStorage:', error);
-    }
-  }, [items]);
+      setLoading(true);
+      setError(null);
 
-  const addToWishlist = (product: Product) => {
-    setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-
-      if (existingItem) {
-        // Item already in wishlist, don't add duplicate
-        return prevItems;
-      }
-
+      const apiResponse = await wishlistService.addToWishlist(product, user.token);
+      // Create a proper WishlistItem by merging product data with API response
       const newItem: WishlistItem = {
         ...product,
-        dateAdded: new Date().toISOString()
+        dateAdded: new Date().toISOString(),
+        ...apiResponse // Merge any additional fields from API response
       };
+
+      // Prevent duplicates by replacing existing item or adding new one
+      setItems(prevItems => {
+        const existingIndex = prevItems.findIndex(item => item.id === product.id);
+        if (existingIndex >= 0) {
+          // Replace existing item
+          const updatedItems = [...prevItems];
+          updatedItems[existingIndex] = newItem;
+          return updatedItems;
+        } else {
+          // Add new item
+          return [...prevItems, newItem];
+        }
+      });
+
+      // Refresh the wishlist to ensure we have the latest data
+      setTimeout(async () => {
+        try {
+          const refreshedItems = await wishlistService.getWishlist(user.token);
+
+          // Remove duplicates from refreshed data
+          const uniqueRefreshedItems = Array.isArray(refreshedItems) ?
+            refreshedItems.filter((item, index, arr) =>
+              arr.findIndex(i => i.id === item.id) === index
+            ) : [];
+
+          setItems(uniqueRefreshedItems);
+        } catch (error) {
+          console.error('Failed to refresh wishlist:', error);
+        }
+      }, 500); // Small delay to ensure API has processed the addition
 
       // Show success notification
       setNotification({
@@ -57,34 +113,75 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         setNotification(null);
       }, 3000);
-
-      return [...prevItems, newItem];
-    });
+    } catch (err: any) {
+      console.error('Error adding item to wishlist:', err);
+      setError(err.message || 'Failed to add item to wishlist');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeFromWishlist = (id: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+  const removeFromWishlist = async (id: string) => {
+    if (!isAuthenticated || !user?.token) {
+      setError('Please login to remove items from your wishlist');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      await wishlistService.removeFromWishlist(id, user.token);
+      setItems(prevItems => prevItems.filter(item => item.id !== id));
+    } catch (err: any) {
+      console.error('Error removing item from wishlist:', err);
+      setError(err.message || 'Failed to remove item from wishlist');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isInWishlist = (id: string): boolean => {
-    return items.some(item => item.id === id);
+    return Array.isArray(items) ? items.some(item => item.id === id) : false;
   };
 
-  const clearWishlist = () => {
-    setItems([]);
+  const clearWishlist = async () => {
+    if (!isAuthenticated || !user?.token) {
+      setError('Please login to clear your wishlist');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Remove all items one by one since the API doesn't seem to have a bulk delete endpoint
+      if (Array.isArray(items) && items.length > 0) {
+        for (const item of items) {
+          await wishlistService.removeFromWishlist(item.id, user.token);
+        }
+      }
+      setItems([]);
+    } catch (err: any) {
+      console.error('Error clearing wishlist:', err);
+      setError(err.message || 'Failed to clear wishlist');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getWishlistCount = (): number => {
-    return items.length;
+    return Array.isArray(items) ? items.length : 0;
   };
 
   const value: WishlistContextType = {
-    items,
+    items: Array.isArray(items) ? items : [],
     addToWishlist,
     removeFromWishlist,
     isInWishlist,
     clearWishlist,
-    getWishlistCount
+    getWishlistCount,
+    loading
   };
 
   return (
@@ -112,6 +209,43 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         >
           <i className="fa fa-check-circle"></i>
           {notification.message}
+        </div>
+      )}
+      {error && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '80px',
+            right: '20px',
+            zIndex: 9999,
+            backgroundColor: '#dc3545',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontSize: '14px',
+            fontWeight: '500',
+            animation: 'slideIn 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <i className="fa fa-exclamation-circle"></i>
+          {error}
+          <button
+            onClick={() => setError(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              marginLeft: '8px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
     </WishlistContext.Provider>

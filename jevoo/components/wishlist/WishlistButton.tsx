@@ -30,10 +30,10 @@ export default function WishlistButton({ product, className = '', showText = fal
 
     try {
       if (isInWishlistState) {
-        removeFromWishlist(product.id);
+        await removeFromWishlist(product.id);
         setIsInWishlistState(false);
       } else {
-        addToWishlist(product);
+        await addToWishlist(product);
         setIsInWishlistState(true);
       }
     } catch (error) {
@@ -51,18 +51,29 @@ export default function WishlistButton({ product, className = '', showText = fal
         handleClick(e);
       }}
       data-bs-toggle="tooltip"
-      data-bs-placement="left"
-      title={isInWishlistState ? 'Remove from wishlist' : 'Add to wishlist'}
+      data-bs-placement={className === 'wishlist-link' ? 'top' : 'left'}
+      title={isLoading ? 'Loading...' : isInWishlistState ? 'Remove from wishlist' : 'Add to wishlist'}
       className={className}
       style={{
-        color: isInWishlistState ? '#e74c3c' : 'inherit',
-        textDecoration: 'none'
+        color: isLoading ? '#999' : isInWishlistState ? '#e74c3c' : 'inherit',
+        textDecoration: 'none',
+        opacity: isLoading ? 0.6 : 1,
+        cursor: isLoading ? 'not-allowed' : 'pointer',
+        ...(className === 'wishlist-link' && {
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '5px'
+        })
       }}
     >
-      <i className={`pe-7s-like ${isInWishlistState ? 'filled' : ''}`}></i>
+      {isLoading ? (
+        <i className="fa fa-spinner fa-spin"></i>
+      ) : (
+        <i className={`pe-7s-like ${isInWishlistState ? 'filled' : ''}`}></i>
+      )}
       {showText && (
         <span style={{ fontSize: '14px', marginLeft: '5px' }}>
-          {isInWishlistState ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          {isLoading ? 'Loading...' : isInWishlistState ? 'Remove from Wishlist' : 'Add to Wishlist'}
         </span>
       )}
     </a>

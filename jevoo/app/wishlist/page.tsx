@@ -5,18 +5,24 @@ import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ScriptLoader from '../../components/ScriptLoader';
+import LoaderSpinner from '../../components/LoaderSpinner';
+import Wishlist from '../../components/wishlist/Wishlist';
 import { useWishlist } from '../../components/wishlist/WishlistProvider';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { WishlistItem } from '../../types/wishlist';
 
 export default function WishlistPage() {
-  const { items: wishlistItems, removeFromWishlist, isInWishlist } = useWishlist();
+  const { items: wishlistItems, removeFromWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
   const { addToCart } = useCart();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [notification, setNotification] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false,
     message: '',
     type: 'success'
   });
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ show: true, message, type });
@@ -25,12 +31,20 @@ export default function WishlistPage() {
     }, 3000);
   };
 
-  const handleRemoveFromWishlist = (id: string) => {
-    removeFromWishlist(id);
-    showNotification('Item removed from wishlist', 'success');
+  const handleRemoveFromWishlist = async (id: string) => {
+    try {
+      setIsLoading(true);
+      await removeFromWishlist(id);
+      showNotification('Item removed from wishlist', 'success');
+    } catch (error) {
+      console.error('Failed to remove item from wishlist:', error);
+      showNotification('Failed to remove item from wishlist', 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAddToCart = (item: WishlistItem) => {
+  const handleAddToCart = async (item: WishlistItem) => {
     // Convert wishlist item to cart item
     const cartItem = {
       ...item,
@@ -38,8 +52,16 @@ export default function WishlistPage() {
       uniqueId: `${item.id}-${Date.now()}`
     };
 
-    addToCart(cartItem);
-    showNotification(`${item.name} added to cart`, 'success');
+    try {
+      setAddingToCart(item.id);
+      await addToCart(cartItem);
+      showNotification(`${item.name} added to cart`, 'success');
+    } catch (error) {
+      console.error('Failed to add item to cart:', error);
+      showNotification('Failed to add item to cart', 'error');
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   const breadcrumbData = [
@@ -114,114 +136,12 @@ export default function WishlistPage() {
           </div>
 
           {/* Wishlist Main Wrapper */}
-          <div className="wishlist-main-wrapper section-padding">
-            <div className="container">
-              <div className="section-bg-color">
-                <div className="row">
-                  <div className="col-lg-12">
-                    {wishlistItems.length > 0 ? (
-                      <>
-                        <div className="cart-table table-responsive">
-                          <table className="table table-bordered">
-                            <thead>
-                              <tr>
-                                <th className="pro-thumbnail">Thumbnail</th>
-                                <th className="pro-title">Product</th>
-                                <th className="pro-price">Price</th>
-                                <th className="pro-subtotal">Add to Cart</th>
-                                <th className="pro-remove">Remove</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {wishlistItems.map((item) => (
-                                <tr key={item.id}>
-                                  <td className="pro-thumbnail">
-                                    <Link href={`/products/${item.slug}`}>
-                                      <img
-                                        src={item.image}
-                                        alt={item.name}
-                                        width={80}
-                                        height={80}
-                                        className="img-fluid"
-                                        style={{ borderRadius: '6px' }}
-                                      />
-                                    </Link>
-                                  </td>
-                                  <td className="pro-title">
-                                    <Link href={`/products/${item.slug}`} style={{ textDecoration: 'none', color: '#333', fontWeight: '500' }}>
-                                      {item.name}
-                                    </Link>
-                                    {item.brand && (
-                                      <div className="manufacturer-name">
-                                        <small style={{ color: '#666' }}>Brand: {item.brand}</small>
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="pro-price">
-                                    <span style={{ fontWeight: '600' }}>
-                                      ${item.isSale && item.salePrice ? item.salePrice.toFixed(2) : item.price.toFixed(2)}
-                                    </span>
-                                    {item.isSale && item.salePrice && item.salePrice < item.price && (
-                                      <small className="text-muted d-block">
-                                        <del>${item.price.toFixed(2)}</del>
-                                      </small>
-                                    )}
-                                  </td>
-                                  <td className="pro-subtotal">
-                                    <button
-                                      className={`btn btn-sqr ${!item.inStock ? 'disabled' : ''}`}
-                                      onClick={() => handleAddToCart(item)}
-                                      disabled={!item.inStock}
-                                      style={{
-                                        opacity: !item.inStock ? 0.6 : 1,
-                                        cursor: !item.inStock ? 'not-allowed' : 'pointer'
-                                      }}
-                                    >
-                                      Add to Cart
-                                    </button>
-                                  </td>
-                                  <td className="pro-remove">
-                                    <button
-                                      onClick={() => handleRemoveFromWishlist(item.id)}
-                                      style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        color: '#dc3545',
-                                        cursor: 'pointer',
-                                        fontSize: '16px',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        transition: 'all 0.3s ease'
-                                      }}
-                                      title="Remove from wishlist"
-                                    >
-                                      <i className="fa fa-trash-o"></i>
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="empty-wishlist text-center py-5">
-                        <div className="empty-wishlist-icon mb-4">
-                          <i className="pe-7s-like" style={{ fontSize: '60px', color: '#ddd' }}></i>
-                        </div>
-                        <h3 className="mb-3">Your wishlist is empty</h3>
-                        <p className="mb-4">Add items to your wishlist to see them here</p>
-                        <Link href="/" className="btn btn-sqr">
-                          <i className="fa fa-arrow-left me-2"></i>
-                          Continue Shopping
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Wishlist
+            items={wishlistItems}
+            loading={authLoading || wishlistLoading || isLoading}
+            onRemove={handleRemoveFromWishlist}
+            onAddToCart={handleAddToCart}
+          />
         </main>
 
         <Footer />
@@ -237,21 +157,10 @@ export default function WishlistPage() {
         .wishlist-main-wrapper .table tbody tr:hover {
           background-color: #fafafa;
         }
-        .wishlist-main-wrapper .btn-sqr {
-          background-color: #333;
-          border: none;
-          color: white;
-          padding: 8px 16px;
-          border-radius: 4px;
-          transition: all 0.3s ease;
-        }
         .wishlist-main-wrapper .btn-sqr:hover:not(.disabled) {
-          background-color: #e74c3c;
+          background-color: #b88a4f !important;
+          border-color: #b88a4f !important;
           transform: translateY(-1px);
-        }
-        .wishlist-main-wrapper .btn-sqr.disabled {
-          background-color: #ccc;
-          cursor: not-allowed;
         }
         .wishlist-main-wrapper .pro-remove button:hover {
           background-color: #fff5f5;
@@ -269,6 +178,16 @@ export default function WishlistPage() {
         }
         .wishlist-notification {
           animation: slideIn 0.3s ease;
+        }
+        .gold-price {
+          color: #c29958 !important;
+        }
+        .loader-container {
+          min-height: 400px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
         }
       `}</style>
     </>

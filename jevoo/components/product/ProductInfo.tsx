@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Product, CartItem } from '../../types/product';
 import CartButton from '../cart/CartButton';
+import WishlistButton from '../wishlist/WishlistButton';
 
 interface ProductInfoProps {
   product: Product & {
@@ -160,9 +161,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <a href="#" data-bs-toggle="tooltip" title="Compare">
           <i className="pe-7s-refresh-2"></i>compare
         </a>
-        <a href="#" data-bs-toggle="tooltip" title="Wishlist">
-          <i className="pe-7s-like"></i>wishlist
-        </a>
+        <WishlistButton
+          product={product}
+          className="wishlist-link"
+          showText={true}
+        />
       </div>
 
       {/* Social Share */}

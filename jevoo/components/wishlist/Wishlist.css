@@ -97,7 +97,7 @@
 }
 
 .wishlist-main-wrapper .btn-sqr {
-  background-color: #333;
+  background-color: #c29958;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -111,9 +111,9 @@
 }
 
 .wishlist-main-wrapper .btn-sqr:hover:not(.disabled) {
-  background-color: #e74c3c;
+  background-color: #b88a4f;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+  box-shadow: 0 4px 8px rgba(194, 153, 88, 0.2);
 }
 
 .wishlist-main-wrapper .btn-sqr.disabled {
@@ -179,8 +179,8 @@
 }
 
 .wishlist-main-wrapper .btn-primary {
-  background-color: #333;
-  border-color: #333;
+  background-color: #c29958;
+  border-color: #c29958;
   padding: 12px 30px;
   font-weight: 500;
   border-radius: 4px;
@@ -188,10 +188,10 @@
 }
 
 .wishlist-main-wrapper .btn-primary:hover {
-  background-color: #e74c3c;
-  border-color: #e74c3c;
+  background-color: #b88a4f;
+  border-color: #b88a4f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 4px 12px rgba(194, 153, 88, 0.3);
 }
 
 /* Notification Styles */
