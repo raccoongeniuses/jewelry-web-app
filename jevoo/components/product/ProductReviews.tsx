@@ -1,8 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import React from 'react';
+
+interface Review {
+  id: string;
+  title: string;
+  content: string;
+  rating: number;
+  reviewerName: string;
+  reviewerEmail: string;
+  createdAt: string;
+  status: string;
+  isVerifiedPurchase: boolean;
+  isGuest: boolean;
+}
 
 interface ProductReviewsProps {
   product: {
@@ -11,17 +24,43 @@ interface ProductReviewsProps {
     description?: string;
     colors?: string[];
     sizes?: string[];
+    slug?: string;
   };
 }
 
 export default function ProductReviews({ product }: ProductReviewsProps) {
   const [activeTab, setActiveTab] = useState('description');
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(false);
   const [reviewForm, setReviewForm] = useState({
     name: '',
     email: '',
     review: '',
     rating: 5
   });
+
+  useEffect(() => {
+    if (product.slug) {
+      fetchReviews();
+    }
+  }, [product.slug]);
+
+  const fetchReviews = async () => {
+    if (!product.slug) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews/product-slug/${product.slug}?limit=20`);
+      const data = await response.json();
+      if (data.reviews) {
+        setReviews(data.reviews);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +122,7 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                     }}
                     href="#reviews"
                   >
-                    reviews (1)
+                    reviews ({reviews.length})
                   </a>
                 </li>
               </ul>
@@ -134,33 +173,40 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                   id="reviews"
                 >
                   <form action="#" className="review-form" onSubmit={handleReviewSubmit}>
-                    <h5>1 review for <span>{product.name}</span></h5>
+                    <h5>{reviews.length} review{reviews.length !== 1 ? 's' : ''} for <span>{product.name}</span></h5>
 
-                    {/* Existing Review */}
-                    <div className="total-reviews">
-                      <div className="rev-avatar">
-                        <Image
-                          src="/assets/img/product/gold-necklace.jpeg"
-                          alt="Reviewer"
-                          width={60}
-                          height={60}
-                        />
-                      </div>
-                      <div className="review-box">
-                        <div className="ratings">
-                          {renderRating(4)}
+                    {/* Existing Reviews */}
+                    {loading ? (
+                      <p>Loading reviews...</p>
+                    ) : reviews.length > 0 ? (
+                      reviews.map((review) => (
+                        <div key={review.id} className="total-reviews">
+                          <div className="rev-avatar">
+                            <Image
+                              src="/assets/img/icon/avatar.jpg"
+                              alt={review.reviewerName}
+                              width={60}
+                              height={60}
+                            />
+                          </div>
+                          <div className="review-box">
+                            <div className="ratings">
+                              {renderRating(review.rating)}
+                            </div>
+                            <div className="post-author">
+                              <p><span>{review.reviewerName} -</span> {new Date(review.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                            </div>
+                            {review.title && <h6>{review.title}</h6>}
+                            <p>{review.content}</p>
+                          </div>
                         </div>
-                        <div className="post-author">
-                          <p><span>admin -</span> 30 Mar, 2019</p>
-                        </div>
-                        <p>
-                          Aliquam fringilla euismod risus ac bibendum. Sed sit amet sem varius ante feugiat lacinia. Nunc ipsum nulla, vulputate ut venenatis vitae, malesuada ut mi. Quisque iaculis, dui congue placerat pretium, augue erat accumsan lacus
-                        </p>
-                      </div>
-                    </div>
+                      ))
+                    ) : (
+                      <p>No reviews yet for this product.</p>
+                    )}
 
-                    {/* Review Form */}
-                    <div className="form-group row">
+                    {/* Review Form , hide for now*/}
+                    {/* <div className="form-group row">
                       <div className="col">
                         <label className="col-form-label">
                           <span className="text-danger">*</span> Your Name
@@ -173,9 +219,9 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                           required
                         />
                       </div>
-                    </div>
+                    </div> */}
 
-                    <div className="form-group row">
+                    {/* <div className="form-group row">
                       <div className="col">
                         <label className="col-form-label">
                           <span className="text-danger">*</span> Your Email
@@ -188,9 +234,9 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                           required
                         />
                       </div>
-                    </div>
+                    </div> */}
 
-                    <div className="form-group row">
+                    {/* <div className="form-group row">
                       <div className="col">
                         <label className="col-form-label">
                           <span className="text-danger">*</span> Your Review
@@ -206,9 +252,9 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                           <span className="text-danger">Note:</span> HTML is not translated!
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
-                    <div className="form-group row">
+                    {/* <div className="form-group row">
                       <div className="col">
                         <label className="col-form-label">
                           <span className="text-danger">*</span> Rating
@@ -228,13 +274,13 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                         ))}
                         &nbsp;Good
                       </div>
-                    </div>
+                    </div> */}
 
-                    <div className="buttons">
+                    {/* <div className="buttons">
                       <button className="btn btn-sqr" type="submit">
                         Continue
                       </button>
-                    </div>
+                    </div> */}
                   </form>
                 </div>
               </div>

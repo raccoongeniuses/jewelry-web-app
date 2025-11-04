@@ -13,6 +13,18 @@ import ProductImageGallery from '../../../components/product/ProductImageGallery
 import ProductInfo from '../../../components/product/ProductInfo';
 import { Product } from '../../../types/product';
 
+interface ExtendedProduct extends Product {
+  images: string[];
+  colors: string[];
+  sizes: string[];
+  stockCount: number;
+  rating: number;
+  reviewCount: number;
+  sku: string;
+  categories: string[];
+  tags: string[];
+}
+
 interface ProductPageProps {
   params: Promise<{
     slug: string;
@@ -26,7 +38,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [contentLoaded, setContentLoaded] = useState(false);
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ExtendedProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Helper function to construct full image URL
@@ -67,15 +79,15 @@ export default function ProductPage({ params }: ProductPageProps) {
         const mainImageUrl = getFullImageUrl(item.productImage?.url);
         console.log('Main Image URL:', mainImageUrl);
 
-        const transformedProduct: Product = {
+        const transformedProduct: ExtendedProduct = {
           id: item.id,
           name: item.name,
           slug: item.slug,
           description: item.description,
           shortDescription: item.shortDescription || '',
-          price: item.price,
+          price: item.isOnSale ? item.salePrice : item.price,
           salePrice: item.finalPrice,
-          originalPrice: item.salePrice,
+          originalPrice: item.isOnSale ? item.price : item.salePrice,
           isOnSale: item.isOnSale,
           category: item.categories?.name || 'uncategorized',
           brand: item.brand?.name || 'Brand',
