@@ -184,7 +184,7 @@ export default function ProductReviews({ product }: ProductReviewsProps) {
                           <div className="rev-avatar">
                             <Image
                               src="/assets/img/icon/avatar.jpg"
-                              alt={review.reviewerName}
+                              alt={review.reviewerName || "User avatar"}
                               width={60}
                               height={60}
                             />
