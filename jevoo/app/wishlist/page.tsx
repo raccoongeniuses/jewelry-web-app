@@ -15,7 +15,7 @@ import { WishlistItem } from '../../types/wishlist';
 export default function WishlistPage() {
   const { items: wishlistItems, removeFromWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
   const { addToCart } = useCart();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [notification, setNotification] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false,
     message: '',
