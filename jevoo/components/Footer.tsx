@@ -132,12 +132,12 @@ export default function Footer() {
                   <h6 className="widget-title">Information</h6>
                   <div className="widget-body">
                     <ul className="info-list">
-                      <li><a href="#">about us</a></li>
+                      <li><a href="#">About Us</a></li>
                       <li><a href="#">Delivery Information</a></li>
-                      <li><a href="#">privet policy</a></li>
+                      <li><a href="#">Privacy Policy</a></li>
                       <li><a href="#">Terms & Conditions</a></li>
-                      <li><a href="#">contact us</a></li>
-                      <li><a href="#">site map</a></li>
+                      <li><a href="#">Contact Us</a></li>
+                      <li><a href="#">Site Map</a></li>
                     </ul>
                   </div>
                 </div>
@@ -195,14 +195,17 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        {/* <div className="footer-bottom">
+        <div className="footer-bottom">
           <div className="container">
             <div className="row">
               <div className="col-12">
+                <div className="copyright-text text-center">
+                  <p>© {new Date().getFullYear()} <b><Link href="/">Jevoo Jewellery</Link></b> All Rights Reserved.</p>
+                </div>
               </div>
             </div>
           </div>
-        </div> */}
+        </div>
       </footer>
       {/* footer area end */}
 
