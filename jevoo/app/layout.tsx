@@ -29,6 +29,20 @@ export default function RootLayout({
         <link rel="stylesheet" href="/assets/css/plugins/jqueryui.min.css" />
         <link rel="stylesheet" href="/assets/css/style.css" />
         <link rel="stylesheet" href="/assets/css/draggable-grid.css" />
+
+        {/* Custom override for header container width */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @media (min-width: 992px) {
+              .header-main-area .container,
+              .header-main-area .container-lg,
+              .header-main-area .container-md,
+              .header-main-area .container-sm {
+                max-width: 100% !important;
+              }
+            }
+          `
+        }} />
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <AuthProvider>

@@ -451,8 +451,18 @@ textarea {
 .container {
     padding-right: var(--bs-gutter-x,15px);
     padding-left: var(--bs-gutter-x,15px);
-    @media #{$xl-device} {    
+    @media #{$xl-device} {
         max-width: 1140px;
+    }
+}
+
+// Override Bootstrap container max-width for header to prevent collisions
+.header-main-area .container,
+.container-lg,
+.container-md,
+.container-sm {
+    @media (min-width: 992px) {
+        max-width: 100% !important;
     }
 } 
 .container-fluid {
