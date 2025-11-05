@@ -53,6 +53,12 @@ const handleApiError = async (response: Response): Promise<CartApiError> => {
   };
 };
 
+// Helper function to check if token is expired
+const isTokenExpired = (exp: number): boolean => {
+  const currentTime = Math.floor(Date.now() / 1000);
+  return exp <= currentTime;
+};
+
 const getAuthHeaders = (): Record<string, string> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -60,23 +66,43 @@ const getAuthHeaders = (): Record<string, string> => {
 
   // Only add token on client side
   if (typeof window !== 'undefined') {
-    // First try to get token from stored user object (consistent with auth service)
+    // First check the separately stored token
+    const storedToken = localStorage.getItem('authToken');
+    const storedExp = localStorage.getItem('tokenExp');
+
+    if (storedToken && storedExp) {
+      const expTime = parseInt(storedExp, 10);
+      if (isTokenExpired(expTime)) {
+        console.log('Cart service: Stored token expired, clearing all auth data');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('tokenExp');
+        localStorage.removeItem('user');
+      } else {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+        return headers; // Return early if we have valid token
+      }
+    }
+
+    // Fallback to user object if separate token not available
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
+
+        // Check if token exists and is not expired
         if (user.token) {
-          headers['Authorization'] = `Bearer ${user.token}`;
+          if (user.exp && isTokenExpired(user.exp)) {
+            console.log('Cart service: User token expired, clearing user data');
+            localStorage.removeItem('user');
+            // Don't add expired token to headers
+          } else {
+            headers['Authorization'] = `Bearer ${user.token}`;
+          }
         }
       } catch (error) {
         console.error('Error parsing stored user for token:', error);
+        localStorage.removeItem('user'); // Clear corrupted data
       }
-    }
-
-    // Fallback to direct token storage if available
-    const directToken = localStorage.getItem('authToken');
-    if (directToken && !headers['Authorization']) {
-      headers['Authorization'] = `Bearer ${directToken}`;
     }
   }
 

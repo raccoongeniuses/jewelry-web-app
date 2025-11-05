@@ -13,16 +13,23 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ show: boolean; message: string; product?: string } | null>(null);
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, getValidToken } = useAuth();
 
   // Load wishlist from API when user is authenticated
   useEffect(() => {
     const loadWishlist = async () => {
-      if (isAuthenticated && user?.token) {
+      if (isAuthenticated) {
+        // Get valid token (will auto-logout if expired)
+        const token = getValidToken();
+        if (!token) {
+          console.log('Wishlist: No valid token available');
+          return; // User will be logged out automatically
+        }
+
         try {
           setLoading(true);
           setError(null);
-          const wishlistItems = await wishlistService.getWishlist(user.token);
+          const wishlistItems = await wishlistService.getWishlist(token);
 
           // Remove duplicates based on product ID
           const uniqueItems = Array.isArray(wishlistItems) ?
@@ -46,11 +53,18 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     };
 
     loadWishlist();
-  }, [isAuthenticated, user?.token]);
+  }, [isAuthenticated, getValidToken]);
 
   const addToWishlist = async (product: Product) => {
-    if (!isAuthenticated || !user?.token) {
+    if (!isAuthenticated) {
       setError('Please login to add items to your wishlist');
+      return;
+    }
+
+    // Get valid token (will auto-logout if expired)
+    const token = getValidToken();
+    if (!token) {
+      setError('Your session has expired. Please login again.');
       return;
     }
 
@@ -63,7 +77,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      const apiResponse = await wishlistService.addToWishlist(product, user.token);
+      const apiResponse = await wishlistService.addToWishlist(product, token);
       // Create a proper WishlistItem by merging product data with API response
       const newItem: WishlistItem = {
         ...product,
@@ -88,7 +102,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       // Refresh the wishlist to ensure we have the latest data
       setTimeout(async () => {
         try {
-          const refreshedItems = await wishlistService.getWishlist(user.token);
+          const validToken = getValidToken();
+          if (!validToken) return; // User was logged out due to expired token
+          const refreshedItems = await wishlistService.getWishlist(validToken);
 
           // Remove duplicates from refreshed data
           const uniqueRefreshedItems = Array.isArray(refreshedItems) ?
@@ -122,8 +138,15 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromWishlist = async (id: string) => {
-    if (!isAuthenticated || !user?.token) {
+    if (!isAuthenticated) {
       setError('Please login to remove items from your wishlist');
+      return;
+    }
+
+    // Get valid token (will auto-logout if expired)
+    const token = getValidToken();
+    if (!token) {
+      setError('Your session has expired. Please login again.');
       return;
     }
 
@@ -131,7 +154,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      await wishlistService.removeFromWishlist(id, user.token);
+      await wishlistService.removeFromWishlist(id, token);
       setItems(prevItems => prevItems.filter(item => item.id !== id));
     } catch (err: any) {
       console.error('Error removing item from wishlist:', err);
@@ -146,8 +169,15 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   const clearWishlist = async () => {
-    if (!isAuthenticated || !user?.token) {
+    if (!isAuthenticated) {
       setError('Please login to clear your wishlist');
+      return;
+    }
+
+    // Get valid token (will auto-logout if expired)
+    const token = getValidToken();
+    if (!token) {
+      setError('Your session has expired. Please login again.');
       return;
     }
 
@@ -158,7 +188,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       // Remove all items one by one since the API doesn't seem to have a bulk delete endpoint
       if (Array.isArray(items) && items.length > 0) {
         for (const item of items) {
-          await wishlistService.removeFromWishlist(item.id, user.token);
+          await wishlistService.removeFromWishlist(item.id, token);
         }
       }
       setItems([]);

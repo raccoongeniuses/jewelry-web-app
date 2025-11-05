@@ -4,6 +4,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   token?: string;
+  exp?: number; // Token expiration timestamp in epoch seconds
   createdAt?: string;
   updatedAt?: string;
   sessions?: Array<{

@@ -12,6 +12,8 @@ interface AuthContextType {
   register: (credentials: RegisterCredentials) => Promise<AuthResponse>;
   logout: () => void;
   isAuthenticated: boolean;
+  getValidToken: () => string | null;
+  isTokenValid: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,12 +34,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on mount
+  // Helper function to check if token is expired
+  const isTokenExpired = (exp: number): boolean => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    return exp <= currentTime;
+  };
+
+  // Check for existing session on mount and set up token expiration checking
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+
+        // Check if token is expired
+        if (parsedUser.exp && isTokenExpired(parsedUser.exp)) {
+          console.log('Token expired, clearing stored user data');
+          localStorage.removeItem('user');
+          setIsLoading(false);
+          return;
+        }
+
         setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing stored user:', error);
@@ -46,6 +63,88 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     setIsLoading(false);
   }, []);
+
+  // Check token expiration periodically
+  useEffect(() => {
+    if (!user || !user.exp) return;
+
+    const checkExpiration = () => {
+      if (isTokenExpired(user.exp!)) {
+        console.log('Token expired during session, logging out user');
+        logout();
+      }
+    };
+
+    // Check immediately
+    checkExpiration();
+
+    // Set up interval to check every minute
+    const interval = setInterval(checkExpiration, 60000);
+
+    // Calculate time until expiration and set up timeout
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeUntilExpiration = (user.exp - currentTime) * 1000;
+
+    if (timeUntilExpiration > 0) {
+      const timeout = setTimeout(() => {
+        console.log('Token expiration reached, logging out user');
+        logout();
+      }, timeUntilExpiration);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const logout = () => {
+    // Clear cart and token from localStorage when user logs out
+    localStorage.removeItem('coranoCart');
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('tokenExp');
+    setUser(null);
+  };
+
+  const getValidToken = (): string | null => {
+    // First try to get token from user state
+    if (user && user.token && user.exp) {
+      // Check if token is expired before returning
+      if (isTokenExpired(user.exp)) {
+        console.log('Token expired in getValidToken, logging out');
+        logout();
+        return null;
+      }
+      return user.token;
+    }
+
+    // Fallback to localStorage if no user state (e.g., during initialization)
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('authToken');
+      const storedExp = localStorage.getItem('tokenExp');
+
+      if (storedToken && storedExp) {
+        const expTime = parseInt(storedExp, 10);
+        if (isTokenExpired(expTime)) {
+          console.log('Stored token expired, clearing localStorage');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('tokenExp');
+          localStorage.removeItem('user');
+          return null;
+        }
+        return storedToken;
+      }
+    }
+
+    return null;
+  };
+
+  const isTokenValid = (): boolean => {
+    return !!getValidToken();
+  };
 
   const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
@@ -58,6 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           ...response.user,
           ...userMeData.user,
           token: response.token,
+          exp: response.exp, // Store the expiration timestamp
           sessions: userMeData.user?.sessions || response.user.sessions,
           customer: userMeData.user?.customer || response.user.customer,
           createdAt: userMeData.user?.createdAt || response.user.createdAt,
@@ -100,17 +200,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
 
-        // Store merged user in localStorage
+        // Store merged user in localStorage and token separately
         localStorage.setItem('user', JSON.stringify(mergedUser));
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('tokenExp', response.exp.toString());
         setUser(mergedUser);
 
         return { ...response, user: mergedUser };
       } catch (userMeError) {
         console.warn('Failed to fetch additional user data, using basic login data:', userMeError);
 
-        // Store user in localStorage with basic data
-        localStorage.setItem('user', JSON.stringify(response.user));
-        setUser(response.user);
+        // Store user in localStorage with basic data including expiration
+        const basicUser = {
+          ...response.user,
+          exp: response.exp // Store the expiration timestamp
+        };
+        localStorage.setItem('user', JSON.stringify(basicUser));
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('tokenExp', response.exp.toString());
+        setUser(basicUser);
 
         return response;
       }
@@ -132,9 +240,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             password: credentials.password
           });
 
-          // Store user in localStorage
-          localStorage.setItem('user', JSON.stringify(loginResponse.user));
-          setUser(loginResponse.user);
+          // Store user in localStorage with expiration and token separately
+          const userWithExp = {
+            ...loginResponse.user,
+            exp: loginResponse.exp
+          };
+          localStorage.setItem('user', JSON.stringify(userWithExp));
+          localStorage.setItem('authToken', loginResponse.token);
+          localStorage.setItem('tokenExp', loginResponse.exp.toString());
+          setUser(userWithExp);
 
           return loginResponse;
         } catch (loginError) {
@@ -142,8 +256,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } else {
         // Registration returned full auth data
-        localStorage.setItem('user', JSON.stringify(response.user));
-        setUser(response.user);
+        const userWithExp = {
+          ...response.user,
+          exp: response.exp
+        };
+        localStorage.setItem('user', JSON.stringify(userWithExp));
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('tokenExp', response.exp.toString());
+        setUser(userWithExp);
         return response;
       }
     } catch (error) {
@@ -154,22 +274,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           password: credentials.password
         });
 
-        // Store user in localStorage
-        localStorage.setItem('user', JSON.stringify(loginResponse.user));
-        setUser(loginResponse.user);
+        // Store user in localStorage with expiration and token separately
+        const userWithExp = {
+          ...loginResponse.user,
+          exp: loginResponse.exp
+        };
+        localStorage.setItem('user', JSON.stringify(userWithExp));
+        localStorage.setItem('authToken', loginResponse.token);
+        localStorage.setItem('tokenExp', loginResponse.exp.toString());
+        setUser(userWithExp);
 
         return loginResponse;
       } catch (loginError) {
         throw loginError; // Throw the login error since it's more relevant
       }
     }
-  };
-
-  const logout = () => {
-    // Clear cart from localStorage when user logs out
-    localStorage.removeItem('coranoCart');
-    localStorage.removeItem('user');
-    setUser(null);
   };
 
   const value: AuthContextType = {
@@ -179,6 +298,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
+    getValidToken,
+    isTokenValid,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
