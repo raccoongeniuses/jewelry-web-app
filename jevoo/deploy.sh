@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Deploy script for jevoo-service
+# Deploy script for jevoo-web-app
 # This script pulls the latest code, builds the project, and restarts the PM2 service
 
 echo "Starting deployment..."
