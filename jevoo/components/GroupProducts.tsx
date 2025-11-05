@@ -269,7 +269,7 @@ export default function GroupProducts() {
                 <div className="banner-content banner-content_style3 text-center">
                   <h6 className="banner-text1">BEAUTIFUL</h6>
                   <h2 className="banner-text2">Wedding Rings</h2>
-                  <a href="/shop" className="btn btn-text">Shop Now</a>
+                  <a href="/our-products" className="btn btn-text">Shop Now</a>
                 </div>
               </figure>
             </div>

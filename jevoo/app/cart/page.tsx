@@ -30,7 +30,7 @@ export default function CartPage() {
 
   const breadcrumbData = [
     { name: 'Home', url: '/' },
-    { name: 'Shop', url: '/shop' },
+    { name: 'Shop', url: '/our-products' },
     { name: 'Cart', url: '/cart' }
   ];
 

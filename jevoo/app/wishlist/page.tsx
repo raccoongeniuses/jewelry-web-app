@@ -66,7 +66,7 @@ export default function WishlistPage() {
 
   const breadcrumbData = [
     { name: 'Home', url: '/' },
-    { name: 'Shop', url: '/shop' },
+    { name: 'Shop', url: '/our-products' },
     { name: 'Wishlist', url: '/wishlist' }
   ];
 

@@ -237,7 +237,7 @@ export default function CheckoutPage() {
                         <Link href="/"><i className="fa fa-home"></i></Link>
                       </li>
                       <li className="breadcrumb-item">
-                        <Link href="/shop">shop</Link>
+                        <Link href="/our-products">shop</Link>
                       </li>
                       <li className="breadcrumb-item active" aria-current="page">checkout</li>
                     </ol>

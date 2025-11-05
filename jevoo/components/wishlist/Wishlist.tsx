@@ -140,7 +140,6 @@ export default function Wishlist({ items = [], onRemove, onAddToCart, loading = 
                       <th className="pro-preview">Preview</th>
                       <th className="pro-title">Product</th>
                       <th className="pro-price">Price</th>
-                      <th className="pro-quantity">Stock Status</th>
                       <th className="pro-subtotal">Add to Cart</th>
                       <th className="pro-remove">Remove</th>
                     </tr>
@@ -179,20 +178,10 @@ export default function Wishlist({ items = [], onRemove, onAddToCart, loading = 
                             </small>
                           )}
                         </td>
-                        <td className="pro-quantity">
-                          <span className={item.inStock ? "text-success" : "text-danger"}>
-                            {item.inStock ? "In Stock" : "Stock Out"}
-                          </span>
-                        </td>
                         <td className="pro-subtotal">
                           <button
-                            className={`btn btn-sqr ${!item.inStock ? 'disabled' : ''}`}
+                            className="btn btn-sqr"
                             onClick={() => handleAddToCart(item)}
-                            disabled={!item.inStock}
-                            style={{
-                              opacity: !item.inStock ? 0.6 : 1,
-                              cursor: !item.inStock ? 'not-allowed' : 'pointer'
-                            }}
                           >
                             Add to Cart
                           </button>

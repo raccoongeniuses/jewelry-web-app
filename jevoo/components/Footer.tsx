@@ -120,7 +120,7 @@ export default function Footer() {
                     <address className="contact-block">
                       <ul>
                         <li><i className="pe-7s-home"></i> 4710-4890 Breckinridge USA</li>
-                        <li><i className="pe-7s-mail"></i> <a href="mailto:jevoo@jewellery.com">jevoo@jewellery.com</a></li>
+                        <li><i className="pe-7s-mail"></i> <a href="mailto:jevoo-jewellery.com">jevoo-jewellery.com</a></li>
                         <li><i className="pe-7s-call"></i> <a href="tel:(012)800456789987">(012) 800 456 789-987</a></li>
                       </ul>
                     </address>
@@ -195,17 +195,14 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="footer-bottom">
+        {/* <div className="footer-bottom">
           <div className="container">
             <div className="row">
               <div className="col-12">
-                <div className="copyright-text text-center">
-                  <p>&copy; 2025 <b>Jevoo Jewellery</b> Made with <i className="fa fa-heart text-danger"></i> by <a href="https://hasthemes.com/"><b>HasThemes</b></a></p>
-                </div>
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </footer>
       {/* footer area end */}
 
