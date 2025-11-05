@@ -80,7 +80,7 @@ const Testimonials = () => {
           return;
         }
 
-        const response = await fetch(`${apiUrl}/testimonials/?pagination=true&page=1&limit=10&depth=1`);
+        const response = await fetch(`${apiUrl}/testimonials?pagination=true&page=1&limit=10&depth=1`);
         if (!response.ok) {
           throw new Error('Failed to fetch testimonials');
         }
