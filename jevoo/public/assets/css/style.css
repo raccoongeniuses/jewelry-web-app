@@ -1292,6 +1292,12 @@ textarea:focus {
   display: block;
   text-transform: capitalize;
 }
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .main-menu ul li a {
+    padding: 37px 7px !important;
+  }
+}
 .main-menu ul li a i {
   font-size: 14px;
   padding: 0 3px;
