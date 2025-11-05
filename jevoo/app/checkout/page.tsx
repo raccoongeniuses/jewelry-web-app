@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 
@@ -10,7 +11,6 @@ interface BillingDetails {
   firstName: string;
   lastName: string;
   email: string;
-  company: string;
   country: string;
   address: string;
   address2: string;
@@ -18,15 +18,12 @@ interface BillingDetails {
   state: string;
   postcode: string;
   phone: string;
-  createAccount: boolean;
-  accountPassword: string;
 }
 
 interface ShippingDetails {
   firstName: string;
   lastName: string;
   email: string;
-  company: string;
   country: string;
   address: string;
   address2: string;
@@ -37,22 +34,66 @@ interface ShippingDetails {
 
 export default function CheckoutPage() {
   const { items, getTotalPrice } = useCart();
+  const { isAuthenticated, user, isLoading } = useAuth();
 
-  // Form states
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="main-wrapper">
+        <Header />
+        <main className="page-content-wrapper">
+          <div className="container section-padding">
+            <div className="row justify-content-center">
+              <div className="col-lg-6 text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="sr-only">Loading...</span>
+                </div>
+                <p className="mt-3">Checking authentication...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated (client-side check)
+  if (!isAuthenticated) {
+    return (
+      <div className="main-wrapper">
+        <Header />
+        <main className="page-content-wrapper">
+          <div className="container section-padding">
+            <div className="row justify-content-center">
+              <div className="col-lg-6 text-center">
+                <h2>Please Login to Continue</h2>
+                <p className="mt-3">You need to be logged in to proceed with checkout.</p>
+                <Link href="/login" className="btn btn-sqr mt-3">
+                  Go to Login
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Form states - pre-fill with user data if available
   const [billingDetails, setBillingDetails] = useState<BillingDetails>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    company: '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
     country: 'Afghanistan',
     address: '',
     address2: '',
     city: '',
     state: '',
     postcode: '',
-    phone: '',
-    createAccount: false,
-    accountPassword: ''
+    phone: ''
   });
 
   const [shippingToDifferent, setShippingToDifferent] = useState(false);
@@ -60,7 +101,6 @@ export default function CheckoutPage() {
     firstName: '',
     lastName: '',
     email: '',
-    company: '',
     country: 'Bangladesh',
     address: '',
     address2: '',
@@ -148,12 +188,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Check if account creation is selected but password is empty
-    if (billingDetails.createAccount && !billingDetails.accountPassword.trim()) {
-      alert('Please enter a password for your account.');
-      return;
-    }
-
+    
     // Generate order data - always success based on cart
     const orderData = {
       orderId: generateOrderId(),
@@ -254,93 +289,7 @@ export default function CheckoutPage() {
           <div className="container">
             <div className="row">
               <div className="col-12">
-                {/* Checkout Login Coupon Accordion Start */}
-                <div className="checkoutaccordion" id="checkOutAccordion">
-                  <div className="card" style={{ backgroundColor: 'transparent', border: 'none' }}>
-                    <h6>Returning Customer?
-                      <span
-                        onClick={() => {
-                          const loginAccordion = document.getElementById('logInaccordion');
-                          if (loginAccordion) {
-                            loginAccordion.style.display = loginAccordion.style.display === 'block' ? 'none' : 'block';
-                          }
-                        }}
-                        style={{ cursor: 'pointer', color: '#c29958' }}
-                      >
-                        Click Here To Login
-                      </span>
-                    </h6>
-                    <div id="logInaccordion" style={{ display: 'none', transition: 'none' }}>
-                      <div className="card-body" style={{ backgroundColor: 'transparent', padding: '20px' }}>
-                        <p>If you have shopped with us before, please enter your details in the boxes below. If you are a new customer, please proceed to the Billing & Shipping section.</p>
-                        <div className="login-reg-form-wrap mt-20">
-                          <div className="row">
-                            <div className="col-lg-7 m-auto">
-                              <form action="#" method="post">
-                                <div className="row">
-                                  <div className="col-md-12">
-                                    <div className="single-input-item">
-                                      <input type="email" placeholder="Enter your Email" required />
-                                    </div>
-                                  </div>
-                                  <div className="col-md-12">
-                                    <div className="single-input-item">
-                                      <input type="password" placeholder="Enter your Password" required />
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="single-input-item">
-                                  <div className="login-reg-form-meta d-flex align-items-center justify-content-between">
-                                    <div className="remember-meta">
-                                      <div className="custom-control custom-checkbox">
-                                        <input type="checkbox" className="custom-control-input" id="rememberMe" required />
-                                        <label className="custom-control-label" htmlFor="rememberMe">Remember Me</label>
-                                      </div>
-                                    </div>
-                                    <a href="#" className="forget-pwd">Forget Password?</a>
-                                  </div>
-                                </div>
-                                <div className="single-input-item">
-                                  <button className="btn btn-sqr" type="button">Login</button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="card" style={{ backgroundColor: 'transparent', border: 'none' }}>
-                    <h6>Have A Coupon?
-                      <span
-                        onClick={() => {
-                          const couponAccordion = document.getElementById('couponaccordion');
-                          if (couponAccordion) {
-                            couponAccordion.style.display = couponAccordion.style.display === 'block' ? 'none' : 'block';
-                          }
-                        }}
-                        style={{ cursor: 'pointer', color: '#c29958' }}
-                      >
-                        Click Here To Enter Your Code
-                      </span>
-                    </h6>
-                    <div id="couponaccordion" style={{ display: 'none', transition: 'none' }}>
-                      <div className="card-body" style={{ backgroundColor: 'transparent', padding: '20px' }}>
-                        <div className="cart-update-option">
-                          <div className="apply-coupon-wrapper">
-                            <form action="#" method="post" className="d-block d-md-flex">
-                              <input type="text" placeholder="Enter Your Coupon Code" required />
-                              <button className="btn btn-sqr" type="button">Apply Coupon</button>
-                            </form>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Checkout Login Coupon Accordion End */}
-              </div>
+                              </div>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -392,17 +341,7 @@ export default function CheckoutPage() {
                         />
                       </div>
 
-                      <div className="single-input-item">
-                        <label htmlFor="com-name">Company Name</label>
-                        <input
-                          type="text"
-                          id="com-name"
-                          placeholder="Company Name"
-                          value={billingDetails.company}
-                          onChange={(e) => handleBillingChange('company', e.target.value)}
-                        />
-                      </div>
-
+                      
                       <div className="single-input-item">
                         <label htmlFor="country" className="required">Country</label>
                         <select
@@ -500,39 +439,7 @@ export default function CheckoutPage() {
                         />
                       </div>
 
-                      <div className="checkout-box-wrap">
-                        <div className="single-input-item">
-                          <div className="custom-control custom-checkbox">
-                            <input
-                              type="checkbox"
-                              className="custom-control-input"
-                              id="create_pwd"
-                              checked={billingDetails.createAccount}
-                              onChange={(e) => handleBillingChange('createAccount', e.target.checked)}
-                            />
-                            <label className="custom-control-label" htmlFor="create_pwd">
-                              Create an account?
-                            </label>
-                          </div>
-                        </div>
-                        {billingDetails.createAccount && (
-                          <div className="account-create single-form-row" style={{ display: 'block' }}>
-                            <p>Create an account by entering the information below. If you are a returning customer please login at the top of the page.</p>
-                            <div className="single-input-item">
-                              <label htmlFor="pwd" className="required">Account Password</label>
-                              <input
-                                type="password"
-                                id="pwd"
-                                placeholder="Account Password"
-                                required
-                                value={billingDetails.accountPassword}
-                                onChange={(e) => handleBillingChange('accountPassword', e.target.value)}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
+                      
                       <div className="checkout-box-wrap">
                         <div className="single-input-item">
                           <div className="custom-control custom-checkbox">
@@ -591,17 +498,7 @@ export default function CheckoutPage() {
                               />
                             </div>
 
-                            <div className="single-input-item">
-                              <label htmlFor="com-name_2">Company Name</label>
-                              <input
-                                type="text"
-                                id="com-name_2"
-                                placeholder="Company Name"
-                                value={shippingDetails.company}
-                                onChange={(e) => handleShippingChange('company', e.target.value)}
-                              />
-                            </div>
-
+                            
                             <div className="single-input-item">
                               <label htmlFor="country_2" className="required">Country</label>
                               <select
