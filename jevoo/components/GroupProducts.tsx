@@ -261,15 +261,26 @@ export default function GroupProducts() {
       <div className="container">
         <div className="row">
           <div className="col-lg-6">
-            <div className="group-product-banner">
+            <div className="group-product-banner hero-overlay">
               <figure className="banner-statistics">
-                <Link href="#">
-                  <Image src="/assets/img/banner-gold.png" alt="product banner" width={600} height={360} style={{ objectFit: 'contain' }} />
-                </Link>
+                <div style={{ position: 'relative', width: '100%', height: '360px' }}>
+                  <Image src="/assets/img/banner-gold.png" alt="product banner" fill style={{ objectFit: 'cover' }} />
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%)'
+                  }}></div>
+                </div>
                 <div className="banner-content banner-content_style3 text-center">
-                  <h6 className="banner-text1">BEAUTIFUL</h6>
-                  <h2 className="banner-text2">Wedding Rings</h2>
-                  <a href="/our-products" className="btn btn-text">Shop Now</a>
+                  <h2 className="slide-title" style={{ color: '#ffffff' }}>
+                    BEAUTIFUL Wedding Rings
+                  </h2>
+                  <a href="/our-products" className="btn btn-hero">
+                    Shop Now
+                  </a>
                 </div>
               </figure>
             </div>
