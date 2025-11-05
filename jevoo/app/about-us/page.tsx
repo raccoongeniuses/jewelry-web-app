@@ -3,7 +3,6 @@ import Image from "next/image";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Testimonials from "../../components/Testimonials";
-import Team from "../../components/Team";
 import WhyChooseUs from "../../components/WhyChooseUs";
 
 export default function AboutUs() {
@@ -75,10 +74,7 @@ export default function AboutUs() {
         <Testimonials />
         {/* testimonial area end */}
 
-        {/* team area start */}
-        <Team />
-        {/* team area end */}
-      </main>
+        </main>
 
       <Footer />
     </>
