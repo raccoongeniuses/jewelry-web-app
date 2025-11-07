@@ -4,6 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types/product';
+import { gsap } from 'gsap';
+import { Flip } from 'gsap/dist/Flip';
+
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(Flip);
+}
 
 // API response type for products
 interface ApiProduct {
@@ -17,6 +24,11 @@ interface ApiProduct {
     url: string;
     alt: string;
   };
+}
+
+// Interface for button element with custom handler property
+interface HTMLButtonElementWithHandler extends HTMLButtonElement {
+  _cartHandler?: (e: Event) => void;
 }
 
 // Helper function to construct full image URLs
@@ -41,17 +53,27 @@ export default function Marquee() {
   const detailsCloseRef = useRef<HTMLButtonElement>(null);
   const addCartBtnRef = useRef<HTMLButtonElement>(null);
   const detailsThumbRef = useRef<HTMLDivElement>(null);
+  const infiniteMarqueeTimeline = useRef<gsap.core.Timeline | null>(null);
+  const marqueePauseTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [currentProduct, setCurrentProduct] = useState<HTMLElement | null>(null);
   const [originalParent, setOriginalParent] = useState<HTMLElement | null>(null);
-  const [originalNextSibling, setOriginalNextSibling] = useState<Node | null>(null);
+  const [placeholderElement, setPlaceholderElement] = useState<HTMLElement | null>(null);
   const [isShowingDetails, setIsShowingDetails] = useState(false);
   const [selectedProductData, setSelectedProductData] = useState<Product | null>(null);
   const [marqueeProducts, setMarqueeProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch products from API
+  // Use refs to store stable function references
+  const showDetailsRef = useRef<(element: HTMLElement, product: Product) => void>(() => {});
+  const hideDetailsRef = useRef<() => void>(() => {});
+
   useEffect(() => {
+    let isMounted = true;
+    let marqueeTimelineCleanup: (() => void) | null = null;
+    let cartObserver: MutationObserver | null = null;
+
+    // Fetch products from API
     const fetchProducts = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
@@ -79,45 +101,273 @@ export default function Marquee() {
           finalProducts.push(transformedProducts[i % transformedProducts.length]);
         }
 
-        setMarqueeProducts(finalProducts);
+        if (isMounted) {
+          setMarqueeProducts(finalProducts);
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error fetching marquee products:', error);
         // Fallback to empty array if API fails
-        setMarqueeProducts([]);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setMarqueeProducts([]);
+          setLoading(false);
+        }
       }
     };
 
-    fetchProducts();
-  }, []);
+    // Define showDetails function inside useEffect to maintain closure access
+    const showDetails = (element: HTMLElement, product: Product) => {
+      if (isShowingDetails) return;
+      setIsShowingDetails(true);
+      setSelectedProductData(product);
 
-  useEffect(() => {
-    // Initialize marquee animation and functionality only when products are loaded
-    if (loading || marqueeProducts.length === 0) return;
+      // Store references for cleanup
+      const originalParent = element.parentNode as HTMLElement;
+      const nextSibling = element.nextSibling;
 
-    const initMarquee = () => {
+      // Create a simple placeholder to maintain space
+      const placeholder = document.createElement("div");
+      placeholder.style.height = element.offsetHeight + "px";
+      placeholder.style.width = element.offsetWidth + "px";
+      placeholder.style.visibility = "hidden";
+      placeholder.dataset.placeholder = "true";
+      // Copy only the essential margin to maintain spacing
+      placeholder.style.marginBottom = getComputedStyle(element).marginBottom;
+
+      // Insert placeholder in the exact same position
+      if (nextSibling) {
+        originalParent.insertBefore(placeholder, nextSibling);
+      } else {
+        originalParent.appendChild(placeholder);
+      }
+
+      // Store references including the exact placeholder element
+      setCurrentProduct(element);
+      setOriginalParent(originalParent);
+      setPlaceholderElement(placeholder);
+
+      // Get state before moving
+      const state = Flip.getState(element);
+
+      // Schedule marquee pause after 1 second
+      if (infiniteMarqueeTimeline.current) {
+        marqueePauseTimeout.current = setTimeout(() => {
+          if (infiniteMarqueeTimeline.current) {
+            infiniteMarqueeTimeline.current.pause();
+          }
+        }, 1000);
+      }
+
+      // Show details panel
+      if (detailsPanelRef.current) {
+        detailsPanelRef.current.classList.add("active");
+      }
+      if (detailsOverlayRef.current) {
+        detailsOverlayRef.current.classList.add("active");
+      }
+      document.body.style.overflow = "hidden";
+
+      // Update details panel content
+      if (detailsPanelRef.current) {
+        const title = detailsPanelRef.current.querySelector('.vase-details-title');
+        const price = detailsPanelRef.current.querySelector('.vase-details-price');
+        const description = detailsPanelRef.current.querySelector('.vase-details-description');
+
+        if (title) {
+          title.textContent = product.name;
+        }
+        if (price) {
+          price.textContent = `$${product.price.toFixed(2)}`;
+        }
+        if (description) {
+          description.textContent = product.shortDescription || `Beautiful ${product.name.toLowerCase()} for your jewelry collection.`;
+        }
+      }
+
+      // Move product to details thumb (simpler approach like vanilla JS)
+      if (detailsThumbRef.current) {
+        detailsThumbRef.current.innerHTML = ''; // Clear any previous content
+        detailsThumbRef.current.appendChild(element);
+      }
+
+      // Flip animation from original position to details (simpler like vanilla JS)
+      Flip.from(state, {
+        absolute: true,
+        duration: 1.2,
+        ease: "power3.inOut",
+      });
+    };
+
+    // Define hideDetails function inside useEffect to maintain closure access
+    const hideDetails = () => {
+      if (!isShowingDetails || !currentProduct || !originalParent) return;
+      setIsShowingDetails(false);
+
+      // Clear any pending marquee pause timeout
+      if (marqueePauseTimeout.current) {
+        clearTimeout(marqueePauseTimeout.current);
+        marqueePauseTimeout.current = null;
+      }
+
+      // Use the stored placeholder element for accurate positioning
+      const placeholder = placeholderElement;
+
+      if (placeholder) {
+        // Animate details panel content out first
+        gsap.to(".vase-details-title", {
+          y: 50,
+          opacity: 0,
+          duration: 0.2,
+          ease: "power2.in",
+        });
+
+        gsap.to(".vase-details-info > *", {
+          y: 30,
+          opacity: 0,
+          duration: 0.2,
+          stagger: 0.02,
+          ease: "power2.in",
+          onComplete: () => {
+            // After content fades out, start the product animation back to original position
+            const placeholderRect = placeholder.getBoundingClientRect();
+            const currentRect = currentProduct.getBoundingClientRect();
+
+            // Calculate the distance to travel (like vanilla JS)
+            const deltaX = placeholderRect.left - currentRect.left;
+            const deltaY = placeholderRect.top - currentRect.top;
+            const currentScale = parseFloat(gsap.getProperty(currentProduct, "scale") as string) || 1;
+            const targetScale = placeholderRect.width / (currentRect.width / currentScale);
+
+            // Animate the product flying back to its original position
+            gsap.to(currentProduct, {
+              x: deltaX,
+              y: deltaY,
+              scale: targetScale,
+              opacity: 1,
+              duration: 0.6,
+              ease: "power2.inOut",
+              onComplete: () => {
+                // Replace placeholder with product
+                placeholder.replaceWith(currentProduct);
+
+                // Reset transforms smoothly
+                gsap.set(currentProduct, { x: 0, y: 0, scale: 1, opacity: 1 });
+
+                // Clear the details thumb
+                if (detailsThumbRef.current) {
+                  detailsThumbRef.current.innerHTML = "";
+                }
+
+                // Hide details panel and clean up state classes
+                if (detailsPanelRef.current) {
+                  detailsPanelRef.current.classList.remove('active', 'cart-open-centered');
+                }
+                if (detailsOverlayRef.current) {
+                  detailsOverlayRef.current.classList.remove('active', 'cart-open-centered');
+                }
+                document.body.style.overflow = "";
+
+                // Reset opacity and transform values for next time
+                gsap.set(".vase-details-title", { y: 0, opacity: 1 });
+                gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
+                gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
+
+                // Reset references
+                setCurrentProduct(null);
+                setOriginalParent(null);
+                setPlaceholderElement(null);
+                setSelectedProductData(null);
+
+                // Resume the marquee animation
+                if (infiniteMarqueeTimeline.current) {
+                  infiniteMarqueeTimeline.current.resume();
+                }
+              },
+            });
+          },
+        });
+      } else {
+        // Fallback: simple fade out if placeholder not found
+        gsap.to(".vase-details-title", {
+          y: 50,
+          opacity: 0,
+          duration: 0.2,
+          ease: "power2.in",
+        });
+
+        gsap.to(".vase-details-info > *", {
+          y: 30,
+          opacity: 0,
+          duration: 0.2,
+          stagger: 0.02,
+          ease: "power2.in",
+        });
+
+        gsap.to(currentProduct, {
+          opacity: 0,
+          scale: 0.8,
+          duration: 0.4,
+          ease: "power2.inOut",
+          onComplete: () => {
+            originalParent.appendChild(currentProduct);
+            gsap.set(currentProduct, { opacity: 1, scale: 1 });
+
+            if (detailsThumbRef.current) {
+              detailsThumbRef.current.innerHTML = "";
+            }
+
+            if (detailsPanelRef.current) {
+              detailsPanelRef.current.classList.remove('active', 'cart-open-centered');
+            }
+            if (detailsOverlayRef.current) {
+              detailsOverlayRef.current.classList.remove('active', 'cart-open-centered');
+            }
+            document.body.style.overflow = "";
+
+            gsap.set(".vase-details-title", { y: 0, opacity: 1 });
+            gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
+            gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
+
+            setCurrentProduct(null);
+            setOriginalParent(null);
+            setPlaceholderElement(null);
+            setSelectedProductData(null);
+
+            // Resume the marquee animation
+            if (infiniteMarqueeTimeline.current) {
+              infiniteMarqueeTimeline.current.resume();
+            }
+          },
+        });
+      }
+    };
+
+    // Store function references in refs for external access
+    showDetailsRef.current = showDetails;
+    hideDetailsRef.current = hideDetails;
+
+    // Initialize marquee once products are loaded
+    const initializeMarquee = () => {
       const grid = gridRef.current;
       const detailsOverlay = detailsOverlayRef.current;
       const detailsClose = detailsCloseRef.current;
       const addCartBtn = addCartBtnRef.current;
 
-      if (!grid) return;
-
-      // Register GSAP plugins if available
-      if (typeof window !== 'undefined' && (window as any).gsap) {
-        const { gsap } = window as any;
-        if (gsap && gsap.registerPlugin && (window as any).Flip) {
-          gsap.registerPlugin((window as any).Flip);
-        }
-      }
+      if (!grid || marqueeProducts.length === 0) return;
 
       // Remove any existing CSS animation
       grid.style.animation = 'none';
 
-      // Add click handlers to marquee items
+      // Clear previous event listeners
       const marqueeItems = grid.querySelectorAll('.marquee-item');
       marqueeItems.forEach((item: Element) => {
+        const clonedItem = item.cloneNode(true);
+        item.parentNode?.replaceChild(clonedItem, item);
+      });
+
+      // Add click handlers to fresh marquee items
+      const freshMarqueeItems = grid.querySelectorAll('.marquee-item');
+      freshMarqueeItems.forEach((item: Element) => {
         const img = item.querySelector('img');
         if (img) {
           const productId = img.getAttribute('data-product-id');
@@ -209,31 +459,12 @@ export default function Marquee() {
         addCartBtn.addEventListener("click", handleAddToCart);
 
         // Store the handler reference for cleanup
-        (addCartBtn as any)._cartHandler = handleAddToCart;
+        (addCartBtn as HTMLButtonElementWithHandler)._cartHandler = handleAddToCart;
       }
 
-      // Wait for GSAP to be available, then initialize marquee
-      let gsapRetryCount = 0;
-      const maxRetries = 50;
-
-      const waitForGSAP = () => {
-        if (typeof window !== 'undefined' && (window as any).gsap) {
-          initializeInfiniteMarquee();
-        } else if (gsapRetryCount < maxRetries) {
-          gsapRetryCount++;
-          setTimeout(waitForGSAP, 100);
-        } else {
-          // Add CSS fallback class
-          grid.classList.add('css-fallback');
-        }
-      };
-
-      // Start checking for GSAP availability
-      waitForGSAP();
+      // Initialize the infinite marquee
+      marqueeTimelineCleanup = initializeInfiniteMarquee() || (() => {});
     };
-
-    // Wait for component to mount
-    const timer = setTimeout(initMarquee, 200);
 
     // Add keyboard support for closing details panel
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -246,7 +477,7 @@ export default function Marquee() {
 
     // Monitor cart modal state to center the details panel on desktop
     const observeCartModal = () => {
-      const observer = new MutationObserver((mutations) => {
+      cartObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
             const target = mutation.target as HTMLElement;
@@ -270,264 +501,67 @@ export default function Marquee() {
       });
 
       // Start observing the body for class changes on cart modal
-      observer.observe(document.body, {
+      cartObserver.observe(document.body, {
         attributes: true,
         attributeFilter: ['class'],
         subtree: true
       });
-
-      return observer;
     };
 
-    const cartObserver = observeCartModal();
+    // Start the process
+    fetchProducts();
+
+    // Initialize marquee when products are ready
+    if (!loading && marqueeProducts.length > 0) {
+      const timer = setTimeout(initializeMarquee, 200);
+      observeCartModal();
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
 
     return () => {
-      clearTimeout(timer);
+      isMounted = false;
       document.removeEventListener('keydown', handleKeyDown);
 
       if (cartObserver) {
         cartObserver.disconnect();
       }
 
+      if (marqueeTimelineCleanup) {
+        marqueeTimelineCleanup();
+      }
+
+      // Clean up marquee pause timeout
+      if (marqueePauseTimeout.current) {
+        clearTimeout(marqueePauseTimeout.current);
+      }
+
       // Clean up the add to cart event listener
-      const cartBtn = document.querySelector('.vase-details-add-cart');
-      if (cartBtn && (cartBtn as any)._cartHandler) {
-        cartBtn.removeEventListener("click", (cartBtn as any)._cartHandler);
-        delete (cartBtn as any)._cartHandler;
+      const cartBtn = document.querySelector('.vase-details-add-cart') as HTMLButtonElementWithHandler;
+      if (cartBtn && cartBtn._cartHandler) {
+        cartBtn.removeEventListener("click", cartBtn._cartHandler);
+        delete cartBtn._cartHandler;
       }
 
       // Clean up any leftover placeholders
       const placeholders = document.querySelectorAll('.product-placeholder[data-placeholder="true"]');
       placeholders.forEach(placeholder => placeholder.remove());
     };
-  }, [isShowingDetails, selectedProductData, loading, marqueeProducts]);
+  }, [loading, marqueeProducts.length, isShowingDetails, currentProduct, originalParent, placeholderElement]); // Include all necessary dependencies
 
+  // Export functions for external access via refs
   const showDetails = (element: HTMLElement, product: Product) => {
-    if (isShowingDetails) return;
-    setIsShowingDetails(true);
-    setSelectedProductData(product);
-
-    const { gsap, Flip } = window as any;
-
-    // Store references for cleanup
-    const originalParent = element.parentNode as HTMLElement;
-    const nextSibling = element.nextSibling;
-
-    // Create a simple placeholder to maintain space
-    const placeholder = document.createElement("div");
-    placeholder.style.height = element.offsetHeight + "px";
-    placeholder.style.width = element.offsetWidth + "px";
-    placeholder.style.visibility = "hidden";
-    placeholder.dataset.placeholder = "true";
-    // Copy only the essential margin to maintain spacing
-    placeholder.style.marginBottom = getComputedStyle(element).marginBottom;
-
-    // Insert placeholder in the exact same position
-    if (nextSibling) {
-      originalParent.insertBefore(placeholder, nextSibling);
-    } else {
-      originalParent.appendChild(placeholder);
+    if (showDetailsRef.current) {
+      showDetailsRef.current(element, product);
     }
-
-    // Store references
-    setCurrentProduct(element);
-    setOriginalParent(originalParent);
-    setOriginalNextSibling(nextSibling);
-
-    // Get state before moving
-    const state = Flip.getState(element);
-
-    // Pause the marquee animation
-    if ((window as any).infiniteMarqueeTimeline) {
-      (window as any).infiniteMarqueeTimeline.pause();
-    }
-
-    // Show details panel
-    if (detailsPanelRef.current) {
-      detailsPanelRef.current.classList.add("active");
-    }
-    if (detailsOverlayRef.current) {
-      detailsOverlayRef.current.classList.add("active");
-    }
-    document.body.style.overflow = "hidden";
-
-    // Update details panel content
-    if (detailsPanelRef.current) {
-      const title = detailsPanelRef.current.querySelector('.vase-details-title');
-      const price = detailsPanelRef.current.querySelector('.vase-details-price');
-      const description = detailsPanelRef.current.querySelector('.vase-details-description');
-
-      if (title) {
-        title.textContent = product.name;
-      }
-      if (price) {
-        price.textContent = `$${product.price.toFixed(2)}`;
-      }
-      if (description) {
-        description.textContent = product.shortDescription || `Beautiful ${product.name.toLowerCase()} for your jewelry collection.`;
-      }
-    }
-
-    // Pre-position the details thumb for precise centering
-    if (detailsThumbRef.current) {
-      detailsThumbRef.current.innerHTML = ''; // Clear any previous content
-
-      // Create a wrapper element for better control
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'absolute';
-      wrapper.style.top = '50%';
-      wrapper.style.left = '50%';
-      wrapper.style.transform = 'translate(-50%, -50%)';
-      wrapper.style.width = '100%';
-      wrapper.style.height = '100%';
-      wrapper.style.display = 'flex';
-      wrapper.style.alignItems = 'center';
-      wrapper.style.justifyContent = 'center';
-
-      detailsThumbRef.current.appendChild(wrapper);
-      wrapper.appendChild(element);
-
-      // Set initial styles on the element
-      element.style.position = 'relative';
-      element.style.transform = 'none';
-      element.style.maxWidth = '90%';
-      element.style.maxHeight = '90%';
-      element.style.width = 'auto';
-      element.style.height = 'auto';
-    }
-
-    // Flip animation from original position to details
-    Flip.from(state, {
-      absolute: true,
-      targets: element,
-      duration: 1.2,
-      ease: "power3.inOut",
-      onComplete: () => {
-        // Ensure element stays perfectly centered after animation
-        if (detailsThumbRef.current) {
-          const { gsap } = window as any;
-
-          // Brief corrective animation to snap to perfect center
-          gsap.to(element, {
-            x: 0,
-            y: 0,
-            duration: 0.1,
-            ease: "power2.out",
-            onComplete: () => {
-              // Ensure final positioning is locked
-              element.style.transform = 'none';
-            }
-          });
-        }
-      }
-    });
   };
 
   const hideDetails = () => {
-    if (!isShowingDetails || !currentProduct || !originalParent) return;
-    setIsShowingDetails(false);
-
-    const { gsap } = window as any;
-
-    // Animate details panel content out first
-    gsap.to(".vase-details-title", {
-      y: 50,
-      opacity: 0,
-      duration: 0.2,
-      ease: "power2.in",
-    });
-
-    gsap.to(".vase-details-info > *", {
-      y: 30,
-      opacity: 0,
-      duration: 0.2,
-      stagger: 0.02,
-      ease: "power2.in",
-      onComplete: () => {
-        // Apply the original draggable-grid approach
-        const { Flip } = window as any;
-        const state = Flip.getState(currentProduct);
-
-        const finalRect = originalParent.getBoundingClientRect();
-        const currentRect = currentProduct.getBoundingClientRect();
-        const detailsThumbRect = detailsThumbRef.current!.getBoundingClientRect();
-
-        // Set absolute positioning for precise animation
-        gsap.set(currentProduct, {
-          position: "absolute",
-          top: currentRect.top - detailsThumbRect.top + "px",
-          left: currentRect.left - detailsThumbRect.left + "px",
-          width: currentRect.width + "px",
-          height: currentRect.height + "px",
-          zIndex: 10000,
-        });
-
-        // Animate back to the original parent position
-        gsap.to(currentProduct, {
-          top: finalRect.top - detailsThumbRect.top + "px",
-          left: finalRect.left - detailsThumbRect.left + "px",
-          width: finalRect.width + "px",
-          height: finalRect.height + "px",
-          duration: 1.2,
-          delay: 0.3,
-          ease: "power3.inOut",
-          onComplete: () => {
-            // Find and replace the placeholder with the original product
-            const placeholder = originalParent.querySelector('[data-placeholder="true"]');
-            if (placeholder) {
-              placeholder.replaceWith(currentProduct);
-            } else {
-              // Fallback: return to original position using stored next sibling
-              if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
-                originalParent.insertBefore(currentProduct, originalNextSibling);
-              } else {
-                originalParent.appendChild(currentProduct);
-              }
-            }
-
-            // Reset all styles
-            gsap.set(currentProduct, {
-              position: "",
-              top: "",
-              left: "",
-              width: "",
-              height: "",
-              zIndex: "",
-            });
-
-            // Clear the details thumb
-            if (detailsThumbRef.current) {
-              detailsThumbRef.current.innerHTML = "";
-            }
-
-            // Hide details panel and clean up state classes
-            if (detailsPanelRef.current) {
-              detailsPanelRef.current.classList.remove('active', 'cart-open-centered');
-            }
-            if (detailsOverlayRef.current) {
-              detailsOverlayRef.current.classList.remove('active', 'cart-open-centered');
-            }
-            document.body.style.overflow = "";
-
-            // Reset opacity and transform values for next time
-            gsap.set(".vase-details-title", { y: 0, opacity: 1 });
-            gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
-            gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
-
-            // Reset references
-            setCurrentProduct(null);
-            setOriginalParent(null);
-            setOriginalNextSibling(null);
-            setSelectedProductData(null);
-
-            // Resume the marquee animation
-            if ((window as any).infiniteMarqueeTimeline) {
-              (window as any).infiniteMarqueeTimeline.resume();
-            }
-          }
-        });
-      }
-    });
+    if (hideDetailsRef.current) {
+      hideDetailsRef.current();
+    }
   };
 
   // Generate the exact same column structure as the original Corano template
@@ -637,27 +671,26 @@ export default function Marquee() {
   };
 
   // Initialize infinite marquee with GSAP
-  const initializeInfiniteMarquee = () => {
+  const initializeInfiniteMarquee = (): (() => void) => {
     const grid = gridRef.current;
-    if (!grid) return;
-
-    const { gsap } = window as any;
+    if (!grid) return () => {};
 
     // Clean up any existing clones and timelines
     const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
     if (existingClone) {
-      if ((existingClone as any).isConnected) {
+      // Check if element is still connected to DOM
+      if (existingClone.isConnected) {
         // Prefer native remove when available to avoid parent/child mismatches
-        if (typeof (existingClone as any).remove === 'function') {
-          (existingClone as any).remove();
+        if (typeof existingClone.remove === 'function') {
+          existingClone.remove();
         } else if (existingClone.parentNode) {
           existingClone.parentNode.removeChild(existingClone);
         }
       }
     }
 
-    if ((window as any).infiniteMarqueeTimeline) {
-      (window as any).infiniteMarqueeTimeline.kill();
+    if (infiniteMarqueeTimeline.current) {
+      infiniteMarqueeTimeline.current.kill();
     }
 
     // Store the clone
@@ -674,14 +707,14 @@ export default function Marquee() {
     gsap.set(gridClone, { x: gridWidth });
 
     // Create infinite marquee with seamless looping
-    const duration = 180; // Faster duration for visible movement
+    const duration = 120; // Original duration from vanilla JS
 
     const marqueeTimeline = gsap.timeline({
       repeat: -1,
       onUpdate: () => {
         // Wrap positions for seamless loop
-        const gridX = gsap.getProperty(grid, "x");
-        const cloneX = gsap.getProperty(gridClone, "x");
+        const gridX = parseFloat(gsap.getProperty(grid, "x") as string);
+        const cloneX = parseFloat(gsap.getProperty(gridClone, "x") as string);
 
         // When grid moves completely off left, position it to the right of the clone
         if (gridX <= -gridWidth) {
@@ -695,32 +728,33 @@ export default function Marquee() {
       },
     });
 
-    // Animate both grids moving left continuously
+    // Animate both grids moving left continuously (like vanilla JS)
     marqueeTimeline.to(
       [grid, gridClone],
       {
-        x: `-=${gridWidth}`, // Move both grids by their width
-        duration: duration,
+        x: `-=${gridWidth * 2}`, // Move both grids by twice their width
+        duration: duration * 2, // Double the duration to maintain same speed
         ease: "none",
       },
       0
     );
 
     // Store timeline reference
-    (window as any).infiniteMarqueeTimeline = marqueeTimeline;
+    infiniteMarqueeTimeline.current = marqueeTimeline;
 
     // Handle resize
     const handleResize = () => {
-      if ((window as any).infiniteMarqueeTimeline) {
-        (window as any).infiniteMarqueeTimeline.kill();
+      if (infiniteMarqueeTimeline.current) {
+        infiniteMarqueeTimeline.current.kill();
       }
 
       // Remove clone if it exists
       const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
       if (existingClone) {
-        if ((existingClone as any).isConnected) {
-          if (typeof (existingClone as any).remove === 'function') {
-            (existingClone as any).remove();
+        // Check if element is still connected to DOM
+        if (existingClone.isConnected) {
+          if (typeof existingClone.remove === 'function') {
+            existingClone.remove();
           } else if (existingClone.parentNode) {
             existingClone.parentNode.removeChild(existingClone);
           }
@@ -745,8 +779,8 @@ export default function Marquee() {
     // Cleanup function
     return () => {
       window.removeEventListener('resize', debouncedResize);
-      if ((window as any).infiniteMarqueeTimeline) {
-        (window as any).infiniteMarqueeTimeline.kill();
+      if (infiniteMarqueeTimeline.current) {
+        infiniteMarqueeTimeline.current.kill();
       }
     };
   };
