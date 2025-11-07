@@ -54,7 +54,6 @@ export default function Marquee() {
   const addCartBtnRef = useRef<HTMLButtonElement>(null);
   const detailsThumbRef = useRef<HTMLDivElement>(null);
   const infiniteMarqueeTimeline = useRef<gsap.core.Timeline | null>(null);
-  const marqueePauseTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [currentProduct, setCurrentProduct] = useState<HTMLElement | null>(null);
   const [originalParent, setOriginalParent] = useState<HTMLElement | null>(null);
@@ -149,15 +148,6 @@ export default function Marquee() {
       // Get state before moving
       const state = Flip.getState(element);
 
-      // Schedule marquee pause after 1 second
-      if (infiniteMarqueeTimeline.current) {
-        marqueePauseTimeout.current = setTimeout(() => {
-          if (infiniteMarqueeTimeline.current) {
-            infiniteMarqueeTimeline.current.pause();
-          }
-        }, 1000);
-      }
-
       // Show details panel
       if (detailsPanelRef.current) {
         detailsPanelRef.current.classList.add("active");
@@ -202,12 +192,6 @@ export default function Marquee() {
     const hideDetails = () => {
       if (!isShowingDetails || !currentProduct || !originalParent) return;
       setIsShowingDetails(false);
-
-      // Clear any pending marquee pause timeout
-      if (marqueePauseTimeout.current) {
-        clearTimeout(marqueePauseTimeout.current);
-        marqueePauseTimeout.current = null;
-      }
 
       // Use the stored placeholder element for accurate positioning
       const placeholder = placeholderElement;
@@ -277,11 +261,6 @@ export default function Marquee() {
                 setOriginalParent(null);
                 setPlaceholderElement(null);
                 setSelectedProductData(null);
-
-                // Resume the marquee animation
-                if (infiniteMarqueeTimeline.current) {
-                  infiniteMarqueeTimeline.current.resume();
-                }
               },
             });
           },
@@ -332,11 +311,6 @@ export default function Marquee() {
             setOriginalParent(null);
             setPlaceholderElement(null);
             setSelectedProductData(null);
-
-            // Resume the marquee animation
-            if (infiniteMarqueeTimeline.current) {
-              infiniteMarqueeTimeline.current.resume();
-            }
           },
         });
       }
@@ -531,11 +505,6 @@ export default function Marquee() {
 
       if (marqueeTimelineCleanup) {
         marqueeTimelineCleanup();
-      }
-
-      // Clean up marquee pause timeout
-      if (marqueePauseTimeout.current) {
-        clearTimeout(marqueePauseTimeout.current);
       }
 
       // Clean up the add to cart event listener
