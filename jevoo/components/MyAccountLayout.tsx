@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import MyAccountContent from './MyAccountContent';
 
 interface MyAccountLayoutProps {
-  children: React.ReactNode;
   title: string;
   breadcrumb: string;
 }
 
-export default function MyAccountLayout({ children, title, breadcrumb }: MyAccountLayoutProps) {
+export default function MyAccountLayout({ title, breadcrumb }: MyAccountLayoutProps) {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
 
@@ -98,7 +98,7 @@ export default function MyAccountLayout({ children, title, breadcrumb }: MyAccou
                     {/* My Account Tab Content Start */}
                     <div className="col-lg-9 col-md-8">
                       <div className="tab-content" id="myaccountContent">
-                        {children}
+                        <MyAccountContent />
                       </div>
                     </div>
                     {/* My Account Tab Content End */}
