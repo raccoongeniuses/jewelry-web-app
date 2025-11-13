@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { FiCheckCircle } from 'react-icons/fi';
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -31,14 +32,13 @@ export default function SuccessModal({ isOpen, onClose, message }: SuccessModalP
         <div className="modal-content" style={{ minHeight: '350px' }}>
           <div className="modal-body text-center p-4 d-flex flex-column justify-content-center" style={{ minHeight: '350px' }}>
             <div className="mb-3">
-              <i
-                className="pe-7s-check"
+              <FiCheckCircle
                 style={{
                   fontSize: '48px',
                   color: '#28a745',
                   display: 'inline-block'
                 }}
-              ></i>
+              />
             </div>
             <h4
               className="modal-title mb-3"

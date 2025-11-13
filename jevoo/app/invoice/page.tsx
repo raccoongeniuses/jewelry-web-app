@@ -44,7 +44,8 @@ interface OrderData {
     price: number;
     quantity: number;
     image: string;
-    brand?: string;
+    brand?: string | { name: string; slug: string; id: string };
+    category?: string | { name: string; slug: string; id: string };
     colors?: string[];
     selectedSize?: string;
     selectedColor?: string;
@@ -68,11 +69,38 @@ function InvoiceContent() {
     const sessionOrder = sessionStorage.getItem('lastOrder');
 
     try {
-      const data: OrderData = orderJson ? JSON.parse(decodeURIComponent(orderJson)) :
-                               sessionOrder ? JSON.parse(sessionOrder) : null;
-      setOrderData(data);
+      let data: OrderData | null = null;
+
+      if (orderJson) {
+        data = JSON.parse(decodeURIComponent(orderJson));
+      } else if (sessionOrder) {
+        data = JSON.parse(sessionOrder);
+      }
+
+      // Validate and sanitize the order data
+      if (data && data.items && Array.isArray(data.items)) {
+        // Ensure items have required properties with safe defaults
+        const sanitizedItems = data.items.map(item => ({
+          id: item.id || 'unknown',
+          name: typeof item.name === 'string' ? item.name : 'Product Name',
+          price: typeof item.price === 'number' ? item.price : 0,
+          quantity: typeof item.quantity === 'number' ? item.quantity : 1,
+          image: item.image || '/placeholder-product.jpg',
+          brand: item.brand,
+          category: item.category,
+          colors: Array.isArray(item.colors) ? item.colors : [],
+          selectedSize: item.selectedSize,
+          selectedColor: item.selectedColor
+        }));
+
+        data.items = sanitizedItems;
+        setOrderData(data);
+      } else {
+        setOrderData(null);
+      }
     } catch (error) {
       console.error('Error parsing order data:', error);
+      setOrderData(null);
     } finally {
       setLoading(false);
     }
@@ -333,31 +361,65 @@ function InvoiceContent() {
                       {orderData.items.map((item) => {
                         // Create unique key using id, size, and color
                         const uniqueKey = `${item.id}-${item.selectedSize || 'default'}-${item.selectedColor || 'default'}`;
+
+                        // Safe getters for all potentially nested properties
+                        const getItemName = () => {
+                          if (typeof item.name === 'string') return item.name;
+                          if (item.name && typeof item.name === 'object' && item.name.name) return item.name.name;
+                          return 'Product Name';
+                        };
+
+                        const getItemPrice = () => {
+                          const price = parseFloat(String(item.price || 0));
+                          return isNaN(price) ? 0 : price;
+                        };
+
+                        const getItemQuantity = () => {
+                          const quantity = parseInt(String(item.quantity || 1));
+                          return isNaN(quantity) ? 1 : quantity;
+                        };
+
+                        const getItemImage = () => {
+                          if (typeof item.image === 'string') return item.image;
+                          if (item.image && typeof item.image === 'object' && item.image.url) return item.image.url;
+                          return '/placeholder-product.jpg';
+                        };
+
+                        const getBrandName = () => {
+                          if (!item.brand) return null;
+                          if (typeof item.brand === 'string') return item.brand;
+                          if (item.brand && typeof item.brand === 'object' && item.brand.name) return item.brand.name;
+                          return 'Unknown';
+                        };
+
                         return (
                           <tr key={uniqueKey}>
                           <td className="text-center align-middle">
                             <div className="d-flex align-items-center justify-content-center">
                               <div className="product-image me-3">
                                 <Image
-                                  src={item.image}
-                                  alt={item.name}
+                                  src={getItemImage()}
+                                  alt={getItemName()}
                                   width={60}
                                   height={60}
                                   className="img-fluid rounded"
                                 />
                               </div>
                               <div className="text-center">
-                                <h6 className="mb-0">{item.name}</h6>
-                                {item.brand && <small className="text-muted">Brand: {item.brand}</small>}
-                                {item.colors && item.colors.length > 0 && (
-                                  <small className="text-muted d-block">Color: {item.colors[0]}</small>
+                                <h6 className="mb-0">{getItemName()}</h6>
+                                {getBrandName() && <small className="text-muted">Brand: {getBrandName()}</small>}
+                                {item.selectedSize && (
+                                  <small className="text-muted d-block">Size: {item.selectedSize}</small>
+                                )}
+                                {item.selectedColor && (
+                                  <small className="text-muted d-block">Color: {item.selectedColor}</small>
                                 )}
                               </div>
                             </div>
                           </td>
-                          <td className="text-center align-middle">${item.price.toFixed(2)}</td>
-                          <td className="text-center align-middle">{item.quantity}</td>
-                          <td className="text-center align-middle"><strong>${(item.price * item.quantity).toFixed(2)}</strong></td>
+                          <td className="text-center align-middle">${getItemPrice().toFixed(2)}</td>
+                          <td className="text-center align-middle">{getItemQuantity()}</td>
+                          <td className="text-center align-middle"><strong>${(getItemPrice() * getItemQuantity()).toFixed(2)}</strong></td>
                         </tr>
                         );
                       })}

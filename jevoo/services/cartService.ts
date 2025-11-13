@@ -3,6 +3,36 @@ import { CartItem } from '@/types/product';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.jevoo-jewellery.com';
 
+// Cart ID localStorage management
+export const CART_ID_KEY = 'cartId';
+
+export const saveCartId = (cartId: string): void => {
+  if (typeof window !== 'undefined' && cartId) {
+    localStorage.setItem(CART_ID_KEY, cartId);
+  }
+};
+
+export const getSavedCartId = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(CART_ID_KEY);
+  }
+  return null;
+};
+
+export const removeCartId = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(CART_ID_KEY);
+  }
+};
+
+// Helper function to clear all cart-related data from localStorage
+export const clearCartData = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(CART_ID_KEY);
+    // Add any other cart-related localStorage items here in the future
+  }
+};
+
 const handleApiError = async (response: Response): Promise<CartApiError> => {
   let errorMessage = 'An error occurred. Please try again.';
   let details: string | undefined;
@@ -128,6 +158,11 @@ export const cartService = {
       return { cart: { items: [], itemCount: 0, total: 0, status: 'active', sessionId: '', createdAt: '', updatedAt: '', expiresAt: '', id: '' } };
     }
 
+    // Save cart ID to localStorage if it exists
+    if (data.cart && data.cart.id) {
+      saveCartId(data.cart.id);
+    }
+
     return data;
   },
 
@@ -181,6 +216,12 @@ export const cartService = {
     }
 
     const data = await response.json();
+
+    // Remove cart ID from localStorage if cart becomes empty
+    if (data.cart && (!data.cart.items || data.cart.items.length === 0)) {
+      removeCartId();
+    }
+
     return data;
   },
 
@@ -196,6 +237,10 @@ export const cartService = {
     }
 
     const data = await response.json();
+
+    // Remove all cart data from localStorage when cart is cleared
+    clearCartData();
+
     return data;
   },
 

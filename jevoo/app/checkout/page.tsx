@@ -4,8 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { cartService, getSavedCartId, removeCartId } from '../../services/cartService';
+import { orderService } from '../../services/orderService';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import SuccessModal from '../../components/ui/SuccessModal';
 
 interface BillingDetails {
   firstName: string;
@@ -36,7 +39,46 @@ export default function CheckoutPage() {
   const { items, getTotalPrice } = useCart();
   const { isAuthenticated, user, isLoading } = useAuth();
 
-  
+  const [billingDetails, setBillingDetails] = useState<BillingDetails>({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    country: 'Afghanistan',
+    address: '',
+    address2: '',
+    city: '',
+    state: '',
+    postcode: '',
+    phone: ''
+  });
+
+  const [shippingToDifferent, setShippingToDifferent] = useState(false);
+  const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    country: 'Bangladesh',
+    address: '',
+    address2: '',
+    city: '',
+    state: '',
+    postcode: ''
+  });
+
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank' | 'check' | 'paypal'>('cash');
+  const [shippingMethod, setShippingMethod] = useState<'flat'>('flat');
+  const [orderNote, setOrderNote] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccessMessage, setCouponSuccessMessage] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [orderId, setOrderId] = useState('');
+
   // Show loading state while checking authentication
   if (isLoading) {
     return (
@@ -82,41 +124,9 @@ export default function CheckoutPage() {
     );
   }
 
-  // Form states - pre-fill with user data if available
-  const [billingDetails, setBillingDetails] = useState<BillingDetails>({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    country: 'Afghanistan',
-    address: '',
-    address2: '',
-    city: '',
-    state: '',
-    postcode: '',
-    phone: ''
-  });
-
-  const [shippingToDifferent, setShippingToDifferent] = useState(false);
-  const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    country: 'Bangladesh',
-    address: '',
-    address2: '',
-    city: '',
-    state: '',
-    postcode: ''
-  });
-
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank' | 'check' | 'paypal'>('cash');
-  const [shippingMethod, setShippingMethod] = useState<'flat' | 'free'>('flat');
-  const [orderNote, setOrderNote] = useState('');
-  const [termsAccepted, setTermsAccepted] = useState(false);
-
   // Pricing calculations
   const subtotal = getTotalPrice();
-  const shippingCost = shippingMethod === 'flat' ? 70 : 0;
+  const shippingCost = 0; // Free shipping (temporary)
   const total = subtotal + shippingCost;
 
   // Countries list
@@ -133,16 +143,87 @@ export default function CheckoutPage() {
     setShippingDetails(prev => ({ ...prev, [field]: value }));
   };
 
-  const generateOrderId = () => {
-    return 'ORD' + Date.now().toString().slice(-8);
-  };
-
   const formatDate = () => {
     return new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // Basic coupon code validation
+  const validateCouponCode = (code: string): boolean => {
+    if (!code || code.trim().length < 3) {
+      return false;
+    }
+    // Basic validation: alphanumeric, no special characters except spaces and dashes
+    const couponRegex = /^[A-Z0-9\s-]+$/i;
+    return couponRegex.test(code.trim());
+  };
+
+  // Clear coupon error when user starts typing
+  const handleCouponInputChange = (value: string) => {
+    // Convert to uppercase for user display and storage
+    setCouponCode(value.toUpperCase());
+    if (couponError) {
+      setCouponError(null);
+    }
+  };
+
+  // Handle coupon application with validation
+  const handleApplyCoupon = async () => {
+    // Clear any existing messages
+    setCouponError(null);
+    setCouponSuccessMessage(null);
+
+    if (!validateCouponCode(couponCode)) {
+      setCouponError('Please enter a valid coupon code. Coupon codes should be at least 3 characters and contain only letters, numbers, spaces, and dashes.');
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+
+    try {
+      // Convert coupon code to uppercase for case-insensitive API call
+      const uppercaseCouponCode = couponCode.trim().toUpperCase();
+
+      // Validate coupon with backend API
+      const couponResponse = await orderService.checkCoupon(uppercaseCouponCode);
+
+      if (couponResponse.valid) {
+        // Check if there's a minimum order value requirement
+        if (couponResponse.coupon?.minimumOrderValue && subtotal < couponResponse.coupon.minimumOrderValue) {
+          setCouponError(`Coupon requires a minimum order value of $${couponResponse.coupon.minimumOrderValue.toFixed(2)}. Your current subtotal is $${subtotal.toFixed(2)}.`);
+          return;
+        }
+
+        setAppliedCoupon(uppercaseCouponCode);
+        setCouponError(null); // Clear any existing errors
+        setCouponSuccessMessage(couponResponse.message || 'Coupon applied successfully!');
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setCouponSuccessMessage(null);
+        }, 3000);
+      } else {
+        setCouponError(couponResponse.message || 'Invalid coupon code. Please check and try again.');
+      }
+    } catch (error: any) {
+      let errorMessage = 'Failed to validate coupon. Please try again.';
+
+      if (error.message) {
+        if (error.message.toLowerCase().includes('coupon') ||
+            error.message.toLowerCase().includes('invalid') ||
+            error.message.toLowerCase().includes('not found') ||
+            error.message.toLowerCase().includes('expired')) {
+          errorMessage = error.message;
+        }
+      }
+
+      setCouponError(errorMessage);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
   };
 
   const getPaymentMethodName = () => {
@@ -159,8 +240,21 @@ export default function CheckoutPage() {
     return shippingMethod === 'flat' ? 'Flat Rate ($70)' : 'Free Shipping';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    // Redirect to home page after closing modal
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 500);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
 
     // Form validation
     const requiredFields = [
@@ -175,7 +269,7 @@ export default function CheckoutPage() {
 
     // Check for empty required fields
     const emptyFields = requiredFields.filter(field => !field.value.trim());
-    
+
     if (emptyFields.length > 0) {
       alert(`Please fill in the following required fields:\n${emptyFields.map(field => `• ${field.label}`).join('\n')}`);
       return;
@@ -188,49 +282,117 @@ export default function CheckoutPage() {
       return;
     }
 
-    
-    // Generate order data - always success based on cart
-    const orderData = {
-      orderId: generateOrderId(),
-      orderDate: formatDate(),
-      customerName: billingDetails.firstName && billingDetails.lastName
-        ? `${billingDetails.firstName} ${billingDetails.lastName}`
-        : 'Guest Customer',
-      customerEmail: billingDetails.email || 'guest@jevoo.com',
-      customerPhone: billingDetails.phone || 'N/A',
-      billingAddress: billingDetails,
-      shippingAddress: shippingToDifferent ? shippingDetails : undefined,
-      items: items,
-      subtotal: subtotal,
-      shippingCost: shippingCost,
-      total: total,
-      paymentMethod: getPaymentMethodName(),
-      shippingMethod: getShippingMethodName(),
-      orderNote: orderNote || undefined
-    };
+    setIsSubmitting(true);
 
-    // Store order data in sessionStorage for the invoice page
-    sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
+    try {
+      // Try to get cart ID from localStorage first, then fallback to API call
+      let cartId = getSavedCartId();
 
-    // Open invoice in new tab
-    const invoiceUrl = '/invoice';
+      if (!cartId) {
+        // If no cart ID in localStorage, fetch from API
+        const cartResponse = await cartService.getCart();
 
-    // Method 1: Try window.open first
-    const newWindow = window.open(invoiceUrl, '_blank');
+        if (!cartResponse.cart || !cartResponse.cart.id) {
+          alert('Unable to retrieve cart information. Please try again.');
+          setIsSubmitting(false);
+          return;
+        }
 
-    if (newWindow && !newWindow.closed) {
-    } else {
-      // Method 2: Fallback - create and click a link
-      const link = document.createElement('a');
-      link.href = invoiceUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        cartId = cartResponse.cart.id;
+      }
+
+      // Create order via API
+      const orderRequest = {
+        cartId: cartId,
+        couponCode: appliedCoupon || undefined,
+        shippingCost: shippingCost,
+        customerNotes: orderNote || undefined
+      };
+
+      const orderResponse = await orderService.createOrder(orderRequest);
+
+      if (orderResponse.success && orderResponse.order) {
+        // Remove cart ID from localStorage after successful order
+        removeCartId();
+
+        // Store order ID for success message
+        const currentOrderId = orderResponse.order.orderId || orderResponse.order.id;
+        setOrderId(currentOrderId);
+
+        // Generate order data for invoice page
+        const orderData = {
+          orderId: orderResponse.order.id,
+          orderDate: formatDate(),
+          customerName: billingDetails.firstName && billingDetails.lastName
+            ? `${billingDetails.firstName} ${billingDetails.lastName}`
+            : 'Guest Customer',
+          customerEmail: billingDetails.email || 'guest@jevoo.com',
+          customerPhone: billingDetails.phone || 'N/A',
+          billingAddress: billingDetails,
+          shippingAddress: shippingToDifferent ? shippingDetails : undefined,
+          items: items,
+          subtotal: subtotal,
+          shippingCost: shippingCost,
+          total: total,
+          paymentMethod: getPaymentMethodName(),
+          shippingMethod: getShippingMethodName(),
+          orderNote: orderNote || undefined,
+          couponCode: appliedCoupon
+        };
+
+        // Store order data in sessionStorage for the invoice page
+        sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
+
+        // Set success message and show modal
+        setSuccessMessage(`Order placed successfully! Your order ID is: ${currentOrderId}`);
+        setShowSuccessModal(true);
+
+        // Open invoice in new tab
+        const invoiceUrl = '/invoice';
+
+        // Method 1: Try window.open first
+        const newWindow = window.open(invoiceUrl, '_blank');
+
+        if (newWindow && !newWindow.closed) {
+        } else {
+          // Method 2: Fallback - create and click a link
+          const link = document.createElement('a');
+          link.href = invoiceUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
+      } else {
+        alert(orderResponse.message || 'Failed to create order. Please try again.');
+      }
+
+    } catch (error: any) {
+      console.error('Order creation error:', error);
+
+      // Handle different types of errors
+      let errorMessage = 'Failed to create order. Please try again.';
+
+      if (error.message) {
+        // Check if it's a coupon-related error
+        if (error.message.toLowerCase().includes('coupon') || error.message.toLowerCase().includes('invalid')) {
+          errorMessage = `Coupon error: ${error.message}. Please remove the coupon and try again.`;
+          // Clear the invalid coupon
+          setAppliedCoupon(null);
+          setCouponCode('');
+        } else {
+          errorMessage = error.message;
+        }
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Don't clear cart or redirect - stay on checkout page
   };
 
   if (items.length === 0) {
@@ -599,6 +761,92 @@ export default function CheckoutPage() {
                           onChange={(e) => setOrderNote(e.target.value)}
                         />
                       </div>
+
+                      {/* Coupon Code Section */}
+                      <div className="single-input-item">
+                        <label htmlFor="coupon">Coupon Code</label>
+                        {!appliedCoupon ? (
+                          <>
+                            <div className="d-flex gap-2">
+                              <input
+                                type="text"
+                                id="coupon"
+                                placeholder="Enter your coupon code"
+                                value={couponCode}
+                                onChange={(e) => handleCouponInputChange(e.target.value)}
+                                style={{
+                                  flex: '1',
+                                  color: '#555555',
+                                  border: couponError ? '1px solid #dc3545' : '1px solid #ccc',
+                                  padding: '12px 10px',
+                                  fontSize: '14px',
+                                  background: '#f7f7f7',
+                                  borderRadius: '0'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                className="btn btn-sqr"
+                                onClick={handleApplyCoupon}
+                                disabled={!couponCode.trim() || isValidatingCoupon}
+                              >
+                                {isValidatingCoupon ? (
+                                  <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Validating...
+                                  </>
+                                ) : (
+                                  'Apply'
+                                )}
+                              </button>
+                            </div>
+                            {couponError && (
+                              <div className="invalid-feedback d-block" style={{
+                                color: '#dc3545',
+                                fontSize: '0.875rem',
+                                marginTop: '0.25rem',
+                                display: 'block'
+                              }}>
+                                {couponError}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="coupon-applied" style={{
+                            padding: '10px',
+                            background: '#d4edda',
+                            border: '1px solid #c3e6cb',
+                            borderRadius: '4px',
+                            color: '#155724'
+                          }}>
+                            <div className="d-flex align-items-center justify-content-between">
+                              <span>
+                                <strong>Coupon Applied:</strong> {appliedCoupon}
+                              </span>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setAppliedCoupon(null);
+                                  setCouponCode('');
+                                  setCouponError(null);
+                                  setCouponSuccessMessage(null);
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            {couponSuccessMessage && (
+                              <div className="mt-2" style={{
+                                fontSize: '0.875rem',
+                                color: '#155724'
+                              }}>
+                                {couponSuccessMessage}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -649,26 +897,11 @@ export default function CheckoutPage() {
                                         id="flatrate"
                                         name="shipping"
                                         className="custom-control-input"
-                                        checked={shippingMethod === 'flat'}
-                                        onChange={() => setShippingMethod('flat')}
+                                        checked={true}
+                                        readOnly
                                       />
                                       <label className="custom-control-label" htmlFor="flatrate">
                                         Flat Rate: ${shippingCost.toFixed(2)}
-                                      </label>
-                                    </div>
-                                  </li>
-                                  <li>
-                                    <div className="custom-control custom-radio">
-                                      <input
-                                        type="radio"
-                                        id="freeshipping"
-                                        name="shipping"
-                                        className="custom-control-input"
-                                        checked={shippingMethod === 'free'}
-                                        onChange={() => setShippingMethod('free')}
-                                      />
-                                      <label className="custom-control-label" htmlFor="freeshipping">
-                                        Free Shipping
                                       </label>
                                     </div>
                                   </li>
@@ -786,8 +1019,15 @@ export default function CheckoutPage() {
                               I have read and agree to the website <Link href="/terms">terms and conditions.</Link>
                             </label>
                           </div>
-                          <button type="submit" className="btn btn-sqr">
-                            Place Order
+                          <button type="submit" className="btn btn-sqr" disabled={isSubmitting}>
+                            {isSubmitting ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Processing...
+                              </>
+                            ) : (
+                              'Place Order'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -802,6 +1042,13 @@ export default function CheckoutPage() {
       </main>
 
       <Footer />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        message={successMessage}
+      />
     </div>
   );
 }
