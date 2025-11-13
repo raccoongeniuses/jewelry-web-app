@@ -9,6 +9,7 @@ import { orderService } from '../../services/orderService';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import SuccessModal from '../../components/ui/SuccessModal';
+import { JewelryLoader } from '../../components/LoaderSpinner';
 
 interface BillingDetails {
   firstName: string;
@@ -36,7 +37,7 @@ interface ShippingDetails {
 }
 
 export default function CheckoutPage() {
-  const { items, getTotalPrice } = useCart();
+  const { items, getTotalPrice, loading: cartLoading } = useCart();
   const { isAuthenticated, user, isLoading } = useAuth();
 
   const [billingDetails, setBillingDetails] = useState<BillingDetails>({
@@ -86,12 +87,12 @@ export default function CheckoutPage() {
         <Header />
         <main className="page-content-wrapper">
           <div className="container section-padding">
-            <div className="row justify-content-center">
-              <div className="col-lg-6 text-center">
-                <div className="spinner-border text-primary" role="status">
+            <div className="row">
+              <div className="col-12 text-center py-5">
+                <div className="spinner-border" role="status">
                   <span className="sr-only">Loading...</span>
                 </div>
-                <p className="mt-3">Checking authentication...</p>
+                <p className="mt-3">Loading...</p>
               </div>
             </div>
           </div>
@@ -395,6 +396,28 @@ export default function CheckoutPage() {
     }
   };
 
+  // Show loading state while cart is being fetched
+  if (cartLoading) {
+    return (
+      <div className="main-wrapper">
+        <Header />
+        <main className="page-content-wrapper">
+          <div className="container section-padding">
+            <div className="row">
+              <div className="col-12 text-center py-5">
+                <div className="spinner-border" role="status">
+                  <span className="sr-only">Loading...</span>
+                </div>
+                <p className="mt-3">Loading your cart...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="main-wrapper">
@@ -612,9 +635,6 @@ export default function CheckoutPage() {
                               checked={shippingToDifferent}
                               onChange={(e) => setShippingToDifferent(e.target.checked)}
                             />
-                            <label className="custom-control-label" htmlFor="ship_to_different">
-                              Ship to a different address?
-                            </label>
                           </div>
                         </div>
                         {shippingToDifferent && (
@@ -1049,6 +1069,18 @@ export default function CheckoutPage() {
         onClose={handleSuccessModalClose}
         message={successMessage}
       />
+
+      {/* Order Submission Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+          <div className="text-center">
+            <JewelryLoader
+              size="large"
+              message="Placing your order..."
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
