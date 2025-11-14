@@ -151,6 +151,22 @@ body, html {
   color: #FFD700;
 }
 
+/* Checkout Table Gold Footer Styling - Total Row Only */
+.checkout-table tfoot tr:last-child {
+  background-color: #c29958 !important;
+}
+
+.checkout-table tfoot tr:last-child td {
+  background-color: #c29958 !important;
+  border-color: #c29958 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.checkout-table tfoot tr:last-child strong {
+  color: #ffffff !important;
+}
+
 /* Shop Toolbar Styles */
 .shop-toolbar-wrapper {
   background: #f8f9fa;

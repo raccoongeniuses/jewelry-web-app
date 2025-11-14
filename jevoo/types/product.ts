@@ -52,8 +52,8 @@ export interface CartContextType {
   updateQuantity: (uniqueId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
-  getTotalPrice: () => number;
   getTotalItems: () => number;
+  getTotalPrice: () => number;
   showConfirmationModal: boolean;
   confirmationMessage: string;
   confirmationItemName: string;

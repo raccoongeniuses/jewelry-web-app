@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,6 +10,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import SuccessModal from '../../components/ui/SuccessModal';
 import { JewelryLoader } from '../../components/LoaderSpinner';
+import { formatCurrency } from '../../lib/formatCurrency';
 
 interface BillingDetails {
   firstName: string;
@@ -79,6 +80,51 @@ export default function CheckoutPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [orderPreview, setOrderPreview] = useState<any>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [shippingCost] = useState(0); // Free shipping (temporary)
+
+  // Effect to fetch order preview on page load and when coupon changes
+  useEffect(() => {
+    if (items.length > 0 && !cartLoading) {
+      fetchOrderPreview(appliedCoupon || undefined);
+    }
+  }, [items, cartLoading, appliedCoupon, shippingCost]);
+
+  // Function to fetch order preview
+  const fetchOrderPreview = async (coupon?: string) => {
+    setIsLoadingPreview(true);
+    try {
+      let cartId = getSavedCartId();
+
+      if (!cartId) {
+        const cartResponse = await cartService.getCart();
+        if (!cartResponse.cart || !cartResponse.cart.id) {
+          console.error('Unable to retrieve cart information');
+          return;
+        }
+        cartId = cartResponse.cart.id;
+      }
+
+      const previewRequest = {
+        cartId: cartId,
+        couponCode: coupon || undefined,
+        shippingCost: shippingCost,
+        tax: 10, // Default tax
+        customerNotes: orderNote || undefined
+      };
+
+      const previewResponse = await orderService.previewOrder(previewRequest);
+
+      if (previewResponse.success && previewResponse.preview) {
+        setOrderPreview(previewResponse.preview);
+      }
+    } catch (error) {
+      console.error('Failed to fetch order preview:', error);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -125,11 +171,11 @@ export default function CheckoutPage() {
     );
   }
 
-  // Pricing calculations
+  // Pricing calculations - use API-provided total
   const subtotal = getTotalPrice();
-  const shippingCost = 0; // Free shipping (temporary)
   const total = subtotal + shippingCost;
 
+  
   // Countries list
   const countries = [
     'Afghanistan', 'Albania', 'Algeria', 'Armenia', 'Bangladesh',
@@ -194,13 +240,16 @@ export default function CheckoutPage() {
       if (couponResponse.valid) {
         // Check if there's a minimum order value requirement
         if (couponResponse.coupon?.minimumOrderValue && subtotal < couponResponse.coupon.minimumOrderValue) {
-          setCouponError(`Coupon requires a minimum order value of $${couponResponse.coupon.minimumOrderValue.toFixed(2)}. Your current subtotal is $${subtotal.toFixed(2)}.`);
+          setCouponError(`Coupon requires a minimum order value of ${formatCurrency(couponResponse.coupon.minimumOrderValue)}. Your current subtotal is ${formatCurrency(subtotal)}.`);
           return;
         }
 
         setAppliedCoupon(uppercaseCouponCode);
         setCouponError(null); // Clear any existing errors
         setCouponSuccessMessage(couponResponse.message || 'Coupon applied successfully!');
+
+        // Fetch updated order preview with the new coupon
+        fetchOrderPreview(uppercaseCouponCode);
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -851,6 +900,8 @@ export default function CheckoutPage() {
                                   setCouponCode('');
                                   setCouponError(null);
                                   setCouponSuccessMessage(null);
+                                  // Fetch updated order preview without coupon
+                                  fetchOrderPreview();
                                 }}
                               >
                                 Remove
@@ -878,7 +929,7 @@ export default function CheckoutPage() {
                     <div className="order-summary-content">
                       {/* Order Summary Table */}
                       <div className="order-summary-table table-responsive text-center">
-                        <table className="table table-bordered">
+                        <table className="table table-bordered checkout-table">
                           <thead>
                             <tr>
                               <th>Products</th>
@@ -892,46 +943,81 @@ export default function CheckoutPage() {
                               return (
                                 <tr key={uniqueKey}>
                                 <td>
-                                  <Link href="/product-details">
                                     {item.name} <strong> × {item.quantity}</strong>
-                                  </Link>
                                 </td>
-                                <td>${(item.price * item.quantity).toFixed(2)}</td>
+                                <td>{formatCurrency(getTotalPrice())}</td>
                               </tr>
                               );
                             })}
                           </tbody>
-                          <tfoot>
-                            <tr>
-                              <td>Sub Total</td>
-                              <td><strong>${subtotal.toFixed(2)}</strong></td>
-                            </tr>
-                            <tr>
-                              <td>Shipping</td>
-                              <td className="d-flex justify-content-center">
-                                <ul className="shipping-type">
-                                  <li>
-                                    <div className="custom-control custom-radio">
-                                      <input
-                                        type="radio"
-                                        id="flatrate"
-                                        name="shipping"
-                                        className="custom-control-input"
-                                        checked={true}
-                                        readOnly
-                                      />
-                                      <label className="custom-control-label" htmlFor="flatrate">
-                                        Flat Rate: ${shippingCost.toFixed(2)}
-                                      </label>
-                                    </div>
-                                  </li>
-                                </ul>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Total Amount</td>
-                              <td><strong>${total.toFixed(2)}</strong></td>
-                            </tr>
+                          <tfoot style={{ backgroundColor: '#c29958 !important', display: 'table-header-group !important' }}>
+                            {/* Order Preview Pricing Section */}
+                            {isLoadingPreview ? (
+                              <tr>
+                                <td colSpan={2} className="text-center py-3">
+                                  <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                                  Loading pricing...
+                                </td>
+                              </tr>
+                            ) : orderPreview ? (
+                              <>
+                                <tr>
+                                  <td style={{ color: '#2c3e50' }}>Sub Total</td>
+                                  <td style={{ color: '#2c3e50', fontWeight: '600' }}>{formatCurrency(getTotalPrice())}</td>
+                                </tr>
+                                <tr>
+                                  <td style={{ color: '#3498db' }}>Shipping</td>
+                                  <td style={{ color: '#3498db', fontWeight: '600' }}>{formatCurrency(orderPreview.shippingCost)}</td>
+                                </tr>
+                                <tr>
+                                  <td style={{ color: '#9b59b6' }}>Tax</td>
+                                  <td style={{ color: '#9b59b6', fontWeight: '600' }}>{formatCurrency(orderPreview.tax)}</td>
+                                </tr>
+                                {orderPreview.discount > 0 && (
+                                  <tr>
+                                    <td style={{ color: '#27ae60' }}>Discount</td>
+                                    <td style={{ color: '#27ae60', fontWeight: '600' }}>-{formatCurrency(orderPreview.discount)}</td>
+                                  </tr>
+                                )}
+                                <tr style={{ borderTop: '2px solid #ecf0f1' }}>
+                                  <td><strong>Total Amount</strong></td>
+                                  <td><strong>{formatCurrency(orderPreview.total)}</strong></td>
+                                </tr>
+                              </>
+                            ) : (
+                              <>
+                                <tr>
+                                  <td>Sub Total</td>
+                                  <td><strong>{formatCurrency(subtotal)}</strong></td>
+                                </tr>
+                                <tr>
+                                  <td>Shipping</td>
+                                  <td className="d-flex justify-content-center">
+                                    <ul className="shipping-type">
+                                      <li>
+                                        <div className="custom-control custom-radio">
+                                          <input
+                                            type="radio"
+                                            id="flatrate"
+                                            name="shipping"
+                                            className="custom-control-input"
+                                            checked={true}
+                                            readOnly
+                                          />
+                                          <label className="custom-control-label" htmlFor="flatrate">
+                                            Flat Rate: {formatCurrency(shippingCost)}
+                                          </label>
+                                        </div>
+                                      </li>
+                                    </ul>
+                                  </td>
+                                </tr>
+                                <tr style={{ borderTop: '2px solid #ecf0f1' }}>
+                                  <td><strong>Total Amount</strong></td>
+                                  <td><strong>{formatCurrency(total)}</strong></td>
+                                </tr>
+                              </>
+                            )}
                           </tfoot>
                         </table>
                       </div>

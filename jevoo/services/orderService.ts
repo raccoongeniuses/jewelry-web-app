@@ -39,6 +39,47 @@ interface CouponCheckResponse {
   };
 }
 
+interface OrderPreviewRequest {
+  cartId: string;
+  couponCode?: string;
+  shippingCost?: number;
+  tax?: number;
+  customerNotes?: string;
+}
+
+interface OrderPreviewResponse {
+  success: boolean;
+  message: string;
+  preview?: {
+    cartId: string;
+    customer: any;
+    items: Array<{
+      product: any;
+      quantity: number;
+      price: number;
+      itemTotal: number;
+    }>;
+    itemCount: number;
+    subtotal: number;
+    shippingCost: number;
+    tax: number;
+    discount: number;
+    total: number;
+    coupon?: {
+      id: string;
+      code: string;
+      discountType: string;
+      discountValue: number;
+    };
+    payment: {
+      method: string;
+    };
+    shipping: {
+      method: string;
+    };
+  };
+}
+
 const handleApiError = async (response: Response): Promise<{ message: string; code: string }> => {
   let errorMessage = 'An error occurred. Please try again.';
 
@@ -147,6 +188,22 @@ export const orderService = {
       body: JSON.stringify({
         code: couponCode
       }),
+    });
+
+    if (!response.ok) {
+      const error = await handleApiError(response);
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
+  },
+
+  async previewOrder(request: OrderPreviewRequest): Promise<OrderPreviewResponse> {
+    const response = await fetch(`${API_BASE_URL}/orders/preview-from-cart`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(request),
     });
 
     if (!response.ok) {

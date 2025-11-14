@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import { formatCurrency } from '../../lib/formatCurrency';
 import './CartModal.css';
 
 // Extend Window interface to include openCartModal
@@ -14,7 +15,7 @@ declare global {
 }
 
 export default function CartModal() {
-  const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems, loading, error } = useCart();
+  const { items, removeFromCart, updateQuantity, getTotalItems, getTotalPrice, loading, error } = useCart();
   const [isOpen, setIsOpen] = useState(false);
 
   // Debug logging - remove in production
@@ -189,7 +190,7 @@ export default function CartModal() {
 
                                 {/* Price */}
                                 <span className="cart-price">
-                                  ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                                  {formatCurrency((item.price || 0) * (item.quantity || 1))}
                                 </span>
                               </div>
                             </div>
@@ -217,7 +218,7 @@ export default function CartModal() {
                   <div className="minicart-pricing-box">
                     <div className="pricing-item total">
                       <span>Total</span>
-                      <span><strong>${getTotalPrice().toFixed(2)}</strong></span>
+                      <span><strong>{formatCurrency(getTotalPrice())}</strong></span>
                     </div>
                   </div>
 

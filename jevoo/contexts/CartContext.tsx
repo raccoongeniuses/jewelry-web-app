@@ -10,6 +10,8 @@ import { useAuth } from './AuthContext';
 
 interface CartState {
   items: CartItem[];
+  itemCount: number;
+  totalPrice: number;
   loading: boolean;
   error: string | null;
   showConfirmationModal: boolean;
@@ -29,7 +31,7 @@ type CartAction =
   | { type: 'LOAD_CART'; payload: CartItem[] }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_CART_FROM_API'; payload: CartItemResponse[] }
+  | { type: 'SET_CART_FROM_API'; payload: { items: CartItemResponse[], itemCount: number, total: number } }
   | { type: 'SHOW_CONFIRMATION_MODAL'; payload: { message: string; itemName: string; uniqueId: string } }
   | { type: 'HIDE_CONFIRMATION_MODAL' }
   | { type: 'SHOW_SUCCESS_MODAL'; payload: string }
@@ -136,7 +138,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
     case 'SET_CART_FROM_API':
       // Convert API response items to CartItem format
-      const convertedItems = action.payload.map((apiItem) => {
+      const convertedItems = action.payload.items.map((apiItem: CartItemResponse) => {
         // Helper function to construct full image URL (same as in product components)
         const getFullImageUrl = (imageUrl: string | undefined) => {
           if (!imageUrl) return '/placeholder-product.jpg';
@@ -172,7 +174,8 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           // Copy other potential fields from product if they exist
           brand: product.brand,
           category: product.category,
-          price: parseFloat(String(product.price)) || 0, // Ensure price is a number
+          price: parseFloat(String(apiItem.price)) || 0, // Use the actual cart item price from API
+          salePrice: parseFloat(String(apiItem.price)) || 0, // API price is already the correct price (sale price if on sale)
           quantity: parseInt(String(apiItem.quantity)) || 1, // Ensure quantity is a number
           description: product.description,
           shortDescription: product.shortDescription,
@@ -192,6 +195,8 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       return {
         ...state,
         items: convertedItems,
+        itemCount: action.payload.itemCount,
+        totalPrice: action.payload.total,
         loading: false,
         error: null
       };
@@ -245,6 +250,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { isAuthenticated } = useAuth();
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
+    itemCount: 0,
+    totalPrice: 0,
     loading: false,
     error: null,
     showConfirmationModal: false,
@@ -292,25 +299,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Handle different response formats
         let apiItems: CartItemResponse[] | null = null;
+        let itemCount = 0;
+        let total = 0;
 
         if (response && response.cart && response.cart.items) {
-          // Format: { cart: { items: [...] } }
+          // Format: { cart: { items: [...], itemCount: ..., total: ... } }
           apiItems = response.cart.items;
+          itemCount = response.cart.itemCount || 0;
+          total = response.cart.total || 0;
         } else if (response && response.items) {
           // Format: { items: [...] }
           apiItems = response.items;
+          // For this format, calculate manually as fallback
+          itemCount = response.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+          total = response.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
         } else if (Array.isArray(response)) {
           // Format: [...]
           apiItems = response;
+          // For this format, calculate manually as fallback
+          itemCount = response.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+          total = response.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
         } else if (response && response.data && response.data.items) {
           // Format: { data: { items: [...] } }
           apiItems = response.data.items;
+          // For this format, calculate manually as fallback
+          itemCount = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+          total = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
         } else {
           console.warn('Unexpected API response format:', response);
         }
 
         if (apiItems && Array.isArray(apiItems) && apiItems.length > 0) {
-          dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          dispatch({ type: 'SET_CART_FROM_API', payload: { items: apiItems, itemCount, total } });
           // Also save to localStorage for offline functionality
           localStorage.setItem('coranoCart', JSON.stringify(apiItems));
         } else {
@@ -393,18 +413,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isAuthenticated) {
           // Handle different response formats
           let apiItems: CartItemResponse[] | null = null;
+          let itemCount = 0;
+          let total = 0;
+
           if (response && response.cart && response.cart.items) {
             apiItems = response.cart.items;
+            itemCount = response.cart.itemCount || 0;
+            total = response.cart.total || 0;
           } else if (response && response.items) {
             apiItems = response.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (Array.isArray(response)) {
             apiItems = response;
+            // For this format, calculate manually as fallback
+            itemCount = response.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (response && response.data && response.data.items) {
             apiItems = response.data.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           }
 
           if (apiItems && Array.isArray(apiItems)) {
-            dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+            dispatch({ type: 'SET_CART_FROM_API', payload: { items: apiItems, itemCount, total } });
           }
         }
       } catch (apiError) {
@@ -465,18 +499,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Handle different response formats to sync with server
           let apiItems: CartItemResponse[] | null = null;
+          let itemCount = 0;
+          let total = 0;
+
           if (response && response.cart && response.cart.items) {
             apiItems = response.cart.items;
+            itemCount = response.cart.itemCount || 0;
+            total = response.cart.total || 0;
           } else if (response && response.items && Array.isArray(response.items)) {
             apiItems = response.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (Array.isArray(response)) {
             apiItems = response;
+            // For this format, calculate manually as fallback
+            itemCount = response.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (response && response.data && response.data.items && Array.isArray(response.data.items)) {
             apiItems = response.data.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           }
 
           if (apiItems && Array.isArray(apiItems)) {
-            dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+            dispatch({ type: 'SET_CART_FROM_API', payload: { items: apiItems, itemCount, total } });
           }
         } catch (apiError) {
           console.error('API error removing item from cart:', apiError);
@@ -520,18 +568,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Handle different response formats
           let apiItems: CartItemResponse[] | null = null;
+          let itemCount = 0;
+          let total = 0;
+
           if (response && response.cart && response.cart.items) {
             apiItems = response.cart.items;
+            itemCount = response.cart.itemCount || 0;
+            total = response.cart.total || 0;
           } else if (response && response.items) {
             apiItems = response.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (Array.isArray(response)) {
             apiItems = response;
+            // For this format, calculate manually as fallback
+            itemCount = response.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (response && response.data && response.data.items) {
             apiItems = response.data.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           }
 
           if (apiItems && Array.isArray(apiItems)) {
-            dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+            dispatch({ type: 'SET_CART_FROM_API', payload: { items: apiItems, itemCount, total } });
           }
         } catch (apiError) {
           console.error('API error updating item quantity:', apiError);
@@ -558,17 +620,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Handle different response formats - should be empty array
           let apiItems: CartItemResponse[] = [];
+          let itemCount = 0;
+          let total = 0;
+
           if (response && response.cart && response.cart.items) {
             apiItems = response.cart.items;
+            itemCount = response.cart.itemCount || 0;
+            total = response.cart.total || 0;
           } else if (response && response.items) {
             apiItems = response.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (Array.isArray(response)) {
             apiItems = response;
+            // For this format, calculate manually as fallback
+            itemCount = response.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           } else if (response && response.data && response.data.items) {
             apiItems = response.data.items;
+            // For this format, calculate manually as fallback
+            itemCount = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+            total = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
           }
 
-          dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+          dispatch({ type: 'SET_CART_FROM_API', payload: { items: apiItems, itemCount, total } });
         } catch (apiError) {
           console.error('API error clearing cart:', apiError);
           dispatch({ type: 'SET_ERROR', payload: isAuthenticated ? 'Failed to sync with server' : null });
@@ -588,18 +664,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Handle different response formats
       let apiItems: CartItemResponse[] | null = null;
+      let itemCount = 0;
+      let total = 0;
+
       if (response && response.cart && response.cart.items) {
         apiItems = response.cart.items;
+        itemCount = response.cart.itemCount || 0;
+        total = response.cart.total || 0;
       } else if (response && response.items) {
         apiItems = response.items;
+        // For this format, calculate manually as fallback
+        itemCount = response.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+        total = response.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
       } else if (Array.isArray(response)) {
         apiItems = response;
+        // For this format, calculate manually as fallback
+        itemCount = response.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+        total = response.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
       } else if (response && response.data && response.data.items) {
         apiItems = response.data.items;
+        // For this format, calculate manually as fallback
+        itemCount = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + item.quantity, 0);
+        total = response.data.items.reduce((sum: number, item: CartItemResponse) => sum + (item.price * item.quantity), 0);
       }
 
       if (apiItems && Array.isArray(apiItems)) {
-        dispatch({ type: 'SET_CART_FROM_API', payload: apiItems });
+        dispatch({ type: 'SET_CART_FROM_API', payload: { items: apiItems, itemCount, total } });
       }
     } catch (error) {
       console.error('Error refreshing cart:', error);
@@ -608,11 +698,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const getTotalPrice = () => {
-    return state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return state.totalPrice;
   };
 
   const getTotalItems = () => {
-    return state.items.reduce((total, item) => total + item.quantity, 0);
+    return state.itemCount;
   };
 
   const value: CartContextType = {

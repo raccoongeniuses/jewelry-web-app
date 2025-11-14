@@ -34,16 +34,17 @@ export default function CartPage() {
     { name: 'Cart', url: '/cart' }
   ];
 
-  const calculateSubtotal = () => {
+  const getSubtotal = () => {
+    // Use API-provided total instead of calculating manually
     return getTotalPrice();
   };
 
   const calculateDiscount = () => {
-    return appliedCoupon ? calculateSubtotal() * 0.10 : 0; // 10% discount for demo
+    return appliedCoupon ? getSubtotal() * 0.10 : 0; // 10% discount for demo
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() - calculateDiscount();
+    return getSubtotal() - calculateDiscount();
   };
 
   const handleScriptsLoaded = () => {
@@ -208,7 +209,7 @@ export default function CartPage() {
                     <div className="col-lg-5 ml-auto">
                       {/* Cart Calculation Area */}
                       <CartSummary
-                        subtotal={calculateSubtotal()}
+                        subtotal={getSubtotal()}
                         total={calculateTotal()}
                         discount={calculateDiscount()}
                         couponCode={appliedCoupon}
