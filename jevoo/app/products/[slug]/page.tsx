@@ -74,6 +74,15 @@ export default function ProductPage({ params }: ProductPageProps) {
         // Transform API response to Product type
         const mainImageUrl = getFullImageUrl(item.productImage?.url);
 
+        const colors = item.productAttributes
+          ?.filter((attr: any) => attr.attribute?.name === 'Color')
+          ?.flatMap((attr: any) => attr.attributeValues?.map((val: any) => val.name)) || [];
+
+        const sizes = item.productAttributes
+          ?.filter((attr: any) => attr.attribute?.name === 'Size')
+          ?.flatMap((attr: any) => attr.attributeValues?.map((val: any) => val.name)) || [];
+
+
         const transformedProduct: ExtendedProduct = {
           id: item.id,
           name: item.name,
@@ -98,9 +107,8 @@ export default function ProductPage({ params }: ProductPageProps) {
           status: item.status,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
-          // Required fields for ProductInfo component
-          colors: ['LightSteelblue', 'Darktan', 'Grey', 'Brown'], // Default colors
-          sizes: ['S', 'M', 'L', 'XL'], // Default sizes
+          colors: colors.length > 0 ? colors : ['Gold', 'RoseGold'], // default if no colors
+          sizes: sizes.length > 0 ? sizes : ['S', 'M', 'L'], // default if no sizes
           inStock: item.stockStatus === 'in_stock',
           stockCount: item.stock || 100,
           isNew: false,
