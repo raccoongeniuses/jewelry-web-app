@@ -55,13 +55,14 @@ export default function Marquee() {
   const detailsThumbRef = useRef<HTMLDivElement>(null);
   const infiniteMarqueeTimeline = useRef<gsap.core.Timeline | null>(null);
 
-  const [currentProduct, setCurrentProduct] = useState<HTMLElement | null>(null);
-  const [originalParent, setOriginalParent] = useState<HTMLElement | null>(null);
-  const [placeholderElement, setPlaceholderElement] = useState<HTMLElement | null>(null);
+  const currentProductRef = useRef<HTMLElement | null>(null);
+  const originalParentRef = useRef<HTMLElement | null>(null);
+  const placeholderElementRef = useRef<HTMLElement | null>(null);
   const [isShowingDetails, setIsShowingDetails] = useState(false);
   const [selectedProductData, setSelectedProductData] = useState<Product | null>(null);
   const [marqueeProducts, setMarqueeProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Use refs to store stable function references
   const showDetailsRef = useRef<(element: HTMLElement, product: Product) => void>(() => {});
@@ -116,9 +117,12 @@ export default function Marquee() {
 
     // Define showDetails function inside useEffect to maintain closure access
     const showDetails = (element: HTMLElement, product: Product) => {
-      if (isShowingDetails) return;
+      if (isShowingDetails || isAnimating) return;
       setIsShowingDetails(true);
+      setIsAnimating(true);
       setSelectedProductData(product);
+
+      // Cursor is handled by global click blocker
 
       // Store references for cleanup
       const originalParent = element.parentNode as HTMLElement;
@@ -140,10 +144,10 @@ export default function Marquee() {
         originalParent.appendChild(placeholder);
       }
 
-      // Store references including the exact placeholder element
-      setCurrentProduct(element);
-      setOriginalParent(originalParent);
-      setPlaceholderElement(placeholder);
+      // Store references in refs
+      currentProductRef.current = element;
+      originalParentRef.current = originalParent;
+      placeholderElementRef.current = placeholder;
 
       // Get state before moving
       const state = Flip.getState(element);
@@ -185,16 +189,23 @@ export default function Marquee() {
         absolute: true,
         duration: 1.2,
         ease: "power3.inOut",
+        onComplete: () => {
+          // Animation completes - cursor is handled by global click blocker
+          setIsAnimating(false);
+        }
       });
     };
 
     // Define hideDetails function inside useEffect to maintain closure access
     const hideDetails = () => {
-      if (!isShowingDetails || !currentProduct || !originalParent) return;
+      if (!isShowingDetails || !currentProductRef.current || !originalParentRef.current || isAnimating) return;
       setIsShowingDetails(false);
+      setIsAnimating(true);
 
       // Use the stored placeholder element for accurate positioning
-      const placeholder = placeholderElement;
+      const placeholder = placeholderElementRef.current;
+      const currentProduct = currentProductRef.current;
+      const originalParent = originalParentRef.current;
 
       if (placeholder) {
         // Animate details panel content out first
@@ -257,10 +268,13 @@ export default function Marquee() {
                 gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
 
                 // Reset references
-                setCurrentProduct(null);
-                setOriginalParent(null);
-                setPlaceholderElement(null);
+                currentProductRef.current = null;
+                originalParentRef.current = null;
+                placeholderElementRef.current = null;
                 setSelectedProductData(null);
+
+                // Animation completes - cursor is handled by global click blocker
+                setIsAnimating(false);
               },
             });
           },
@@ -307,10 +321,13 @@ export default function Marquee() {
             gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
             gsap.set(".vase-details-thumb", { scale: 1, opacity: 1 });
 
-            setCurrentProduct(null);
-            setOriginalParent(null);
-            setPlaceholderElement(null);
+            currentProductRef.current = null;
+            originalParentRef.current = null;
+            placeholderElementRef.current = null;
             setSelectedProductData(null);
+
+            // Animation completes - cursor is handled by global click blocker
+            setIsAnimating(false);
           },
         });
       }
@@ -351,7 +368,9 @@ export default function Marquee() {
             item.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
-              showDetails(item as HTMLElement, product);
+              if (!isAnimating) {
+                showDetails(item as HTMLElement, product);
+              }
             });
 
             // Add hover effects with scaling (keeping same base size)
@@ -371,7 +390,7 @@ export default function Marquee() {
         detailsClose.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          hideDetails();
+          hideDetails(); // Let hideDetails handle the state checking
         });
       }
 
@@ -380,7 +399,7 @@ export default function Marquee() {
         detailsOverlay.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          hideDetails();
+          hideDetails(); // Let hideDetails handle the state checking
         });
       }
 
@@ -442,8 +461,8 @@ export default function Marquee() {
 
     // Add keyboard support for closing details panel
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isShowingDetails) {
-        hideDetails();
+      if (e.key === 'Escape') {
+        hideDetails(); // Let hideDetails handle the state
       }
     };
 
@@ -518,7 +537,7 @@ export default function Marquee() {
       const placeholders = document.querySelectorAll('.product-placeholder[data-placeholder="true"]');
       placeholders.forEach(placeholder => placeholder.remove());
     };
-  }, [loading, marqueeProducts.length, isShowingDetails, currentProduct, originalParent, placeholderElement]); // Include all necessary dependencies
+  }, [loading, marqueeProducts.length, isShowingDetails, isAnimating]);
 
   // Export functions for external access via refs
   const showDetails = (element: HTMLElement, product: Product) => {
@@ -773,6 +792,23 @@ export default function Marquee() {
 
       {/* Vase Details Panel - Always present in DOM */}
       <div className="vase-details-overlay" ref={detailsOverlayRef}></div>
+
+      {/* Global Click Blocker - Prevents all clicks during animations */}
+      <div
+        className="global-click-blocker"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'transparent',
+          cursor: 'not-allowed',
+          zIndex: 9999,
+          display: isAnimating ? 'block' : 'none',
+          pointerEvents: isAnimating ? 'all' : 'none'
+        }}
+      />
       <div className="vase-details-panel" ref={detailsPanelRef}>
         <button className="vase-details-close" ref={detailsCloseRef}>×</button>
         <div className="vase-details-content">
