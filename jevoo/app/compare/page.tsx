@@ -438,7 +438,7 @@ export default function ComparePage() {
                               const colorAttribute = product.productAttributes?.find(attr =>
                                 attr.attribute?.name?.toLowerCase() === 'color' || attr.attribute?.slug?.toLowerCase() === 'color'
                               );
-                              const colors = colorAttribute?.attributeValues?.map(val => val.name).join(', ') ?? 'N/A';
+                              const colors = colorAttribute?.attributeValues?.map((val: AttributeValue) => val.name).join(', ') ?? 'N/A';
 
                               return (
                                 <td key={product.id} className="pro-color align-middle text-center">{colors}</td>
@@ -453,7 +453,7 @@ export default function ComparePage() {
                               const sizeAttribute = product.productAttributes?.find(attr =>
                                 attr.attribute?.name?.toLowerCase() === 'size' || attr.attribute?.slug?.toLowerCase() === 'size'
                               );
-                              const sizes = sizeAttribute?.attributeValues?.map(val => val.name).join(', ') ?? 'N/A';
+                              const sizes = sizeAttribute?.attributeValues?.map((val: AttributeValue) => val.name).join(', ') ?? 'N/A';
 
                               return (
                                 <td key={product.id} className="pro-size align-middle text-center">{sizes}</td>
