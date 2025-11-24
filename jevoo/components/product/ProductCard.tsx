@@ -7,6 +7,7 @@ import { Product } from '../../types/product';
 import CartButton from '../cart/CartButton';
 import QuickViewModal from '../modals/QuickViewModal';
 import WishlistButton from '../wishlist/WishlistButton';
+import CompareButton from '../compare/CompareButton';
 
 interface ProductCardProps {
   product: Product;
@@ -70,9 +71,7 @@ export default function ProductCard({ product, disableLinks = false }: ProductCa
         
         <div className="button-group">
           <WishlistButton product={product} />
-          <a href="/compare" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to Compare">
-            <i className="pe-7s-refresh-2"></i>
-          </a>
+          <CompareButton product={product} />
           {/* <a href="#" onClick={(e) => { e.preventDefault(); setIsQuickViewOpen(true); }}>
             <span data-bs-toggle="tooltip" data-bs-placement="left" title="Quick View">
               <i className="pe-7s-search"></i>

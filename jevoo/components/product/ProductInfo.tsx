@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Product, CartItem } from '../../types/product';
 import CartButton from '../cart/CartButton';
 import WishlistButton from '../wishlist/WishlistButton';
+import CompareButton from '../compare/CompareButton';
 
 interface ProductInfoProps {
   product: Product & {
@@ -158,9 +159,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Useful Links */}
       <div className="useful-links">
-        <a href="#" data-bs-toggle="tooltip" title="Compare">
-          <i className="pe-7s-refresh-2"></i>compare
-        </a>
+        <CompareButton product={product} />
         <WishlistButton
           product={product}
           className="wishlist-link"

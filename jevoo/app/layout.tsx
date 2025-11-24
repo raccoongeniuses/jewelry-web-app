@@ -4,6 +4,7 @@ import Script from "next/script";
 import { CartProvider } from "../contexts/CartContext";
 import { AuthProvider } from "../contexts/AuthContext";
 import { WishlistProvider } from "../components/wishlist/WishlistProvider";
+import { CompareProvider } from "../contexts/CompareContext";
 import ModernizrInit from "../components/ModernizrInit";
 
 export const metadata: Metadata = {
@@ -48,7 +49,9 @@ export default function RootLayout({
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
-              {children}
+              <CompareProvider>
+                {children}
+              </CompareProvider>
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>

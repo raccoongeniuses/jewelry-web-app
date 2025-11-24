@@ -8,11 +8,13 @@ import CartModal from './cart/CartModal';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useWishlist } from './wishlist/WishlistProvider';
+import { useCompare } from '../contexts/CompareContext';
 
 export default function Header() {
   const { getTotalItems } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
   const { getWishlistCount } = useWishlist();
+  const { compareCount } = useCompare();
   const router = useRouter();
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
 
@@ -212,6 +214,12 @@ export default function Header() {
                         </a>
                       </li>
                       <li>
+                        <a href="/compare">
+                          <i className="pe-7s-refresh-2"></i>
+                          <div className="notification">{compareCount}</div>
+                        </a>
+                      </li>
+                      <li>
                         <CartModal />
                       </li>
                     </ul>
@@ -245,6 +253,12 @@ export default function Header() {
                   </Link>
                 </div>
                 <div className="mobile-menu-toggler">
+                  <div className="mini-cart-wrap">
+                    <Link href="/compare">
+                      <i className="pe-7s-refresh-2"></i>
+                      <div className="notification">{compareCount}</div>
+                    </Link>
+                  </div>
                   <div className="mini-cart-wrap">
                     <Link href="/cart">
                       <i className="pe-7s-shopbag"></i>
