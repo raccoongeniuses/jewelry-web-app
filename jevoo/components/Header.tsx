@@ -150,7 +150,7 @@ export default function Header() {
               {/* start logo area */}
 
               {/* main menu area start */}
-              <div className="col-lg-6 position-static">
+              <div className="col-lg-5 position-static">
                 <div className="main-menu-area">
                   <div className="main-menu">
                     <nav className="desktop-menu">
@@ -169,7 +169,7 @@ export default function Header() {
               {/* main menu area end */}
 
               {/* mini cart area start */}
-              <div className="col-lg-4">
+              <div className="col-lg-5">
                 <div className="header-right d-flex align-items-center justify-content-end">
                   <div className="header-configure-area">
                     <ul className="nav justify-content-end">
