@@ -119,7 +119,7 @@ export default function Footer() {
                   <div className="widget-body">
                     <address className="contact-block">
                       <ul>
-                        <li><i className="pe-7s-home"></i> 4710-4890 Breckinridge USA</li>
+                        <li><i className="pe-7s-home"></i> 4710-4890 Hong Kong</li>
                         <li><i className="pe-7s-mail"></i> <a href="mailto:info@jevoo-jewellery.com">info@jevoo-jewellery.com</a></li>
                         <li><i className="pe-7s-call"></i> <a href="tel:(012)800456789987">(012) 800 456 789-987</a></li>
                       </ul>
@@ -132,11 +132,11 @@ export default function Footer() {
                   <h6 className="widget-title">Information</h6>
                   <div className="widget-body">
                     <ul className="info-list">
-                      <li><a href="#">About Us</a></li>
+                      <li><Link href="/about-us">About Us</Link></li>
                       <li><a href="#">Delivery Information</a></li>
-                      <li><a href="#">Privacy Policy</a></li>
-                      <li><a href="#">Terms & Conditions</a></li>
-                      <li><a href="#">Contact Us</a></li>
+                      <li><Link href="/privacy-policy">Privacy Policy</Link></li>
+                      <li><Link href="/terms-conditions">Terms & Conditions</Link></li>
+                      <li><Link href="/contact-us">Contact Us</Link></li>
                       <li><a href="#">Site Map</a></li>
                     </ul>
                   </div>

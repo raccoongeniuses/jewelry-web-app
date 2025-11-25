@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+.gold-font {
+  color: #C29958 !important;
+}
+
+.gold-bg {
+  background-color: #C29958 !important;
+}
+
+.border-gold {
+  border-color: #C29958 !important;
+}
+
 body, html {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
 }
