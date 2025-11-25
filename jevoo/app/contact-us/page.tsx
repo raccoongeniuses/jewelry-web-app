@@ -117,7 +117,7 @@ export default function ContactUs() {
                             {/* Left Side - Store Location and Email */}
                             <div className="col-lg-6 d-flex flex-column">
                               <div className="d-flex flex-column gap-3 flex-grow-1">
-                                <div className="contact-item p-3 border rounded flex-grow-1" style={{ backgroundColor: '#FFF3CD' }}>
+                                <div className="contact-item p-3 border rounded flex-grow-1">
                                   <div className="d-flex align-items-start">
                                     <div className="contact-icon me-3">
                                       <div className="rounded-circle gold-bg d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
@@ -131,7 +131,7 @@ export default function ContactUs() {
                                   </div>
                                 </div>
 
-                                <div className="contact-item p-3 border rounded flex-grow-1" style={{ backgroundColor: '#FFF3CD' }}>
+                                <div className="contact-item p-3 border rounded flex-grow-1">
                                   <div className="d-flex align-items-start">
                                     <div className="contact-icon me-3">
                                       <div className="rounded-circle gold-bg d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
@@ -150,7 +150,7 @@ export default function ContactUs() {
                             {/* Right Side - Phone and Store Hours */}
                             <div className="col-lg-6 d-flex flex-column">
                               <div className="d-flex flex-column gap-3 flex-grow-1">
-                                <div className="contact-item p-3 border rounded flex-grow-1" style={{ backgroundColor: '#FFF3CD' }}>
+                                <div className="contact-item p-3 border rounded flex-grow-1">
                                   <div className="d-flex align-items-start">
                                     <div className="contact-icon me-3">
                                       <div className="rounded-circle gold-bg d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
@@ -165,7 +165,7 @@ export default function ContactUs() {
                                   </div>
                                 </div>
 
-                                <div className="contact-item p-3 border rounded flex-grow-1" style={{ backgroundColor: '#FFF3CD' }}>
+                                <div className="contact-item p-3 border rounded flex-grow-1">
                                   <div className="d-flex align-items-start">
                                     <div className="contact-icon me-3">
                                       <div className="rounded-circle gold-bg d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
