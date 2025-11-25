@@ -17,8 +17,27 @@ export default function Header() {
   const { compareCount } = useCompare();
   const router = useRouter();
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
 
   const pathname = usePathname();
+
+  // Track window width
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    // Set initial width
+    setWindowWidth(window.innerWidth);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Determine column classes based on window width
+  const isSmallScreen = windowWidth <= 1039;
+  const menuColClass = isSmallScreen ? 'col-lg-5' : 'col-lg-6';
+  const rightColClass = isSmallScreen ? 'col-lg-5' : 'col-lg-4';
 
   const desktopNavItems = [
     { href: "/", label: "Home" },
@@ -150,7 +169,7 @@ export default function Header() {
               {/* start logo area */}
 
               {/* main menu area start */}
-              <div className="col-lg-5 position-static">
+              <div className={`${menuColClass} position-static`}>
                 <div className="main-menu-area">
                   <div className="main-menu">
                     <nav className="desktop-menu">
@@ -169,7 +188,7 @@ export default function Header() {
               {/* main menu area end */}
 
               {/* mini cart area start */}
-              <div className="col-lg-5">
+              <div className={rightColClass}>
                 <div className="header-right d-flex align-items-center justify-content-end">
                   <div className="header-configure-area">
                     <ul className="nav justify-content-end">
