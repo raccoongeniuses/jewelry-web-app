@@ -30,27 +30,50 @@ export default function ContactUs() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setSubmitMessage('');
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Show success modal
-      setIsSuccessModalOpen(true);
-
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
+      // Send data to the contact API endpoint
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/contact`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message
+        }),
       });
 
-      // Set success message for the alert (optional, can be removed)
-      setSubmitMessage('Your message has been sent successfully! We\'ll get back to you soon.');
-      setMessageType('success');
+      const data = await response.json();
+
+      if (response.ok) {
+        // Show success modal with API response message
+        setIsSuccessModalOpen(true);
+
+        // Reset form on success
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+
+        // Set success message (optional, can be removed)
+        setSubmitMessage(data.message || 'Contact successfully created.');
+        setMessageType('success');
+      } else {
+        // Handle error response
+        setSubmitMessage(data.message || 'Failed to send message. Please try again.');
+        setMessageType('error');
+      }
     } catch (err) {
+      console.error('Contact form submission error:', err);
       setSubmitMessage('An error occurred. Please try again later.');
       setMessageType('error');
     } finally {
