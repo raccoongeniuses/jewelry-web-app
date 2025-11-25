@@ -159,7 +159,8 @@ export default function Marquee() {
       if (detailsOverlayRef.current) {
         detailsOverlayRef.current.classList.add("active");
       }
-      document.body.style.overflow = "hidden";
+      // No overflow hidden - keep this change
+      // document.body.style.overflow = "hidden";
 
       // Update details panel content
       if (detailsPanelRef.current) {
@@ -260,7 +261,8 @@ export default function Marquee() {
                 if (detailsOverlayRef.current) {
                   detailsOverlayRef.current.classList.remove('active', 'cart-open-centered');
                 }
-                document.body.style.overflow = "";
+                // No overflow hidden - keep this change
+                // document.body.style.overflow = "";
 
                 // Reset opacity and transform values for next time
                 gsap.set(".vase-details-title", { y: 0, opacity: 1 });
@@ -315,7 +317,8 @@ export default function Marquee() {
             if (detailsOverlayRef.current) {
               detailsOverlayRef.current.classList.remove('active', 'cart-open-centered');
             }
-            document.body.style.overflow = "";
+            // No overflow hidden - keep this change
+            // document.body.style.overflow = "";
 
             gsap.set(".vase-details-title", { y: 0, opacity: 1 });
             gsap.set(".vase-details-info > *", { y: 0, opacity: 1 });
@@ -455,8 +458,10 @@ export default function Marquee() {
         (addCartBtn as HTMLButtonElementWithHandler)._cartHandler = handleAddToCart;
       }
 
-      // Initialize the infinite marquee
-      marqueeTimelineCleanup = initializeInfiniteMarquee() || (() => {});
+      // Initialize the infinite marquee (only if not already running)
+      if (!infiniteMarqueeTimeline.current) {
+        marqueeTimelineCleanup = initializeInfiniteMarquee() || (() => {});
+      }
     };
 
     // Add keyboard support for closing details panel
@@ -534,7 +539,7 @@ export default function Marquee() {
       }
 
       // Clean up any leftover placeholders
-      const placeholders = document.querySelectorAll('.product-placeholder[data-placeholder="true"]');
+      const placeholders = document.querySelectorAll('[data-placeholder="true"]');
       placeholders.forEach(placeholder => placeholder.remove());
     };
   }, [loading, marqueeProducts.length, isShowingDetails, isAnimating]);
@@ -663,6 +668,11 @@ export default function Marquee() {
     const grid = gridRef.current;
     if (!grid) return () => {};
 
+    // If timeline already exists and is active, don't recreate
+    if (infiniteMarqueeTimeline.current && infiniteMarqueeTimeline.current.isActive()) {
+      return () => {}; // Already running and active
+    }
+
     // Clean up any existing clones and timelines
     const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
     if (existingClone) {
@@ -732,6 +742,7 @@ export default function Marquee() {
 
     // Handle resize
     const handleResize = () => {
+      // Only recreate on resize, not during product interactions
       if (infiniteMarqueeTimeline.current) {
         infiniteMarqueeTimeline.current.kill();
       }
