@@ -306,7 +306,7 @@ export default function Home() {
         {/* service policy area start */}
         <div className="service-policy section-padding">
           <div className="container">
-            <div className="row mtn-30">
+            <div className="row">
               <div className="col-sm-6 col-lg-3">
                 <div className="policy-item">
                   <div className="policy-icon">
