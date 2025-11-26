@@ -137,13 +137,13 @@ export default function Header() {
               </div>
               <div className="col-lg-6 text-right">
                 <div className="header-top-settings">
-                  <div className="nav align-items-center justify-content-center flex-nowrap">
+                  <div className="nav align-items-center justify-content-end flex-nowrap">
                     <div className="curreny-wrap">
                       $ Currency
                       <i className="fa fa-angle-down"></i>
                       <div className="dropdown-list curreny-list">
                         <a href="#">$ USD</a>
-                        <a href="#">€ EURO</a>
+                        <a href="#">$ HKD</a>
                       </div>
                     </div>
                     <div className="language">
@@ -209,7 +209,7 @@ export default function Header() {
 
               {/* mini cart area start */}
               <div className={rightColClass}>
-                <div className="header-right d-flex align-items-center justify-content-center">
+                <div className="header-right d-flex align-items-center justify-content-end">
                   <div className="header-configure-area">
                     <ul className="nav justify-content-center">
                       <li className="user-hover">
@@ -370,7 +370,7 @@ export default function Header() {
                     </a>
                     <div className="dropdown-menu" aria-labelledby="currency">
                       <a className="dropdown-item" href="#">$ USD</a>
-                      <a className="dropdown-item" href="#">$ EURO</a>
+                      <a className="dropdown-item" href="#">$ HKD</a>
                     </div>
                   </div>
                 </li>
@@ -406,7 +406,7 @@ export default function Header() {
                     <a href="#">0123456789</a>
                   </li>
                   <li><i className="fa fa-envelope-o"></i>
-                    <a href="#">info@yourdomain.com</a>
+                    <a href="#">info@jevoo-jewellery.com</a>
                   </li>
                 </ul>
               </div>
