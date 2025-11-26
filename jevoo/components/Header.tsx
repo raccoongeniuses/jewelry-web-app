@@ -17,6 +17,7 @@ export default function Header() {
   const { compareCount } = useCompare();
   const router = useRouter();
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
 
   const pathname = usePathname();
@@ -33,6 +34,25 @@ export default function Header() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Handle body class for mobile menu scroll prevention
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add('fix');
+    } else {
+      document.body.classList.remove('fix');
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('fix');
+    };
+  }, [isMobileMenuOpen]);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // Determine column classes based on window width
   const isSmallScreen = windowWidth <= 1039;
@@ -284,7 +304,10 @@ export default function Header() {
                       <div className="notification">{getTotalItems()}</div>
                     </Link>
                   </div>
-                  <button className="mobile-menu-btn">
+                  <button
+                    className="mobile-menu-btn"
+                    onClick={() => setIsMobileMenuOpen(true)}
+                  >
                     <span></span>
                     <span></span>
                     <span></span>
@@ -298,10 +321,16 @@ export default function Header() {
       {/* mobile header end */}
 
       {/* offcanvas mobile menu start */}
-      <aside className="off-canvas-wrapper">
-        <div className="off-canvas-overlay"></div>
+      <aside className={`off-canvas-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div
+          className="off-canvas-overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
         <div className="off-canvas-inner-content">
-          <div className="btn-close-off-canvas">
+          <div
+            className="btn-close-off-canvas"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
             <i className="pe-7s-close"></i>
           </div>
 
@@ -321,7 +350,9 @@ export default function Header() {
                 <ul className="mobile-menu">
                   {mobileNavItems.map((item) => (
                     <li key={item.href} className={pathname === item.href ? "active" : ""}>
-                      <Link href={item.href}>{item.label}</Link>
+                      <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
+                        {item.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
