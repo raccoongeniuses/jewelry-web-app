@@ -259,7 +259,7 @@ export default function Header() {
           <div className="row align-items-center">
             <div className="col-12">
               <div className="mobile-main-header">
-                <div className="mobile-logo">
+                <div className="col-4 mobile-logo">
                   <Link href="/">
                     <Image
                       src="/assets/img/jevoo-bespoke.jpg"
@@ -271,14 +271,14 @@ export default function Header() {
                     />
                   </Link>
                 </div>
-                <div className="mobile-menu-toggler">
-                  <div className="mini-cart-wrap">
+                <div className="col-8 mobile-menu-toggler d-flex align-items-center justify-content-end">
+                  <div className="mini-cart-wrap me-3">
                     <Link href="/compare">
                       <i className="pe-7s-refresh-2"></i>
                       <div className="notification">{compareCount}</div>
                     </Link>
                   </div>
-                  <div className="mini-cart-wrap">
+                  <div className="mini-cart-wrap me-3">
                     <Link href="/cart">
                       <i className="pe-7s-shopbag"></i>
                       <div className="notification">{getTotalItems()}</div>

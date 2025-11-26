@@ -1675,9 +1675,6 @@ textarea:focus {
   position: absolute;
   background-color: #c29958;
 }
-.mobile-main-header .mobile-menu-toggler .mobile-menu-btn {
-  margin-left: 25px;
-}
 .mobile-main-header .mobile-menu-toggler .mobile-menu-btn span {
   width: 25px;
   height: 2px;
