@@ -8,7 +8,7 @@ import { gsap } from 'gsap';
 import { Flip } from 'gsap/dist/Flip';
 
 // Register GSAP plugins
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && gsap) {
   gsap.registerPlugin(Flip);
 }
 
@@ -340,6 +340,130 @@ export default function Marquee() {
     showDetailsRef.current = showDetails;
     hideDetailsRef.current = hideDetails;
 
+    // Define initializeInfiniteMarquee before it's used
+    const initializeInfiniteMarquee = (): (() => void) => {
+      const grid = gridRef.current;
+      if (!grid) return () => {};
+
+      // If timeline already exists and is active, don't recreate
+      if (infiniteMarqueeTimeline.current && infiniteMarqueeTimeline.current.isActive()) {
+        return () => {};
+      }
+
+      const isMobile = window.innerWidth <= 768;
+
+      // Clean up any existing clones and timelines
+      const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
+      if (existingClone) {
+        // Check if element is still connected to DOM
+        if (existingClone.isConnected) {
+          // Prefer native remove when available to avoid parent/child mismatches
+          if (typeof existingClone.remove === 'function') {
+            existingClone.remove();
+          } else if (existingClone.parentNode) {
+            existingClone.parentNode.removeChild(existingClone);
+          }
+        }
+      }
+
+      if (infiniteMarqueeTimeline.current) {
+        infiniteMarqueeTimeline.current.kill();
+      }
+
+      // Store the clone
+      const gridClone = grid.cloneNode(true) as HTMLElement;
+      gridClone.classList.add('grid-clone');
+      gridClone.setAttribute('aria-hidden', 'true');
+      grid.parentNode?.appendChild(gridClone);
+
+      // Get grid width
+      const gridWidth = grid.offsetWidth;
+
+      // Ensure we have a valid width before proceeding
+      if (gridWidth === 0) {
+        console.warn('Grid width is 0, marquee will not work properly');
+        return () => {};
+      }
+
+      // Set initial positions using GSAP
+      gsap.set(grid, { x: 0, force3D: true });
+      gsap.set(gridClone, { x: gridWidth, force3D: true });
+
+      // Create infinite marquee with seamless looping
+      const duration = isMobile ? 60 : 120; // Faster on mobile for better performance
+
+      const marqueeTimeline = gsap.timeline({
+        repeat: -1,
+        onUpdate: () => {
+          // Wrap positions for seamless loop
+          const gridX = parseFloat(gsap.getProperty(grid, "x") as string);
+          const cloneX = parseFloat(gsap.getProperty(gridClone, "x") as string);
+
+          // When grid moves completely off left, position it to the right of the clone
+          if (gridX <= -gridWidth) {
+            gsap.set(grid, { x: cloneX + gridWidth, force3D: true });
+          }
+
+          // When clone moves completely off left, position it to the right of the grid
+          if (cloneX <= -gridWidth) {
+            gsap.set(gridClone, { x: gridX + gridWidth, force3D: true });
+          }
+        },
+      });
+
+      // Animate both grids moving left continuously (like vanilla JS)
+      marqueeTimeline.to(
+        [grid, gridClone],
+        {
+          x: `-=${gridWidth * 2}`, // Move both grids by twice their width
+          duration: duration * 2, // Double the duration to maintain same speed
+          ease: "none",
+          force3D: true, // Force GPU acceleration on mobile
+        },
+        0
+      );
+
+      // Store timeline reference
+      infiniteMarqueeTimeline.current = marqueeTimeline;
+
+      // Handle resize
+      const handleResize = () => {
+        if (infiniteMarqueeTimeline.current) {
+          infiniteMarqueeTimeline.current.kill();
+        }
+
+        const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
+        if (existingClone && existingClone.isConnected) {
+          if (typeof existingClone.remove === 'function') {
+            existingClone.remove();
+          } else if (existingClone.parentNode) {
+            existingClone.parentNode.removeChild(existingClone);
+          }
+        }
+
+        setTimeout(() => {
+          initializeInfiniteMarquee();
+        }, 100);
+      };
+
+      // Debounced resize handler
+      let resizeTimeout: NodeJS.Timeout;
+      const debouncedResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 250);
+      };
+
+      window.addEventListener('resize', debouncedResize);
+
+      // Cleanup function
+      return () => {
+        window.removeEventListener('resize', debouncedResize);
+        if (infiniteMarqueeTimeline.current) {
+          infiniteMarqueeTimeline.current.kill();
+        }
+      };
+    };
+
     // Initialize marquee once products are loaded
     const initializeMarquee = () => {
       const grid = gridRef.current;
@@ -511,8 +635,14 @@ export default function Marquee() {
 
     // Initialize marquee when products are ready
     if (!loading && marqueeProducts.length > 0) {
-      const timer = setTimeout(initializeMarquee, 200);
-      observeCartModal();
+      // On mobile, wait longer for proper layout calculation
+      const isMobile = window.innerWidth <= 768;
+      const delay = isMobile ? 500 : 200;
+
+      const timer = setTimeout(() => {
+        initializeMarquee();
+        observeCartModal();
+      }, delay);
 
       return () => {
         clearTimeout(timer);
@@ -661,127 +791,6 @@ export default function Marquee() {
     });
 
     return columns;
-  };
-
-  // Initialize infinite marquee with GSAP
-  const initializeInfiniteMarquee = (): (() => void) => {
-    const grid = gridRef.current;
-    if (!grid) return () => {};
-
-    // If timeline already exists and is active, don't recreate
-    if (infiniteMarqueeTimeline.current && infiniteMarqueeTimeline.current.isActive()) {
-      return () => {}; // Already running and active
-    }
-
-    // Clean up any existing clones and timelines
-    const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
-    if (existingClone) {
-      // Check if element is still connected to DOM
-      if (existingClone.isConnected) {
-        // Prefer native remove when available to avoid parent/child mismatches
-        if (typeof existingClone.remove === 'function') {
-          existingClone.remove();
-        } else if (existingClone.parentNode) {
-          existingClone.parentNode.removeChild(existingClone);
-        }
-      }
-    }
-
-    if (infiniteMarqueeTimeline.current) {
-      infiniteMarqueeTimeline.current.kill();
-    }
-
-    // Store the clone
-    const gridClone = grid.cloneNode(true) as HTMLElement;
-    gridClone.classList.add('grid-clone');
-    gridClone.setAttribute('aria-hidden', 'true');
-    grid.parentNode?.appendChild(gridClone);
-
-    // Get grid width
-    const gridWidth = grid.offsetWidth;
-
-    // Set initial positions using GSAP
-    gsap.set(grid, { x: 0 });
-    gsap.set(gridClone, { x: gridWidth });
-
-    // Create infinite marquee with seamless looping
-    const duration = 120; // Original duration from vanilla JS
-
-    const marqueeTimeline = gsap.timeline({
-      repeat: -1,
-      onUpdate: () => {
-        // Wrap positions for seamless loop
-        const gridX = parseFloat(gsap.getProperty(grid, "x") as string);
-        const cloneX = parseFloat(gsap.getProperty(gridClone, "x") as string);
-
-        // When grid moves completely off left, position it to the right of the clone
-        if (gridX <= -gridWidth) {
-          gsap.set(grid, { x: cloneX + gridWidth });
-        }
-
-        // When clone moves completely off left, position it to the right of the grid
-        if (cloneX <= -gridWidth) {
-          gsap.set(gridClone, { x: gridX + gridWidth });
-        }
-      },
-    });
-
-    // Animate both grids moving left continuously (like vanilla JS)
-    marqueeTimeline.to(
-      [grid, gridClone],
-      {
-        x: `-=${gridWidth * 2}`, // Move both grids by twice their width
-        duration: duration * 2, // Double the duration to maintain same speed
-        ease: "none",
-      },
-      0
-    );
-
-    // Store timeline reference
-    infiniteMarqueeTimeline.current = marqueeTimeline;
-
-    // Handle resize
-    const handleResize = () => {
-      // Only recreate on resize, not during product interactions
-      if (infiniteMarqueeTimeline.current) {
-        infiniteMarqueeTimeline.current.kill();
-      }
-
-      // Remove clone if it exists
-      const existingClone = document.querySelector('.grid-clone') as HTMLElement | null;
-      if (existingClone) {
-        // Check if element is still connected to DOM
-        if (existingClone.isConnected) {
-          if (typeof existingClone.remove === 'function') {
-            existingClone.remove();
-          } else if (existingClone.parentNode) {
-            existingClone.parentNode.removeChild(existingClone);
-          }
-        }
-      }
-
-      // Restart after resize
-      setTimeout(() => {
-        initializeInfiniteMarquee();
-      }, 100);
-    };
-
-    // Debounced resize handler
-    let resizeTimeout: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 250);
-    };
-
-    window.addEventListener('resize', debouncedResize);
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('resize', debouncedResize);
-      if (infiniteMarqueeTimeline.current) {
-        infiniteMarqueeTimeline.current.kill();
-      }
-    };
   };
 
   return (
