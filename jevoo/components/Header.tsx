@@ -137,7 +137,7 @@ export default function Header() {
               </div>
               <div className="col-lg-6 text-right">
                 <div className="header-top-settings">
-                  <div className="nav align-items-center justify-content-end flex-nowrap">
+                  <div className="nav align-items-center justify-content-center flex-nowrap">
                     <div className="curreny-wrap">
                       $ Currency
                       <i className="fa fa-angle-down"></i>
@@ -209,9 +209,9 @@ export default function Header() {
 
               {/* mini cart area start */}
               <div className={rightColClass}>
-                <div className="header-right d-flex align-items-center justify-content-end">
+                <div className="header-right d-flex align-items-center justify-content-center">
                   <div className="header-configure-area">
-                    <ul className="nav justify-content-end">
+                    <ul className="nav justify-content-center">
                       <li className="user-hover">
                         <a
                           href="#"
@@ -277,9 +277,9 @@ export default function Header() {
       <div className="mobile-header d-lg-none d-md-block sticky">
         <div className="container-fluid">
           <div className="row align-items-center">
-            <div className="col-12">
+            <div className="">
               <div className="mobile-main-header">
-                <div className="col-4 mobile-logo">
+                <div className="mobile-logo">
                   <Link href="/">
                     <Image
                       src="/assets/img/jevoo-bespoke.jpg"
@@ -291,7 +291,7 @@ export default function Header() {
                     />
                   </Link>
                 </div>
-                <div className="col-8 mobile-menu-toggler d-flex align-items-center justify-content-end">
+                <div className="mobile-menu-toggler d-flex align-items-center justify-content-center">
                   <div className="mini-cart-wrap me-3">
                     <Link href="/compare">
                       <i className="pe-7s-refresh-2"></i>
